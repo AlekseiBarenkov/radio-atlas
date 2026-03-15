@@ -1,0 +1,60 @@
+.player {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 72px;
+  padding: 12px 24px;
+}
+
+.info {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.title {
+  font-weight: 600;
+}
+
+.subtitle {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.status {
+  color: #2563eb;
+  font-size: 13px;
+}
+
+.error {
+  color: #dc2626;
+  font-size: 13px;
+}
+
+.controls {
+  display: flex;
+  gap: 8px;
+}
+
+.button,
+.secondaryButton {
+  min-width: 88px;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.button {
+  border: 1px solid #111827;
+  background: #111827;
+  color: #ffffff;
+}
+
+.secondaryButton {
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  color: #111827;
+}
