@@ -1,6 +1,5 @@
 import { create } from 'zustand';
-import type { PlayerStore } from './types';
-import { PLAYER_STATUSES } from './types';
+import { PLAYER_STATUSES, type PlayerStore } from './types';
 
 export const usePlayerStore = create<PlayerStore>((set, get) => ({
   currentStation: null,
@@ -11,7 +10,7 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
     playStation: (station) => {
       set({
         currentStation: station,
-        status: PLAYER_STATUSES.PLAYING,
+        status: PLAYER_STATUSES.LOADING,
         errorMessage: null,
       });
     },
@@ -36,7 +35,7 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
       }
 
       set({
-        status: PLAYER_STATUSES.PLAYING,
+        status: PLAYER_STATUSES.LOADING,
         errorMessage: null,
       });
     },
@@ -58,7 +57,7 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
     setError: (message) => {
       set({
         errorMessage: message,
-        status: message ? PLAYER_STATUSES.ERROR : PLAYER_STATUSES.IDLE,
+        status: PLAYER_STATUSES.ERROR,
       });
     },
   },

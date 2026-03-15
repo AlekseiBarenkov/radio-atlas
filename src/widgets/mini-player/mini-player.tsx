@@ -1,9 +1,9 @@
 import {
+  PLAYER_STATUSES,
   useCurrentStation,
   usePlayerActions,
   usePlayerError,
   usePlayerStatus,
-  PLAYER_STATUSES,
 } from '@features/player';
 import S from './mini-player.module.css';
 
