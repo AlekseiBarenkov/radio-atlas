@@ -17,6 +17,16 @@ const getMissingStreamUrlMessage = (stationName: string): string => {
   return `У станции "${stationName}" отсутствует ссылка на поток.`;
 };
 
+const resetAudioElement = (audio: HTMLAudioElement) => {
+  audio.pause();
+  audio.removeAttribute('src');
+  audio.load();
+};
+
+const setAudioSource = (audio: HTMLAudioElement, streamUrl: string) => {
+  audio.src = streamUrl;
+};
+
 export const PlayerAudioBridge = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -38,9 +48,11 @@ export const PlayerAudioBridge = () => {
         return;
       }
 
-      if (status !== PLAYER_STATUSES.ERROR) {
-        actions.setStatus(PLAYER_STATUSES.PAUSED);
+      if (status === PLAYER_STATUSES.ERROR || status === PLAYER_STATUSES.IDLE || status === PLAYER_STATUSES.LOADING) {
+        return;
       }
+
+      actions.setStatus(PLAYER_STATUSES.PAUSED);
     };
 
     const handleWaiting = () => {
@@ -88,32 +100,32 @@ export const PlayerAudioBridge = () => {
         return;
       }
 
-      const { currentStation, status, actions } = state;
+      const { currentStation, status, actions, reconnectAt } = state;
       const prevStation = prevState.currentStation;
+      const prevReconnectAt = prevState.reconnectAt;
 
       const isStationChanged = currentStation?.stationuuid !== prevStation?.stationuuid;
+      const shouldReconnectCurrentStation =
+        Boolean(currentStation) && reconnectAt !== null && reconnectAt !== prevReconnectAt;
 
       if (!currentStation) {
-        currentAudio.pause();
-        currentAudio.removeAttribute('src');
-        currentAudio.load();
+        resetAudioElement(currentAudio);
 
         return;
       }
 
-      if (isStationChanged) {
-        const streamUrl = getStationStreamUrl(currentStation);
+      const streamUrl = getStationStreamUrl(currentStation);
 
-        if (!streamUrl) {
-          currentAudio.pause();
-          currentAudio.removeAttribute('src');
-          currentAudio.load();
-          actions.setError(getMissingStreamUrlMessage(currentStation.name));
+      if (!streamUrl) {
+        resetAudioElement(currentAudio);
+        actions.setError(getMissingStreamUrlMessage(currentStation.name));
 
-          return;
-        }
+        return;
+      }
 
-        currentAudio.src = streamUrl;
+      if (isStationChanged || shouldReconnectCurrentStation) {
+        resetAudioElement(currentAudio);
+        setAudioSource(currentAudio, streamUrl);
       }
 
       if (status === PLAYER_STATUSES.PAUSED) {
@@ -134,7 +146,7 @@ export const PlayerAudioBridge = () => {
     return () => {
       unsubscribe();
 
-      audio.pause();
+      resetAudioElement(audio);
       audio.removeEventListener('playing', handlePlaying);
       audio.removeEventListener('pause', handlePause);
       audio.removeEventListener('waiting', handleWaiting);

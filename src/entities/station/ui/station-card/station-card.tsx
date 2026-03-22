@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   PLAYER_STATUSES,
   useCurrentStation,
@@ -8,6 +8,7 @@ import {
 } from '@features/player';
 import type { RadioStation } from '@entities/station/model/types';
 import S from './station-card.module.css';
+import { BUFFERING_RECONNECT_DELAY_MS } from '@/shared/config/player';
 
 type StationCardProps = {
   station: RadioStation;
@@ -46,12 +47,31 @@ export const StationCard = ({ station }: StationCardProps) => {
   const currentStation = useCurrentStation();
   const playerStatus = usePlayerStatus();
   const playerError = usePlayerError();
-  const { playStation, pause, resume } = usePlayerActions();
+  const { playStation, pause, resume, restartCurrentStation } = usePlayerActions();
+
+  const [isReconnectSuggested, setIsReconnectSuggested] = useState(false);
 
   const isCurrentStation = currentStation?.stationuuid === station.stationuuid;
   const hasCurrentStationError = isCurrentStation && playerStatus === PLAYER_STATUSES.ERROR && Boolean(playerError);
-  const isButtonBusy =
-    isCurrentStation && (playerStatus === PLAYER_STATUSES.LOADING || playerStatus === PLAYER_STATUSES.BUFFERING);
+  const isLoading = isCurrentStation && playerStatus === PLAYER_STATUSES.LOADING;
+  const isBuffering = isCurrentStation && playerStatus === PLAYER_STATUSES.BUFFERING;
+  const isButtonBusy = isLoading;
+
+  useEffect(() => {
+    if (!isBuffering) {
+      setIsReconnectSuggested(false);
+
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setIsReconnectSuggested(true);
+    }, BUFFERING_RECONNECT_DELAY_MS);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [isBuffering, currentStation?.stationuuid]);
 
   const buttonLabel = useMemo(() => {
     if (!isCurrentStation) {
@@ -63,7 +83,7 @@ export const StationCard = ({ station }: StationCardProps) => {
     }
 
     if (playerStatus === PLAYER_STATUSES.BUFFERING) {
-      return 'Buffering...';
+      return isReconnectSuggested ? 'Reconnect' : 'Buffering...';
     }
 
     if (playerStatus === PLAYER_STATUSES.PAUSED) {
@@ -74,8 +94,12 @@ export const StationCard = ({ station }: StationCardProps) => {
       return 'Pause';
     }
 
+    if (playerStatus === PLAYER_STATUSES.ERROR) {
+      return 'Retry';
+    }
+
     return 'Play';
-  }, [isCurrentStation, playerStatus]);
+  }, [isCurrentStation, isReconnectSuggested, playerStatus]);
 
   const handlePlayClick = () => {
     if (isButtonBusy) {
@@ -94,12 +118,22 @@ export const StationCard = ({ station }: StationCardProps) => {
       return;
     }
 
-    if (
-      playerStatus === PLAYER_STATUSES.PAUSED ||
-      playerStatus === PLAYER_STATUSES.ERROR ||
-      playerStatus === PLAYER_STATUSES.IDLE
-    ) {
+    if (playerStatus === PLAYER_STATUSES.PAUSED) {
       resume();
+
+      return;
+    }
+
+    if (playerStatus === PLAYER_STATUSES.ERROR) {
+      restartCurrentStation();
+
+      return;
+    }
+
+    if (playerStatus === PLAYER_STATUSES.BUFFERING) {
+      if (isReconnectSuggested) {
+        restartCurrentStation();
+      }
 
       return;
     }
@@ -130,6 +164,10 @@ export const StationCard = ({ station }: StationCardProps) => {
           <span>Bitrate: {bitrateLabel}</span>
         </div>
 
+        {isBuffering && !isReconnectSuggested && <div className={S.meta}>Буферизация потока...</div>}
+        {isBuffering && isReconnectSuggested && (
+          <div className={S.meta}>Поток долго буферизуется. Можно переподключить.</div>
+        )}
         {hasCurrentStationError && <div className={S.error}>{playerError}</div>}
 
         <div className={S.actions}>

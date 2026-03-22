@@ -15,12 +15,14 @@ export type PlayerState = {
   currentStation: RadioStation | null;
   status: PlayerStatus;
   errorMessage: string | null;
+  reconnectAt: number | null;
 };
 
 export type PlayerActions = {
   playStation: (station: RadioStation) => void;
   pause: () => void;
   resume: () => void;
+  restartCurrentStation: () => void;
   stop: () => void;
   setStatus: (status: PlayerStatus) => void;
   setError: (message: string | null) => void;
