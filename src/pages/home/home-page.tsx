@@ -1,5 +1,8 @@
 import { StationCard, useTopClickStations } from '@entities/station';
+import { Skeleton, SkeletonCard } from '@shared/ui';
 import S from './home-page.module.css';
+
+const SKELETON_ITEMS = 6;
 
 export const HomePage = () => {
   const { stations, isLoading, isError, error } = useTopClickStations({
@@ -10,7 +13,16 @@ export const HomePage = () => {
   if (isLoading) {
     return (
       <section className={S.page}>
-        <div>Загрузка станций...</div>
+        <header className={S.header}>
+          <Skeleton width={280} height={38} />
+          <Skeleton width={320} height={20} />
+        </header>
+
+        <div className={S.grid}>
+          {Array.from({ length: SKELETON_ITEMS }).map((_, index) => (
+            <SkeletonCard key={index} />
+          ))}
+        </div>
       </section>
     );
   }
