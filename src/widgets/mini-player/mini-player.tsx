@@ -1,11 +1,4 @@
-import {
-  PLAYER_STATUSES,
-  useCurrentStation,
-  useIsReconnectSuggested,
-  usePlayerActions,
-  usePlayerError,
-  usePlayerStatus,
-} from '@features/player';
+import { PLAYER_STATUSES, usePlayerActions, usePlayerUiState } from '@features/player';
 import type { PlayerStatus } from '@features/player';
 import S from './mini-player.module.css';
 
@@ -30,18 +23,20 @@ const getPrimaryButtonLabel = (playerStatus: PlayerStatus, isReconnectSuggested:
 };
 
 export const MiniPlayer = () => {
-  const currentStation = useCurrentStation();
-  const playerStatus = usePlayerStatus();
-  const errorMessage = usePlayerError();
-  const isReconnectSuggested = useIsReconnectSuggested();
-  const { pause, resume, restartCurrentStation, stop } = usePlayerActions();
+  const {
+    currentStation,
+    playerStatus,
+    errorMessage,
+    isReconnectSuggested,
+    isIdle,
+    isLoading,
+    isPlaying,
+    isPaused,
+    isBuffering,
+    isError,
+  } = usePlayerUiState();
 
-  const isIdle = !currentStation;
-  const isPlaying = playerStatus === PLAYER_STATUSES.PLAYING;
-  const isLoading = playerStatus === PLAYER_STATUSES.LOADING;
-  const isBuffering = playerStatus === PLAYER_STATUSES.BUFFERING;
-  const isPaused = playerStatus === PLAYER_STATUSES.PAUSED;
-  const isError = playerStatus === PLAYER_STATUSES.ERROR;
+  const { pause, resume, restartCurrentStation, stop } = usePlayerActions();
 
   const handleTogglePlay = () => {
     if (!currentStation) {
