@@ -1,14 +1,13 @@
-import { useEffect, useState } from 'react';
 import {
   PLAYER_STATUSES,
   useCurrentStation,
+  useIsReconnectSuggested,
   usePlayerActions,
   usePlayerError,
   usePlayerStatus,
 } from '@features/player';
 import type { PlayerStatus } from '@features/player';
 import S from './mini-player.module.css';
-import { BUFFERING_RECONNECT_DELAY_MS } from '@/shared/config/player';
 
 const getPrimaryButtonLabel = (playerStatus: PlayerStatus, isReconnectSuggested: boolean): string => {
   if (playerStatus === PLAYER_STATUSES.PLAYING) {
@@ -34,9 +33,8 @@ export const MiniPlayer = () => {
   const currentStation = useCurrentStation();
   const playerStatus = usePlayerStatus();
   const errorMessage = usePlayerError();
+  const isReconnectSuggested = useIsReconnectSuggested();
   const { pause, resume, restartCurrentStation, stop } = usePlayerActions();
-
-  const [isReconnectSuggested, setIsReconnectSuggested] = useState(false);
 
   const isIdle = !currentStation;
   const isPlaying = playerStatus === PLAYER_STATUSES.PLAYING;
@@ -44,22 +42,6 @@ export const MiniPlayer = () => {
   const isBuffering = playerStatus === PLAYER_STATUSES.BUFFERING;
   const isPaused = playerStatus === PLAYER_STATUSES.PAUSED;
   const isError = playerStatus === PLAYER_STATUSES.ERROR;
-
-  useEffect(() => {
-    if (!isBuffering) {
-      setIsReconnectSuggested(false);
-
-      return;
-    }
-
-    const timeoutId = window.setTimeout(() => {
-      setIsReconnectSuggested(true);
-    }, BUFFERING_RECONNECT_DELAY_MS);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, [isBuffering, currentStation?.stationuuid]);
 
   const handleTogglePlay = () => {
     if (!currentStation) {

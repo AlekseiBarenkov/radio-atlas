@@ -1,14 +1,14 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import {
   PLAYER_STATUSES,
   useCurrentStation,
+  useIsReconnectSuggested,
   usePlayerActions,
   usePlayerError,
   usePlayerStatus,
 } from '@features/player';
 import type { RadioStation } from '@entities/station/model/types';
 import S from './station-card.module.css';
-import { BUFFERING_RECONNECT_DELAY_MS } from '@/shared/config/player';
 
 type StationCardProps = {
   station: RadioStation;
@@ -47,31 +47,14 @@ export const StationCard = ({ station }: StationCardProps) => {
   const currentStation = useCurrentStation();
   const playerStatus = usePlayerStatus();
   const playerError = usePlayerError();
+  const isReconnectSuggested = useIsReconnectSuggested();
   const { playStation, pause, resume, restartCurrentStation } = usePlayerActions();
-
-  const [isReconnectSuggested, setIsReconnectSuggested] = useState(false);
 
   const isCurrentStation = currentStation?.stationuuid === station.stationuuid;
   const hasCurrentStationError = isCurrentStation && playerStatus === PLAYER_STATUSES.ERROR && Boolean(playerError);
   const isLoading = isCurrentStation && playerStatus === PLAYER_STATUSES.LOADING;
   const isBuffering = isCurrentStation && playerStatus === PLAYER_STATUSES.BUFFERING;
   const isButtonBusy = isLoading;
-
-  useEffect(() => {
-    if (!isBuffering) {
-      setIsReconnectSuggested(false);
-
-      return;
-    }
-
-    const timeoutId = window.setTimeout(() => {
-      setIsReconnectSuggested(true);
-    }, BUFFERING_RECONNECT_DELAY_MS);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, [isBuffering, currentStation?.stationuuid]);
 
   const buttonLabel = useMemo(() => {
     if (!isCurrentStation) {
