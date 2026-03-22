@@ -1,5 +1,10 @@
-import { useMemo } from 'react';
-import { PLAYER_STATUSES, usePlayerActions, usePlayerUiState } from '@features/player';
+import {
+  getPlayerPrimaryButtonLabel,
+  getPlayerStatusMessage,
+  PLAYER_STATUSES,
+  usePlayerActions,
+  usePlayerUiState,
+} from '@features/player';
 import type { RadioStation } from '@entities/station/model/types';
 import S from './station-card.module.css';
 
@@ -42,37 +47,15 @@ export const StationCard = ({ station }: StationCardProps) => {
 
   const isCurrentStation = currentStation?.stationuuid === station.stationuuid;
   const hasCurrentStationError = isCurrentStation && playerStatus === PLAYER_STATUSES.ERROR && Boolean(errorMessage);
-  const isLoading = isCurrentStation && playerStatus === PLAYER_STATUSES.LOADING;
-  const isBuffering = isCurrentStation && playerStatus === PLAYER_STATUSES.BUFFERING;
-  const isButtonBusy = isLoading;
+  const isButtonBusy = isCurrentStation && playerStatus === PLAYER_STATUSES.LOADING;
 
-  const buttonLabel = useMemo(() => {
-    if (!isCurrentStation) {
-      return 'Play';
-    }
-
-    if (playerStatus === PLAYER_STATUSES.LOADING) {
-      return 'Loading...';
-    }
-
-    if (playerStatus === PLAYER_STATUSES.BUFFERING) {
-      return isReconnectSuggested ? 'Reconnect' : 'Buffering...';
-    }
-
-    if (playerStatus === PLAYER_STATUSES.PAUSED) {
-      return 'Resume';
-    }
-
-    if (playerStatus === PLAYER_STATUSES.PLAYING) {
-      return 'Pause';
-    }
-
-    if (playerStatus === PLAYER_STATUSES.ERROR) {
-      return 'Retry';
-    }
-
-    return 'Play';
-  }, [isCurrentStation, isReconnectSuggested, playerStatus]);
+  const statusMessage = isCurrentStation
+    ? getPlayerStatusMessage({
+        status: playerStatus,
+        isReconnectSuggested,
+        errorMessage,
+      })
+    : { text: '', tone: null };
 
   const handlePlayClick = () => {
     if (isButtonBusy) {
@@ -137,15 +120,16 @@ export const StationCard = ({ station }: StationCardProps) => {
           <span>Bitrate: {bitrateLabel}</span>
         </div>
 
-        {isBuffering && !isReconnectSuggested && <div className={S.meta}>Буферизация потока...</div>}
-        {isBuffering && isReconnectSuggested && (
-          <div className={S.meta}>Поток долго буферизуется. Можно переподключить.</div>
-        )}
-        {hasCurrentStationError && <div className={S.error}>{errorMessage}</div>}
+        {statusMessage.tone === 'info' && <div className={S.meta}>{statusMessage.text}</div>}
+        {statusMessage.tone === 'error' && <div className={S.error}>{statusMessage.text}</div>}
 
         <div className={S.actions}>
           <button className={S.playButton} type="button" onClick={handlePlayClick} disabled={isButtonBusy}>
-            {buttonLabel}
+            {getPlayerPrimaryButtonLabel({
+              status: playerStatus,
+              isReconnectSuggested,
+              isCurrentStation,
+            })}
           </button>
         </div>
       </div>
