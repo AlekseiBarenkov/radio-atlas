@@ -1,7 +1,7 @@
 import { usePlayerStore } from '@features/player/model/player-store';
 import { PLAYER_STATUSES, type PlayerStatus } from '@features/player/model/types';
-import { getStationStreamUrl } from './get-station-stream-url';
 import { BUFFERING_RECONNECT_DELAY_MS } from '@shared/config/player';
+import { getStationStreamUrl } from './get-station-stream-url';
 
 type PlayerRuntime = {
   destroy: () => void;
@@ -87,40 +87,14 @@ export const createPlayerRuntime = (): PlayerRuntime => {
     resetReconnectSuggestionState();
   };
 
-  const scheduleReconnectSuggestion = (requestId: number) => {
-    if (reconnectSuggestionTimeout !== null) {
-      return;
-    }
-
-    reconnectSuggestionTimeout = window.setTimeout(() => {
-      reconnectSuggestionTimeout = null;
-
-      if (!playbackGuard.isActual(requestId)) {
-        return;
-      }
-
-      const { currentStation, status, isReconnectSuggested, actions } = usePlayerStore.getState();
-
-      if (!currentStation) {
-        return;
-      }
-
-      if (status !== PLAYER_STATUSES.BUFFERING || isReconnectSuggested) {
-        return;
-      }
-
-      actions.setReconnectSuggested(true);
-    }, BUFFERING_RECONNECT_DELAY_MS);
-  };
-
-  const handlePlaying = () => {
+  const syncPlaying = () => {
     const { actions } = usePlayerStore.getState();
 
     clearReconnectSuggestion();
     actions.setStatus(PLAYER_STATUSES.PLAYING);
   };
 
-  const handlePause = () => {
+  const syncPaused = () => {
     const { currentStation, status, actions } = usePlayerStore.getState();
 
     if (!currentStation) {
@@ -135,7 +109,7 @@ export const createPlayerRuntime = (): PlayerRuntime => {
     actions.setStatus(PLAYER_STATUSES.PAUSED);
   };
 
-  const handleWaiting = () => {
+  const syncBuffering = () => {
     const { currentStation, actions } = usePlayerStore.getState();
 
     if (!currentStation) {
@@ -145,10 +119,38 @@ export const createPlayerRuntime = (): PlayerRuntime => {
     const requestId = playbackGuard.current();
 
     actions.setStatus(PLAYER_STATUSES.BUFFERING);
-    scheduleReconnectSuggestion(requestId);
+
+    if (reconnectSuggestionTimeout !== null) {
+      return;
+    }
+
+    reconnectSuggestionTimeout = window.setTimeout(() => {
+      reconnectSuggestionTimeout = null;
+
+      if (!playbackGuard.isActual(requestId)) {
+        return;
+      }
+
+      const {
+        currentStation: activeStation,
+        status,
+        isReconnectSuggested,
+        actions: latestActions,
+      } = usePlayerStore.getState();
+
+      if (!activeStation) {
+        return;
+      }
+
+      if (status !== PLAYER_STATUSES.BUFFERING || isReconnectSuggested) {
+        return;
+      }
+
+      latestActions.setReconnectSuggested(true);
+    }, BUFFERING_RECONNECT_DELAY_MS);
   };
 
-  const handleLoadStart = () => {
+  const syncLoading = () => {
     const { currentStation, actions } = usePlayerStore.getState();
 
     if (!currentStation) {
@@ -159,7 +161,7 @@ export const createPlayerRuntime = (): PlayerRuntime => {
     actions.setStatus(PLAYER_STATUSES.LOADING);
   };
 
-  const handleError = () => {
+  const syncError = () => {
     const { currentStation, actions } = usePlayerStore.getState();
 
     clearReconnectSuggestion();
@@ -173,13 +175,28 @@ export const createPlayerRuntime = (): PlayerRuntime => {
     actions.setError(getPlaybackErrorMessage(currentStation.name));
   };
 
-  audio.addEventListener('playing', handlePlaying);
-  audio.addEventListener('pause', handlePause);
-  audio.addEventListener('waiting', handleWaiting);
-  audio.addEventListener('loadstart', handleLoadStart);
-  audio.addEventListener('error', handleError);
+  const playCurrentSource = (stationId: string, stationName: string) => {
+    const requestId = playbackGuard.current();
 
-  const unsubscribe = usePlayerStore.subscribe((state, prevState) => {
+    audio.play().catch(() => {
+      const { currentStation, actions } = usePlayerStore.getState();
+
+      if (!playbackGuard.isActual(requestId)) {
+        return;
+      }
+
+      if (!currentStation || currentStation.stationuuid !== stationId) {
+        return;
+      }
+
+      actions.setError(getPlaybackErrorMessage(stationName));
+    });
+  };
+
+  const handleStoreChange = (
+    state: ReturnType<typeof usePlayerStore.getState>,
+    prevState: ReturnType<typeof usePlayerStore.getState>,
+  ) => {
     const { currentStation, status, actions, reconnectAt } = state;
     const prevStation = prevState.currentStation;
     const prevReconnectAt = prevState.reconnectAt;
@@ -187,7 +204,7 @@ export const createPlayerRuntime = (): PlayerRuntime => {
     const isStationChanged = currentStation?.stationuuid !== prevStation?.stationuuid;
     const shouldReconnectCurrentStation =
       Boolean(currentStation) && reconnectAt !== null && reconnectAt !== prevReconnectAt;
-    console.log(12);
+
     if (!currentStation) {
       playbackGuard.next();
       clearReconnectSuggestion();
@@ -224,37 +241,29 @@ export const createPlayerRuntime = (): PlayerRuntime => {
       return;
     }
 
-    const requestId = playbackGuard.current();
-    const stationId = currentStation.stationuuid;
-    const stationName = currentStation.name;
+    playCurrentSource(currentStation.stationuuid, currentStation.name);
+  };
 
-    audio.play().catch(() => {
-      const { currentStation: activeStation, actions: latestActions } = usePlayerStore.getState();
+  audio.addEventListener('playing', syncPlaying);
+  audio.addEventListener('pause', syncPaused);
+  audio.addEventListener('waiting', syncBuffering);
+  audio.addEventListener('loadstart', syncLoading);
+  audio.addEventListener('error', syncError);
 
-      if (!playbackGuard.isActual(requestId)) {
-        return;
-      }
-
-      if (!activeStation || activeStation.stationuuid !== stationId) {
-        return;
-      }
-
-      latestActions.setError(getPlaybackErrorMessage(stationName));
-    });
-  });
+  const unsubscribe = usePlayerStore.subscribe(handleStoreChange);
 
   return {
     destroy: () => {
       playbackGuard.next();
       clearReconnectSuggestion();
       unsubscribe();
-      console.log('destroy');
+
       resetAudioElement(audio);
-      audio.removeEventListener('playing', handlePlaying);
-      audio.removeEventListener('pause', handlePause);
-      audio.removeEventListener('waiting', handleWaiting);
-      audio.removeEventListener('loadstart', handleLoadStart);
-      audio.removeEventListener('error', handleError);
+      audio.removeEventListener('playing', syncPlaying);
+      audio.removeEventListener('pause', syncPaused);
+      audio.removeEventListener('waiting', syncBuffering);
+      audio.removeEventListener('loadstart', syncLoading);
+      audio.removeEventListener('error', syncError);
     },
   };
 };
