@@ -8,11 +8,27 @@ export const HomePage = () => {
   });
 
   if (isLoading) {
-    return <div>Загрузка станций...</div>;
+    return (
+      <section className={S.page}>
+        <div>Загрузка станций...</div>
+      </section>
+    );
   }
 
   if (isError) {
-    return <div>Ошибка загрузки: {error?.message ?? 'Unknown error'}</div>;
+    return (
+      <section className={S.page}>
+        <div>Ошибка загрузки: {error?.message ?? 'Unknown error'}</div>
+      </section>
+    );
+  }
+
+  if (stations.length === 0) {
+    return (
+      <section className={S.page}>
+        <div>Станции не найдены</div>
+      </section>
+    );
   }
 
   return (

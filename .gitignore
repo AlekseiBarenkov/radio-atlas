@@ -27,5 +27,7 @@ pnpm-debug.log*
 Thumbs.db
 
 # FileExporter
-app.md
-create_markdown_file.py
+
+*.md
+*.py
+*.bat

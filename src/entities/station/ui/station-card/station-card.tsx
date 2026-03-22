@@ -1,5 +1,11 @@
 import { useMemo } from 'react';
-import { useCurrentStation, usePlayerActions, usePlayerStatus, PLAYER_STATUSES } from '@features/player';
+import {
+  PLAYER_STATUSES,
+  useCurrentStation,
+  usePlayerActions,
+  usePlayerError,
+  usePlayerStatus,
+} from '@features/player';
 import type { RadioStation } from '@entities/station/model/types';
 import S from './station-card.module.css';
 
@@ -13,14 +19,39 @@ const getStationImage = (station: RadioStation): string | null => {
   return favicon.length > 0 ? favicon : null;
 };
 
+const getStationBitrateLabel = (station: RadioStation): string => {
+  return station.bitrate > 0 ? String(station.bitrate) : 'unknown';
+};
+
+const getCardClassName = (isCurrentStation: boolean, hasError: boolean): string => {
+  if (isCurrentStation && hasError) {
+    return `${S.card} ${S.cardCurrent} ${S.cardError}`;
+  }
+
+  if (isCurrentStation) {
+    return `${S.card} ${S.cardCurrent}`;
+  }
+
+  if (hasError) {
+    return `${S.card} ${S.cardError}`;
+  }
+
+  return S.card;
+};
+
 export const StationCard = ({ station }: StationCardProps) => {
   const image = getStationImage(station);
+  const bitrateLabel = getStationBitrateLabel(station);
 
   const currentStation = useCurrentStation();
   const playerStatus = usePlayerStatus();
+  const playerError = usePlayerError();
   const { playStation, pause, resume } = usePlayerActions();
 
   const isCurrentStation = currentStation?.stationuuid === station.stationuuid;
+  const hasCurrentStationError = isCurrentStation && playerStatus === PLAYER_STATUSES.ERROR && Boolean(playerError);
+  const isButtonBusy =
+    isCurrentStation && (playerStatus === PLAYER_STATUSES.LOADING || playerStatus === PLAYER_STATUSES.BUFFERING);
 
   const buttonLabel = useMemo(() => {
     if (!isCurrentStation) {
@@ -29,6 +60,10 @@ export const StationCard = ({ station }: StationCardProps) => {
 
     if (playerStatus === PLAYER_STATUSES.LOADING) {
       return 'Loading...';
+    }
+
+    if (playerStatus === PLAYER_STATUSES.BUFFERING) {
+      return 'Buffering...';
     }
 
     if (playerStatus === PLAYER_STATUSES.PAUSED) {
@@ -43,6 +78,10 @@ export const StationCard = ({ station }: StationCardProps) => {
   }, [isCurrentStation, playerStatus]);
 
   const handlePlayClick = () => {
+    if (isButtonBusy) {
+      return;
+    }
+
     if (!isCurrentStation) {
       playStation(station);
 
@@ -61,6 +100,7 @@ export const StationCard = ({ station }: StationCardProps) => {
       playerStatus === PLAYER_STATUSES.IDLE
     ) {
       resume();
+
       return;
     }
 
@@ -68,7 +108,7 @@ export const StationCard = ({ station }: StationCardProps) => {
   };
 
   return (
-    <article className={S.card}>
+    <article className={getCardClassName(isCurrentStation, hasCurrentStationError)}>
       <div className={S.logoWrapper}>
         {image ? (
           <img className={S.logo} src={image} alt={station.name} loading="lazy" />
@@ -87,11 +127,13 @@ export const StationCard = ({ station }: StationCardProps) => {
 
         <div className={S.stats}>
           <span>Clicks: {station.clickcount}</span>
-          <span>Bitrate: {station.bitrate || 0}</span>
+          <span>Bitrate: {bitrateLabel}</span>
         </div>
 
+        {hasCurrentStationError && <div className={S.error}>{playerError}</div>}
+
         <div className={S.actions}>
-          <button className={S.playButton} type="button" onClick={handlePlayClick}>
+          <button className={S.playButton} type="button" onClick={handlePlayClick} disabled={isButtonBusy}>
             {buttonLabel}
           </button>
         </div>

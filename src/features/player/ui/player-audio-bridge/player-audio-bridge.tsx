@@ -1,12 +1,20 @@
 import { useEffect, useRef } from 'react';
 import { usePlayerStore } from '@features/player/model/player-store';
-import { PLAYER_STATUSES } from '@features/player/model/types';
+import { PLAYER_STATUSES, type PlayerStatus } from '@features/player/model/types';
 import { getStationStreamUrl } from '@features/player/lib/get-station-stream-url';
 
-const shouldPlayByStatus = (status: string): boolean => {
+const shouldPlayByStatus = (status: PlayerStatus): boolean => {
   return (
     status === PLAYER_STATUSES.LOADING || status === PLAYER_STATUSES.BUFFERING || status === PLAYER_STATUSES.PLAYING
   );
+};
+
+const getPlaybackErrorMessage = (stationName: string): string => {
+  return `Не удалось воспроизвести станцию "${stationName}". Поток недоступен или не поддерживается браузером.`;
+};
+
+const getMissingStreamUrlMessage = (stationName: string): string => {
+  return `У станции "${stationName}" отсутствует ссылка на поток.`;
 };
 
 export const PlayerAudioBridge = () => {
@@ -56,9 +64,15 @@ export const PlayerAudioBridge = () => {
     };
 
     const handleError = () => {
-      const { actions } = usePlayerStore.getState();
+      const { currentStation, actions } = usePlayerStore.getState();
 
-      actions.setError('Ошибка воспроизведения потока.');
+      if (!currentStation) {
+        actions.setError('Ошибка воспроизведения потока.');
+
+        return;
+      }
+
+      actions.setError(getPlaybackErrorMessage(currentStation.name));
     };
 
     audio.addEventListener('playing', handlePlaying);
@@ -83,53 +97,49 @@ export const PlayerAudioBridge = () => {
         currentAudio.pause();
         currentAudio.removeAttribute('src');
         currentAudio.load();
-        return;
-      }
 
-      const streamUrl = getStationStreamUrl(currentStation);
-
-      if (!streamUrl) {
-        actions.setError('У станции отсутствует поток для воспроизведения.');
         return;
       }
 
       if (isStationChanged) {
-        currentAudio.pause();
+        const streamUrl = getStationStreamUrl(currentStation);
+
+        if (!streamUrl) {
+          currentAudio.pause();
+          currentAudio.removeAttribute('src');
+          currentAudio.load();
+          actions.setError(getMissingStreamUrlMessage(currentStation.name));
+
+          return;
+        }
+
         currentAudio.src = streamUrl;
-        currentAudio.load();
-
-        void currentAudio.play().catch(() => {
-          actions.setError('Не удалось запустить воспроизведение.');
-        });
-
-        return;
       }
 
-      if (status === PLAYER_STATUSES.PAUSED && !currentAudio.paused) {
+      if (status === PLAYER_STATUSES.PAUSED) {
         currentAudio.pause();
+
         return;
       }
 
-      if (shouldPlayByStatus(status) && currentAudio.paused) {
-        void currentAudio.play().catch(() => {
-          actions.setError('Не удалось возобновить воспроизведение.');
-        });
+      if (!shouldPlayByStatus(status)) {
+        return;
       }
+
+      currentAudio.play().catch(() => {
+        actions.setError(getPlaybackErrorMessage(currentStation.name));
+      });
     });
 
     return () => {
       unsubscribe();
 
+      audio.pause();
       audio.removeEventListener('playing', handlePlaying);
       audio.removeEventListener('pause', handlePause);
       audio.removeEventListener('waiting', handleWaiting);
       audio.removeEventListener('loadstart', handleLoadStart);
       audio.removeEventListener('error', handleError);
-
-      audio.pause();
-      audio.removeAttribute('src');
-      audio.load();
-
       audioRef.current = null;
     };
   }, []);

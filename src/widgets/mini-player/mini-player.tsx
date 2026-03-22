@@ -16,6 +16,7 @@ export const MiniPlayer = () => {
   const isIdle = !currentStation;
   const isPlaying = playerStatus === PLAYER_STATUSES.PLAYING;
   const isLoading = playerStatus === PLAYER_STATUSES.LOADING;
+  const isBuffering = playerStatus === PLAYER_STATUSES.BUFFERING;
   const isPaused = playerStatus === PLAYER_STATUSES.PAUSED;
   const isError = playerStatus === PLAYER_STATUSES.ERROR;
 
@@ -26,6 +27,7 @@ export const MiniPlayer = () => {
 
     if (isPlaying) {
       pause();
+
       return;
     }
 
@@ -44,6 +46,7 @@ export const MiniPlayer = () => {
         </div>
 
         {isLoading && <div className={S.status}>Подключение к станции...</div>}
+        {isBuffering && <div className={S.status}>Буферизация потока...</div>}
         {isPaused && <div className={S.status}>Пауза</div>}
         {isError && <div className={S.error}>{errorMessage ?? 'Ошибка воспроизведения'}</div>}
       </div>
