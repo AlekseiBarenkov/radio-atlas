@@ -63,6 +63,16 @@ export const createPlayerRuntime = (): PlayerRuntime => {
 
   audio.preload = 'none';
 
+  const setStatusSafe = (status: PlayerStatus) => {
+    const { status: currentStatus, actions } = usePlayerStore.getState();
+
+    if (currentStatus === status) {
+      return;
+    }
+
+    actions.setStatus(status);
+  };
+
   const clearReconnectSuggestionTimeout = () => {
     if (reconnectSuggestionTimeout === null) {
       return;
@@ -99,14 +109,12 @@ export const createPlayerRuntime = (): PlayerRuntime => {
   };
 
   const syncPlaying = () => {
-    const { actions } = usePlayerStore.getState();
-
     clearReconnectSuggestion();
-    actions.setStatus(PLAYER_STATUSES.PLAYING);
+    setStatusSafe(PLAYER_STATUSES.PLAYING);
   };
 
   const syncPaused = () => {
-    const { currentStation, status, actions } = usePlayerStore.getState();
+    const { currentStation, status } = usePlayerStore.getState();
 
     if (!currentStation) {
       return;
@@ -117,7 +125,7 @@ export const createPlayerRuntime = (): PlayerRuntime => {
     }
 
     clearReconnectSuggestion();
-    actions.setStatus(PLAYER_STATUSES.PAUSED);
+    setStatusSafe(PLAYER_STATUSES.PAUSED);
   };
 
   const scheduleReconnectSuggestion = () => {
@@ -154,25 +162,25 @@ export const createPlayerRuntime = (): PlayerRuntime => {
   };
 
   const syncBuffering = () => {
-    const { currentStation, actions } = usePlayerStore.getState();
+    const { currentStation } = usePlayerStore.getState();
 
     if (!currentStation) {
       return;
     }
 
-    actions.setStatus(PLAYER_STATUSES.BUFFERING);
+    setStatusSafe(PLAYER_STATUSES.BUFFERING);
     scheduleReconnectSuggestion();
   };
 
   const syncLoading = () => {
-    const { currentStation, actions } = usePlayerStore.getState();
+    const { currentStation } = usePlayerStore.getState();
 
     if (!currentStation) {
       return;
     }
 
     clearReconnectSuggestion();
-    actions.setStatus(PLAYER_STATUSES.LOADING);
+    setStatusSafe(PLAYER_STATUSES.LOADING);
   };
 
   const syncError = () => {
