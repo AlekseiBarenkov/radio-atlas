@@ -1,12 +1,5 @@
 import { useMemo } from 'react';
-import {
-  PLAYER_STATUSES,
-  useCurrentStation,
-  useIsReconnectSuggested,
-  usePlayerActions,
-  usePlayerError,
-  usePlayerStatus,
-} from '@features/player';
+import { PLAYER_STATUSES, usePlayerActions, usePlayerUiState } from '@features/player';
 import type { RadioStation } from '@entities/station/model/types';
 import S from './station-card.module.css';
 
@@ -44,14 +37,11 @@ export const StationCard = ({ station }: StationCardProps) => {
   const image = getStationImage(station);
   const bitrateLabel = getStationBitrateLabel(station);
 
-  const currentStation = useCurrentStation();
-  const playerStatus = usePlayerStatus();
-  const playerError = usePlayerError();
-  const isReconnectSuggested = useIsReconnectSuggested();
+  const { currentStation, playerStatus, errorMessage, isReconnectSuggested } = usePlayerUiState();
   const { playStation, pause, resume, restartCurrentStation } = usePlayerActions();
 
   const isCurrentStation = currentStation?.stationuuid === station.stationuuid;
-  const hasCurrentStationError = isCurrentStation && playerStatus === PLAYER_STATUSES.ERROR && Boolean(playerError);
+  const hasCurrentStationError = isCurrentStation && playerStatus === PLAYER_STATUSES.ERROR && Boolean(errorMessage);
   const isLoading = isCurrentStation && playerStatus === PLAYER_STATUSES.LOADING;
   const isBuffering = isCurrentStation && playerStatus === PLAYER_STATUSES.BUFFERING;
   const isButtonBusy = isLoading;
@@ -151,7 +141,7 @@ export const StationCard = ({ station }: StationCardProps) => {
         {isBuffering && isReconnectSuggested && (
           <div className={S.meta}>Поток долго буферизуется. Можно переподключить.</div>
         )}
-        {hasCurrentStationError && <div className={S.error}>{playerError}</div>}
+        {hasCurrentStationError && <div className={S.error}>{errorMessage}</div>}
 
         <div className={S.actions}>
           <button className={S.playButton} type="button" onClick={handlePlayClick} disabled={isButtonBusy}>
