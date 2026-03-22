@@ -2,6 +2,7 @@ import {
   getPlayerPrimaryButtonLabel,
   getPlayerStatusMessage,
   PLAYER_STATUSES,
+  runPlayerPrimaryAction,
   usePlayerActions,
   usePlayerUiState,
 } from '@features/player';
@@ -43,7 +44,7 @@ export const StationCard = ({ station }: StationCardProps) => {
   const bitrateLabel = getStationBitrateLabel(station);
 
   const { currentStation, playerStatus, errorMessage, isReconnectSuggested } = usePlayerUiState();
-  const { playStation, pause, resume, restartCurrentStation } = usePlayerActions();
+  const actions = usePlayerActions();
 
   const isCurrentStation = currentStation?.stationuuid === station.stationuuid;
   const hasCurrentStationError = isCurrentStation && playerStatus === PLAYER_STATUSES.ERROR && Boolean(errorMessage);
@@ -62,39 +63,13 @@ export const StationCard = ({ station }: StationCardProps) => {
       return;
     }
 
-    if (!isCurrentStation) {
-      playStation(station);
-
-      return;
-    }
-
-    if (playerStatus === PLAYER_STATUSES.PLAYING) {
-      pause();
-
-      return;
-    }
-
-    if (playerStatus === PLAYER_STATUSES.PAUSED) {
-      resume();
-
-      return;
-    }
-
-    if (playerStatus === PLAYER_STATUSES.ERROR) {
-      restartCurrentStation();
-
-      return;
-    }
-
-    if (playerStatus === PLAYER_STATUSES.BUFFERING) {
-      if (isReconnectSuggested) {
-        restartCurrentStation();
-      }
-
-      return;
-    }
-
-    playStation(station);
+    runPlayerPrimaryAction({
+      status: playerStatus,
+      isReconnectSuggested,
+      currentStation,
+      targetStation: station,
+      actions,
+    });
   };
 
   return (

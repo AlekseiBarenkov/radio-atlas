@@ -1,26 +1,16 @@
 import {
   getPlayerPrimaryButtonLabel,
   getPlayerStatusMessage,
+  runPlayerPrimaryAction,
   usePlayerActions,
   usePlayerUiState,
 } from '@features/player';
 import S from './mini-player.module.css';
 
 export const MiniPlayer = () => {
-  const {
-    currentStation,
-    playerStatus,
-    errorMessage,
-    isReconnectSuggested,
-    isIdle,
-    isLoading,
-    isPlaying,
-    isPaused,
-    isBuffering,
-    isError,
-  } = usePlayerUiState();
+  const { currentStation, playerStatus, errorMessage, isReconnectSuggested, isIdle, isLoading } = usePlayerUiState();
 
-  const { pause, resume, restartCurrentStation, stop } = usePlayerActions();
+  const actions = usePlayerActions();
 
   const statusMessage = getPlayerStatusMessage({
     status: playerStatus,
@@ -29,37 +19,12 @@ export const MiniPlayer = () => {
   });
 
   const handleTogglePlay = () => {
-    if (!currentStation) {
-      return;
-    }
-
-    if (isPlaying) {
-      pause();
-
-      return;
-    }
-
-    if (isPaused) {
-      resume();
-
-      return;
-    }
-
-    if (isError) {
-      restartCurrentStation();
-
-      return;
-    }
-
-    if (isBuffering) {
-      if (isReconnectSuggested) {
-        restartCurrentStation();
-      }
-
-      return;
-    }
-
-    resume();
+    runPlayerPrimaryAction({
+      status: playerStatus,
+      isReconnectSuggested,
+      currentStation,
+      actions,
+    });
   };
 
   return (
@@ -85,7 +50,7 @@ export const MiniPlayer = () => {
           })}
         </button>
 
-        <button className={S.secondaryButton} type="button" onClick={stop} disabled={isIdle}>
+        <button className={S.secondaryButton} type="button" onClick={actions.stop} disabled={isIdle}>
           Stop
         </button>
       </div>
