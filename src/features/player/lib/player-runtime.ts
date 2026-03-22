@@ -87,6 +87,17 @@ export const createPlayerRuntime = (): PlayerRuntime => {
     resetReconnectSuggestionState();
   };
 
+  const resetPlayback = () => {
+    playbackGuard.next();
+    clearReconnectSuggestion();
+    resetAudioElement(audio);
+  };
+
+  const replaceAudioSource = (streamUrl: string) => {
+    resetPlayback();
+    setAudioSource(audio, streamUrl);
+  };
+
   const syncPlaying = () => {
     const { actions } = usePlayerStore.getState();
 
@@ -109,20 +120,12 @@ export const createPlayerRuntime = (): PlayerRuntime => {
     actions.setStatus(PLAYER_STATUSES.PAUSED);
   };
 
-  const syncBuffering = () => {
-    const { currentStation, actions } = usePlayerStore.getState();
-
-    if (!currentStation) {
+  const scheduleReconnectSuggestion = () => {
+    if (reconnectSuggestionTimeout !== null) {
       return;
     }
 
     const requestId = playbackGuard.current();
-
-    actions.setStatus(PLAYER_STATUSES.BUFFERING);
-
-    if (reconnectSuggestionTimeout !== null) {
-      return;
-    }
 
     reconnectSuggestionTimeout = window.setTimeout(() => {
       reconnectSuggestionTimeout = null;
@@ -148,6 +151,17 @@ export const createPlayerRuntime = (): PlayerRuntime => {
 
       latestActions.setReconnectSuggested(true);
     }, BUFFERING_RECONNECT_DELAY_MS);
+  };
+
+  const syncBuffering = () => {
+    const { currentStation, actions } = usePlayerStore.getState();
+
+    if (!currentStation) {
+      return;
+    }
+
+    actions.setStatus(PLAYER_STATUSES.BUFFERING);
+    scheduleReconnectSuggestion();
   };
 
   const syncLoading = () => {
@@ -206,9 +220,7 @@ export const createPlayerRuntime = (): PlayerRuntime => {
       Boolean(currentStation) && reconnectAt !== null && reconnectAt !== prevReconnectAt;
 
     if (!currentStation) {
-      playbackGuard.next();
-      clearReconnectSuggestion();
-      resetAudioElement(audio);
+      resetPlayback();
 
       return;
     }
@@ -216,19 +228,14 @@ export const createPlayerRuntime = (): PlayerRuntime => {
     const streamUrl = getStationStreamUrl(currentStation);
 
     if (!streamUrl) {
-      playbackGuard.next();
-      clearReconnectSuggestion();
-      resetAudioElement(audio);
+      resetPlayback();
       actions.setError(getMissingStreamUrlMessage(currentStation.name));
 
       return;
     }
 
     if (isStationChanged || shouldReconnectCurrentStation) {
-      playbackGuard.next();
-      clearReconnectSuggestion();
-      resetAudioElement(audio);
-      setAudioSource(audio, streamUrl);
+      replaceAudioSource(streamUrl);
     }
 
     if (status === PLAYER_STATUSES.PAUSED) {
@@ -254,11 +261,9 @@ export const createPlayerRuntime = (): PlayerRuntime => {
 
   return {
     destroy: () => {
-      playbackGuard.next();
-      clearReconnectSuggestion();
+      resetPlayback();
       unsubscribe();
 
-      resetAudioElement(audio);
       audio.removeEventListener('playing', syncPlaying);
       audio.removeEventListener('pause', syncPaused);
       audio.removeEventListener('waiting', syncBuffering);
