@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+import { getStationPath } from '@entities/station';
 import { getLastPlayedStation, usePlayerHistory } from '@features/player-history';
 import {
   getPlayerPrimaryButtonLabel,
@@ -21,6 +23,7 @@ export const MiniPlayer = () => {
   });
 
   const lastPlayedStation = getLastPlayedStation(stations);
+  const currentStationPath = currentStation ? getStationPath(currentStation.stationuuid) : null;
 
   const handleTogglePlay = () => {
     runPlayerPrimaryAction({
@@ -42,7 +45,13 @@ export const MiniPlayer = () => {
   return (
     <div className={S.player}>
       <div className={S.info}>
-        <div className={S.title}>{currentStation ? currentStation.name : 'Ничего не играет'}</div>
+        <div className={S.title}>
+          {currentStation && currentStationPath ? (
+            <Link to={currentStationPath}>{currentStation.name}</Link>
+          ) : (
+            'Ничего не играет'
+          )}
+        </div>
 
         <div className={S.subtitle}>
           {currentStation
