@@ -231,6 +231,10 @@ const sortCandidates = (candidates: SimilarStationCandidate[]): SimilarStationCa
   });
 };
 
+const hasEnoughCandidates = (candidateMap: Map<string, SimilarStationCandidate>, limit: number): boolean => {
+  return candidateMap.size >= limit;
+};
+
 export const getSimilarStations = async (
   params: GetSimilarStationsParams,
   signal?: AbortSignal,
@@ -248,6 +252,10 @@ export const getSimilarStations = async (
   const strategies = getSimilarStationsStrategies(station);
 
   for (const strategy of strategies) {
+    if (hasEnoughCandidates(candidateMap, limit)) {
+      break;
+    }
+
     const stations =
       strategy.type === 'tag'
         ? await getStationsByTag(strategy.value, requestLimit, signal)
