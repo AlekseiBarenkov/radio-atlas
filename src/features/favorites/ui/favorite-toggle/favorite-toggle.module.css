@@ -1,0 +1,23 @@
+.button {
+  min-width: 44px;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #111827;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.buttonActive {
+  border-color: #111827;
+  background: #111827;
+  color: #ffffff;
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

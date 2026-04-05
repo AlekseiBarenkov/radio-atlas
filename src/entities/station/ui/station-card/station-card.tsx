@@ -7,6 +7,7 @@ import {
   usePlayerUiState,
 } from '@features/player';
 import type { RadioStation } from '@entities/station/model/types';
+import { FavoriteToggle } from '@features/favorites';
 import S from './station-card.module.css';
 
 type StationCardProps = {
@@ -106,6 +107,8 @@ export const StationCard = ({ station }: StationCardProps) => {
               isCurrentStation,
             })}
           </button>
+
+          <FavoriteToggle station={station} />
         </div>
       </div>
     </article>
