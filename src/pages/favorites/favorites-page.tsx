@@ -4,8 +4,9 @@ import S from './favorites-page.module.css';
 
 export const FavoritesPage = () => {
   const { favoriteStations } = useFavorites();
+  const favoritesCount = favoriteStations.length;
 
-  if (favoriteStations.length === 0) {
+  if (favoritesCount === 0) {
     return (
       <section className={S.page}>
         <header className={S.header}>
@@ -23,6 +24,7 @@ export const FavoritesPage = () => {
       <header className={S.header}>
         <h1 className={S.title}>Favorites</h1>
         <p className={S.description}>Ваши сохранённые радиостанции</p>
+        <div className={S.count}>Сохранено станций: {favoritesCount}</div>
       </header>
 
       <div className={S.grid}>

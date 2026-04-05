@@ -1,5 +1,5 @@
 .button {
-  min-width: 44px;
+  min-width: 132px;
   height: 36px;
   padding: 0 12px;
   border: 1px solid #d1d5db;
@@ -7,14 +7,28 @@
   background: #ffffff;
   color: #111827;
   font: inherit;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .buttonActive {
   border-color: #111827;
   background: #111827;
   color: #ffffff;
+}
+
+.icon {
+  line-height: 1;
+  font-size: 16px;
+}
+
+.label {
+  line-height: 1;
 }
 
 .button:disabled {
