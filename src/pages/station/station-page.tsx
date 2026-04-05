@@ -243,7 +243,7 @@ export const StationPage = () => {
         )}
       </section>
 
-      <SimilarStations stationId={station.stationuuid} tags={tags} />
+      <SimilarStations station={station} />
     </section>
   );
 };
