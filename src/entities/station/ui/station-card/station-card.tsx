@@ -1,6 +1,5 @@
 import {
   getPlayerPrimaryButtonLabel,
-  getPlayerStatusMessage,
   PLAYER_STATUSES,
   runPlayerPrimaryAction,
   usePlayerActions,
@@ -8,6 +7,7 @@ import {
 } from '@features/player';
 import type { RadioStation } from '@entities/station/model/types';
 import { FavoriteToggle } from '@features/favorites';
+import { getStationPlayerState } from '@entities/station';
 import S from './station-card.module.css';
 
 type StationCardProps = {
@@ -47,17 +47,15 @@ export const StationCard = ({ station }: StationCardProps) => {
   const { currentStation, playerStatus, errorMessage, isReconnectSuggested } = usePlayerUiState();
   const actions = usePlayerActions();
 
-  const isCurrentStation = currentStation?.stationuuid === station.stationuuid;
-  const hasCurrentStationError = isCurrentStation && playerStatus === PLAYER_STATUSES.ERROR && Boolean(errorMessage);
-  const isButtonBusy = isCurrentStation && playerStatus === PLAYER_STATUSES.LOADING;
+  const { isCurrentStation, isButtonBusy, statusMessage } = getStationPlayerState({
+    station,
+    currentStation,
+    playerStatus,
+    errorMessage,
+    isReconnectSuggested,
+  });
 
-  const statusMessage = isCurrentStation
-    ? getPlayerStatusMessage({
-        status: playerStatus,
-        isReconnectSuggested,
-        errorMessage,
-      })
-    : { text: '', tone: null };
+  const hasCurrentStationError = isCurrentStation && playerStatus === PLAYER_STATUSES.ERROR && Boolean(errorMessage);
 
   const handlePlayClick = () => {
     if (isButtonBusy) {
