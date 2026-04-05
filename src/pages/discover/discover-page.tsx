@@ -1,16 +1,19 @@
 import { useState } from 'react';
 import { StationCard, useSearchStations, useStations } from '@entities/station';
+import { useDebouncedValue } from '@shared/hooks';
 import { Skeleton, SkeletonCard } from '@shared/ui';
 import { DiscoverSearchForm } from './ui/discover-search-form';
 import S from './discover-page.module.css';
 
 const STATIONS_LIMIT = 48;
 const SKELETON_COUNT = 12;
+const SEARCH_DEBOUNCE_MS = 400;
 
 export const DiscoverPage = () => {
   const [searchValue, setSearchValue] = useState('');
 
-  const normalizedSearchValue = searchValue.trim();
+  const debouncedSearchValue = useDebouncedValue(searchValue, SEARCH_DEBOUNCE_MS);
+  const normalizedSearchValue = debouncedSearchValue.trim();
   const isSearchMode = normalizedSearchValue.length > 0;
 
   const stationsQuery = useStations({
