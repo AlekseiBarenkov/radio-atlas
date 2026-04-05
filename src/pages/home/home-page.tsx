@@ -1,4 +1,5 @@
 import { StationCard, useTopClickStations } from '@entities/station';
+import { RecentlyPlayed } from '@widgets/recently-played';
 import { Skeleton, SkeletonCard } from '@shared/ui';
 import S from './home-page.module.css';
 
@@ -13,6 +14,8 @@ export const HomePage = () => {
   if (isLoading) {
     return (
       <section className={S.page}>
+        <RecentlyPlayed />
+
         <header className={S.header}>
           <Skeleton width={280} height={38} />
           <Skeleton width={320} height={20} />
@@ -30,6 +33,7 @@ export const HomePage = () => {
   if (isError) {
     return (
       <section className={S.page}>
+        <RecentlyPlayed />
         <div>Ошибка загрузки: {error?.message ?? 'Unknown error'}</div>
       </section>
     );
@@ -38,6 +42,7 @@ export const HomePage = () => {
   if (stations.length === 0) {
     return (
       <section className={S.page}>
+        <RecentlyPlayed />
         <div>Станции не найдены</div>
       </section>
     );
@@ -45,6 +50,8 @@ export const HomePage = () => {
 
   return (
     <section className={S.page}>
+      <RecentlyPlayed />
+
       <header className={S.header}>
         <h1 className={S.title}>Top clicked stations</h1>
         <p className={S.description}>Популярные станции из Radio Browser</p>

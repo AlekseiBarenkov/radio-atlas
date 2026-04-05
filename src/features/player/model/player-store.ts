@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { addStationToHistory } from '@features/player-history';
 import { PLAYER_STATUSES, type PlayerStore } from './types';
 
 export const usePlayerStore = create<PlayerStore>((set, get) => ({
@@ -10,6 +11,8 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
 
   actions: {
     playStation: (station) => {
+      addStationToHistory(station);
+
       set({
         currentStation: station,
         status: PLAYER_STATUSES.LOADING,
