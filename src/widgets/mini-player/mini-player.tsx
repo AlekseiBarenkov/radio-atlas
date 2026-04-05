@@ -1,3 +1,4 @@
+import { getLastPlayedStation, usePlayerHistory } from '@features/player-history';
 import {
   getPlayerPrimaryButtonLabel,
   getPlayerStatusMessage,
@@ -9,6 +10,7 @@ import S from './mini-player.module.css';
 
 export const MiniPlayer = () => {
   const { currentStation, playerStatus, errorMessage, isReconnectSuggested, isIdle, isLoading } = usePlayerUiState();
+  const { stations } = usePlayerHistory();
 
   const actions = usePlayerActions();
 
@@ -17,6 +19,8 @@ export const MiniPlayer = () => {
     isReconnectSuggested,
     errorMessage,
   });
+
+  const lastPlayedStation = getLastPlayedStation(stations);
 
   const handleTogglePlay = () => {
     runPlayerPrimaryAction({
@@ -27,6 +31,14 @@ export const MiniPlayer = () => {
     });
   };
 
+  const handleContinueListening = () => {
+    if (!lastPlayedStation) {
+      return;
+    }
+
+    actions.playStation(lastPlayedStation);
+  };
+
   return (
     <div className={S.player}>
       <div className={S.info}>
@@ -35,7 +47,9 @@ export const MiniPlayer = () => {
         <div className={S.subtitle}>
           {currentStation
             ? `${currentStation.country || 'Unknown country'} • ${currentStation.language || 'Unknown language'}`
-            : 'Выберите радиостанцию'}
+            : lastPlayedStation
+              ? `Продолжить: ${lastPlayedStation.name}`
+              : 'Выберите радиостанцию'}
         </div>
 
         {statusMessage.tone === 'info' && <div className={S.status}>{statusMessage.text}</div>}
@@ -43,12 +57,18 @@ export const MiniPlayer = () => {
       </div>
 
       <div className={S.controls}>
-        <button className={S.button} type="button" onClick={handleTogglePlay} disabled={isIdle || isLoading}>
-          {getPlayerPrimaryButtonLabel({
-            status: playerStatus,
-            isReconnectSuggested,
-          })}
-        </button>
+        {isIdle && lastPlayedStation ? (
+          <button className={S.button} type="button" onClick={handleContinueListening}>
+            Continue listening
+          </button>
+        ) : (
+          <button className={S.button} type="button" onClick={handleTogglePlay} disabled={isIdle || isLoading}>
+            {getPlayerPrimaryButtonLabel({
+              status: playerStatus,
+              isReconnectSuggested,
+            })}
+          </button>
+        )}
 
         <button className={S.secondaryButton} type="button" onClick={actions.stop} disabled={isIdle}>
           Stop
