@@ -16,6 +16,7 @@ export { useStationById } from './api/use-station-by-id';
 
 export { getSimilarStations } from './api/get-similar-stations';
 export { useSimilarStations } from './hooks/use-similar-stations';
+export { getSimilarStationsQueryKey } from './api/get-similar-stations-query-key';
 
-export { getStationPlayerState, getStationPath } from './lib';
+export { getStationPlayerState, getStationPath, hasSimilarStationsSource } from './lib';
 export type { StationPlayerState } from './lib';

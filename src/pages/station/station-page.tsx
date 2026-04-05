@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { getStationPlayerState, useStationById } from '@entities/station';
+import { getStationPlayerState, hasSimilarStationsSource, useStationById } from '@entities/station';
 import { SimilarStations } from '@widgets/similar-stations';
 import { FavoriteToggle } from '@features/favorites';
 import {
@@ -141,6 +141,7 @@ export const StationPage = () => {
 
   const image = getStationImage(station.favicon);
   const tags = getStationTags(station.tags);
+  const isSimilarStationsVisible = hasSimilarStationsSource(station);
 
   return (
     <section className={S.page}>
@@ -243,7 +244,7 @@ export const StationPage = () => {
         )}
       </section>
 
-      <SimilarStations station={station} />
+      {isSimilarStationsVisible && <SimilarStations station={station} />}
     </section>
   );
 };

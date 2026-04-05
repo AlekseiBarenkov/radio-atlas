@@ -1,4 +1,4 @@
-import { StationCard, useSimilarStations, type RadioStation } from '@entities/station';
+import { StationCard, hasSimilarStationsSource, useSimilarStations, type RadioStation } from '@entities/station';
 import { SkeletonCard } from '@shared/ui';
 import S from './similar-stations.module.css';
 
@@ -11,6 +11,10 @@ const SIMILAR_STATIONS_SKELETON_COUNT = 3;
 
 export const SimilarStations = (props: SimilarStationsProps) => {
   const { station } = props;
+
+  if (!hasSimilarStationsSource(station)) {
+    return null;
+  }
 
   const similarStationsQuery = useSimilarStations({
     station,
