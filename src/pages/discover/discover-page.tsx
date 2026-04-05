@@ -1,16 +1,33 @@
-import { useState } from 'react';
-import { StationCard, useSearchStations, useStations } from '@entities/station';
+import { useEffect, useState } from 'react';
+import { StationCard, useSearchStations, useStations, type RadioStation } from '@entities/station';
 import { useDebouncedValue } from '@shared/hooks';
 import { Skeleton, SkeletonCard } from '@shared/ui';
 import { DiscoverSearchForm } from './ui/discover-search-form';
+import { DiscoverLoadMoreButton } from './ui/discover-load-more-button';
 import S from './discover-page.module.css';
 
 const STATIONS_LIMIT = 48;
 const SKELETON_COUNT = 12;
 const SEARCH_DEBOUNCE_MS = 400;
 
+const mergeStations = (currentStations: RadioStation[], nextStations: RadioStation[]): RadioStation[] => {
+  const stationMap = new Map<string, RadioStation>();
+
+  currentStations.forEach((station) => {
+    stationMap.set(station.stationuuid, station);
+  });
+
+  nextStations.forEach((station) => {
+    stationMap.set(station.stationuuid, station);
+  });
+
+  return Array.from(stationMap.values());
+};
+
 export const DiscoverPage = () => {
   const [searchValue, setSearchValue] = useState('');
+  const [offset, setOffset] = useState(0);
+  const [stations, setStations] = useState<RadioStation[]>([]);
 
   const debouncedSearchValue = useDebouncedValue(searchValue, SEARCH_DEBOUNCE_MS);
   const normalizedSearchValue = debouncedSearchValue.trim();
@@ -18,7 +35,7 @@ export const DiscoverPage = () => {
 
   const stationsQuery = useStations({
     limit: STATIONS_LIMIT,
-    offset: 0,
+    offset,
     hideBroken: true,
   });
 
@@ -29,9 +46,36 @@ export const DiscoverPage = () => {
   });
 
   const activeQuery = isSearchMode ? searchQuery : stationsQuery;
-  const stations = activeQuery.data ?? [];
+  const currentPageStations = activeQuery.data ?? [];
 
-  if (activeQuery.isPending) {
+  const handleLoadMore = () => {
+    setOffset((currentOffset) => currentOffset + STATIONS_LIMIT);
+  };
+
+  const isLoadMoreVisible = !isSearchMode && currentPageStations.length === STATIONS_LIMIT;
+  const isLoadMoreDisabled = activeQuery.isPending;
+
+  useEffect(() => {
+    setOffset(0);
+  }, [normalizedSearchValue]);
+
+  useEffect(() => {
+    if (isSearchMode) {
+      setStations(currentPageStations);
+
+      return;
+    }
+
+    if (offset === 0) {
+      setStations(currentPageStations);
+
+      return;
+    }
+
+    setStations((previousStations) => mergeStations(previousStations, currentPageStations));
+  }, [currentPageStations, isSearchMode, offset]);
+
+  if (activeQuery.isPending && stations.length === 0) {
     return (
       <section className={S.page}>
         <header className={S.header}>
@@ -50,7 +94,7 @@ export const DiscoverPage = () => {
     );
   }
 
-  if (activeQuery.isError) {
+  if (activeQuery.isError && stations.length === 0) {
     return (
       <section className={S.page}>
         <header className={S.header}>
@@ -94,6 +138,12 @@ export const DiscoverPage = () => {
           <StationCard key={station.stationuuid} station={station} />
         ))}
       </div>
+
+      {isLoadMoreVisible && (
+        <div className={S.loadMore}>
+          <DiscoverLoadMoreButton onClick={handleLoadMore} disabled={isLoadMoreDisabled} />
+        </div>
+      )}
     </section>
   );
 };

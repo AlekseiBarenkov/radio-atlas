@@ -26,3 +26,10 @@
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 16px;
 }
+
+.loadMore {
+  margin-top: 32px;
+
+  display: flex;
+  justify-content: center;
+}
