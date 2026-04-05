@@ -1,24 +1,24 @@
-import { useEffect, useState } from 'react';
-import { StationCard, useSearchStations, useStations, type RadioStation } from '@entities/station';
+import { useMemo, useState } from 'react';
+import { useQueries } from '@tanstack/react-query';
+import { getStations, StationCard, useSearchStations, type RadioStation } from '@entities/station';
 import { useDebouncedValue } from '@shared/hooks';
 import { Skeleton, SkeletonCard } from '@shared/ui';
-import { DiscoverSearchForm } from './ui/discover-search-form';
+import { DiscoverFilters } from './ui/discover-filters';
 import { DiscoverLoadMoreButton } from './ui/discover-load-more-button';
+import { DiscoverSearchForm } from './ui/discover-search-form';
 import S from './discover-page.module.css';
 
 const STATIONS_LIMIT = 48;
 const SKELETON_COUNT = 12;
 const SEARCH_DEBOUNCE_MS = 400;
 
-const mergeStations = (currentStations: RadioStation[], nextStations: RadioStation[]): RadioStation[] => {
+const mergeStations = (stationPages: RadioStation[][]): RadioStation[] => {
   const stationMap = new Map<string, RadioStation>();
 
-  currentStations.forEach((station) => {
-    stationMap.set(station.stationuuid, station);
-  });
-
-  nextStations.forEach((station) => {
-    stationMap.set(station.stationuuid, station);
+  stationPages.forEach((page) => {
+    page.forEach((station) => {
+      stationMap.set(station.stationuuid, station);
+    });
   });
 
   return Array.from(stationMap.values());
@@ -26,56 +26,81 @@ const mergeStations = (currentStations: RadioStation[], nextStations: RadioStati
 
 export const DiscoverPage = () => {
   const [searchValue, setSearchValue] = useState('');
-  const [offset, setOffset] = useState(0);
-  const [stations, setStations] = useState<RadioStation[]>([]);
+  const [hideBroken, setHideBroken] = useState(true);
+  const [pageOffsets, setPageOffsets] = useState<number[]>([0]);
 
   const debouncedSearchValue = useDebouncedValue(searchValue, SEARCH_DEBOUNCE_MS);
   const normalizedSearchValue = debouncedSearchValue.trim();
   const isSearchMode = normalizedSearchValue.length > 0;
 
-  const stationsQuery = useStations({
-    limit: STATIONS_LIMIT,
-    offset,
-    hideBroken: true,
+  const stationsQueries = useQueries({
+    queries: pageOffsets.map((offset) => ({
+      queryKey: ['stations', offset, STATIONS_LIMIT, hideBroken] as const,
+      queryFn: ({ signal }: { signal: AbortSignal }) =>
+        getStations(
+          {
+            limit: STATIONS_LIMIT,
+            offset,
+            hideBroken,
+          },
+          signal,
+        ),
+      enabled: !isSearchMode,
+    })),
   });
 
   const searchQuery = useSearchStations({
     name: normalizedSearchValue,
     limit: STATIONS_LIMIT,
-    hideBroken: true,
+    hideBroken,
   });
 
-  const activeQuery = isSearchMode ? searchQuery : stationsQuery;
-  const currentPageStations = activeQuery.data ?? [];
+  const stations = useMemo(() => {
+    if (isSearchMode) {
+      return searchQuery.data ?? [];
+    }
 
-  const handleLoadMore = () => {
-    setOffset((currentOffset) => currentOffset + STATIONS_LIMIT);
+    return mergeStations(stationsQueries.map((query) => query.data ?? []));
+  }, [isSearchMode, searchQuery.data, stationsQueries]);
+
+  const isInitialStationsPending =
+    !isSearchMode && stationsQueries.some((query) => query.isPending) && stations.length === 0;
+  const isStationsError = !isSearchMode && stationsQueries.some((query) => query.isError) && stations.length === 0;
+  const stationsError = !isSearchMode ? (stationsQueries.find((query) => query.error)?.error ?? null) : null;
+
+  const activeIsPending = isSearchMode ? searchQuery.isPending : isInitialStationsPending;
+  const activeIsError = isSearchMode ? searchQuery.isError : isStationsError;
+  const activeError = isSearchMode ? (searchQuery.error ?? null) : stationsError;
+
+  const lastStationsQuery = isSearchMode ? null : stationsQueries[stationsQueries.length - 1];
+  const lastStationsPage = lastStationsQuery?.data ?? [];
+
+  const isLoadMoreVisible = !isSearchMode && lastStationsPage.length === STATIONS_LIMIT;
+  const isLoadMoreDisabled = !isSearchMode && stationsQueries.some((query) => query.isPending);
+
+  const handleSearchChange = (value: string) => {
+    setSearchValue(value);
+    setPageOffsets([0]);
   };
 
-  const isLoadMoreVisible = !isSearchMode && currentPageStations.length === STATIONS_LIMIT;
-  const isLoadMoreDisabled = activeQuery.isPending;
+  const handleHideBrokenChange = (value: boolean) => {
+    setHideBroken(value);
+    setPageOffsets([0]);
+  };
 
-  useEffect(() => {
-    setOffset(0);
-  }, [normalizedSearchValue]);
+  const handleLoadMore = () => {
+    setPageOffsets((currentOffsets) => {
+      const nextOffset = currentOffsets.length * STATIONS_LIMIT;
 
-  useEffect(() => {
-    if (isSearchMode) {
-      setStations(currentPageStations);
+      if (currentOffsets.includes(nextOffset)) {
+        return currentOffsets;
+      }
 
-      return;
-    }
+      return [...currentOffsets, nextOffset];
+    });
+  };
 
-    if (offset === 0) {
-      setStations(currentPageStations);
-
-      return;
-    }
-
-    setStations((previousStations) => mergeStations(previousStations, currentPageStations));
-  }, [currentPageStations, isSearchMode, offset]);
-
-  if (activeQuery.isPending && stations.length === 0) {
+  if (activeIsPending) {
     return (
       <section className={S.page}>
         <header className={S.header}>
@@ -83,7 +108,10 @@ export const DiscoverPage = () => {
           <Skeleton width={320} height={20} />
         </header>
 
-        <DiscoverSearchForm value={searchValue} onChange={setSearchValue} />
+        <div className={S.controls}>
+          <DiscoverSearchForm value={searchValue} onChange={handleSearchChange} />
+          <DiscoverFilters hideBroken={hideBroken} onHideBrokenChange={handleHideBrokenChange} />
+        </div>
 
         <div className={S.grid}>
           {Array.from({ length: SKELETON_COUNT }).map((_, index) => (
@@ -94,7 +122,7 @@ export const DiscoverPage = () => {
     );
   }
 
-  if (activeQuery.isError && stations.length === 0) {
+  if (activeIsError) {
     return (
       <section className={S.page}>
         <header className={S.header}>
@@ -102,9 +130,12 @@ export const DiscoverPage = () => {
           <p className={S.description}>Расширенный список станций из Radio Browser</p>
         </header>
 
-        <DiscoverSearchForm value={searchValue} onChange={setSearchValue} />
+        <div className={S.controls}>
+          <DiscoverSearchForm value={searchValue} onChange={handleSearchChange} />
+          <DiscoverFilters hideBroken={hideBroken} onHideBrokenChange={handleHideBrokenChange} />
+        </div>
 
-        <div>Ошибка загрузки: {activeQuery.error?.message ?? 'Unknown error'}</div>
+        <div>Ошибка загрузки: {activeError?.message ?? 'Unknown error'}</div>
       </section>
     );
   }
@@ -117,7 +148,10 @@ export const DiscoverPage = () => {
           <p className={S.description}>Расширенный список станций из Radio Browser</p>
         </header>
 
-        <DiscoverSearchForm value={searchValue} onChange={setSearchValue} />
+        <div className={S.controls}>
+          <DiscoverSearchForm value={searchValue} onChange={handleSearchChange} />
+          <DiscoverFilters hideBroken={hideBroken} onHideBrokenChange={handleHideBrokenChange} />
+        </div>
 
         <div>{isSearchMode ? 'По вашему запросу станции не найдены' : 'Станции не найдены'}</div>
       </section>
@@ -131,7 +165,10 @@ export const DiscoverPage = () => {
         <p className={S.description}>Расширенный список станций из Radio Browser</p>
       </header>
 
-      <DiscoverSearchForm value={searchValue} onChange={setSearchValue} />
+      <div className={S.controls}>
+        <DiscoverSearchForm value={searchValue} onChange={handleSearchChange} />
+        <DiscoverFilters hideBroken={hideBroken} onHideBrokenChange={handleHideBrokenChange} />
+      </div>
 
       <div className={S.grid}>
         {stations.map((station) => (
