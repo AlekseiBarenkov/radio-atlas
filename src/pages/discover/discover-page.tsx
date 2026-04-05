@@ -6,6 +6,7 @@ import { Skeleton, SkeletonCard } from '@shared/ui';
 import { DiscoverFilters } from './ui/discover-filters';
 import { DiscoverLoadMoreButton } from './ui/discover-load-more-button';
 import { DiscoverSearchForm } from './ui/discover-search-form';
+import { DiscoverPageHeader } from './ui/discover-page-header';
 import S from './discover-page.module.css';
 
 const STATIONS_LIMIT = 48;
@@ -125,10 +126,7 @@ export const DiscoverPage = () => {
   if (activeIsError) {
     return (
       <section className={S.page}>
-        <header className={S.header}>
-          <h1 className={S.title}>Discover stations</h1>
-          <p className={S.description}>Расширенный список станций из Radio Browser</p>
-        </header>
+        <DiscoverPageHeader />
 
         <div className={S.controls}>
           <DiscoverSearchForm value={searchValue} onChange={handleSearchChange} />
@@ -143,10 +141,7 @@ export const DiscoverPage = () => {
   if (stations.length === 0) {
     return (
       <section className={S.page}>
-        <header className={S.header}>
-          <h1 className={S.title}>Discover stations</h1>
-          <p className={S.description}>Расширенный список станций из Radio Browser</p>
-        </header>
+        <DiscoverPageHeader />
 
         <div className={S.controls}>
           <DiscoverSearchForm value={searchValue} onChange={handleSearchChange} />
@@ -160,10 +155,7 @@ export const DiscoverPage = () => {
 
   return (
     <section className={S.page}>
-      <header className={S.header}>
-        <h1 className={S.title}>Discover stations</h1>
-        <p className={S.description}>Расширенный список станций из Radio Browser</p>
-      </header>
+      <DiscoverPageHeader />
 
       <div className={S.controls}>
         <DiscoverSearchForm value={searchValue} onChange={handleSearchChange} />
