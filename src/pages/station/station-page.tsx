@@ -1,5 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { getStationPlayerState, useStationById } from '@entities/station';
+import { SimilarStations } from '@widgets/similar-stations';
 import { FavoriteToggle } from '@features/favorites';
 import {
   getPlayerPrimaryButtonLabel,
@@ -241,6 +242,8 @@ export const StationPage = () => {
           <div className={S.empty}>У станции не указаны теги</div>
         )}
       </section>
+
+      <SimilarStations stationId={station.stationuuid} tags={tags} />
     </section>
   );
 };

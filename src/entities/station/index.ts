@@ -14,5 +14,8 @@ export type { SearchStationsParams } from './api/search-stations';
 export { getStationById } from './api/get-station-by-id';
 export { useStationById } from './api/use-station-by-id';
 
+export { getSimilarStations } from './api/get-similar-stations';
+export { useSimilarStations } from './hooks/use-similar-stations';
+
 export { getStationPlayerState, getStationPath } from './lib';
 export type { StationPlayerState } from './lib';
