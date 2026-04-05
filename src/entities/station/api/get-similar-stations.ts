@@ -15,9 +15,34 @@ type SearchStationsParams = {
   limit: number;
 };
 
+type SimilarStationsStrategy =
+  | {
+      type: 'tag';
+      value: string;
+      score: number;
+    }
+  | {
+      type: 'search';
+      params: Omit<SearchStationsParams, 'limit'>;
+      score: number;
+    };
+
+type SimilarStationCandidate = {
+  station: RadioStation;
+  score: number;
+};
+
 const DEFAULT_LIMIT = 6;
 const MAX_TAGS_TO_FETCH = 3;
 const SEARCH_LIMIT_MULTIPLIER = 2;
+
+const STRATEGY_SCORES = {
+  tag: 100,
+  countryLanguage: 60,
+  countryState: 40,
+  country: 20,
+  language: 10,
+} as const;
 
 const normalizeText = (value: string): string => {
   return value.trim();
@@ -77,25 +102,133 @@ const searchStations = async (params: SearchStationsParams, signal?: AbortSignal
   });
 };
 
-const appendUniqueStations = (
-  stationMap: Map<string, RadioStation>,
+const getSearchStrategyKey = (params: Omit<SearchStationsParams, 'limit'>): string => {
+  return JSON.stringify({
+    country: params.country ?? '',
+    state: params.state ?? '',
+    language: params.language ?? '',
+    tag: params.tag ?? '',
+  });
+};
+
+const getSimilarStationsStrategies = (station: RadioStation): SimilarStationsStrategy[] => {
+  const country = normalizeText(station.country);
+  const state = normalizeText(station.state);
+  const primaryLanguage = getNormalizedList(station.language)[0] ?? '';
+  const tags = getNormalizedList(station.tags).slice(0, MAX_TAGS_TO_FETCH);
+
+  const strategies: SimilarStationsStrategy[] = tags.map((tag) => ({
+    type: 'tag',
+    value: tag,
+    score: STRATEGY_SCORES.tag,
+  }));
+
+  if (country.length > 0 && primaryLanguage.length > 0) {
+    strategies.push({
+      type: 'search',
+      params: {
+        country,
+        language: primaryLanguage,
+      },
+      score: STRATEGY_SCORES.countryLanguage,
+    });
+  }
+
+  if (country.length > 0 && state.length > 0) {
+    strategies.push({
+      type: 'search',
+      params: {
+        country,
+        state,
+      },
+      score: STRATEGY_SCORES.countryState,
+    });
+  }
+
+  if (country.length > 0) {
+    strategies.push({
+      type: 'search',
+      params: {
+        country,
+      },
+      score: STRATEGY_SCORES.country,
+    });
+  }
+
+  if (primaryLanguage.length > 0) {
+    strategies.push({
+      type: 'search',
+      params: {
+        language: primaryLanguage,
+      },
+      score: STRATEGY_SCORES.language,
+    });
+  }
+
+  const seenSearchKeys = new Set<string>();
+
+  return strategies.filter((strategy) => {
+    if (strategy.type === 'tag') {
+      return true;
+    }
+
+    const strategyKey = getSearchStrategyKey(strategy.params);
+
+    if (seenSearchKeys.has(strategyKey)) {
+      return false;
+    }
+
+    seenSearchKeys.add(strategyKey);
+
+    return true;
+  });
+};
+
+const appendCandidateStations = (
+  candidateMap: Map<string, SimilarStationCandidate>,
   stations: RadioStation[],
   excludedStationId: string,
-  limit: number,
+  strategyScore: number,
 ) => {
   stations.forEach((station) => {
     if (station.stationuuid === excludedStationId) {
       return;
     }
 
-    if (stationMap.has(station.stationuuid)) {
+    const existingCandidate = candidateMap.get(station.stationuuid);
+
+    if (!existingCandidate) {
+      candidateMap.set(station.stationuuid, {
+        station,
+        score: strategyScore,
+      });
+
       return;
     }
 
-    stationMap.set(station.stationuuid, station);
+    candidateMap.set(station.stationuuid, {
+      station: existingCandidate.station,
+      score: existingCandidate.score + strategyScore,
+    });
   });
+};
 
-  return stationMap.size >= limit;
+const sortCandidates = (candidates: SimilarStationCandidate[]): SimilarStationCandidate[] => {
+  return [...candidates].sort((left, right) => {
+    if (right.score !== left.score) {
+      return right.score - left.score;
+    }
+
+    if (right.station.clickcount !== left.station.clickcount) {
+      return right.station.clickcount - left.station.clickcount;
+    }
+
+    if (right.station.votes !== left.station.votes) {
+      return right.station.votes - left.station.votes;
+    }
+
+    return left.station.name.localeCompare(right.station.name);
+  });
 };
 
 export const getSimilarStations = async (
@@ -105,81 +238,31 @@ export const getSimilarStations = async (
   const { station, limit = DEFAULT_LIMIT } = params;
 
   const stationId = normalizeText(station.stationuuid);
-  const country = normalizeText(station.country);
-  const state = normalizeText(station.state);
-  const primaryLanguage = getNormalizedList(station.language)[0] ?? '';
-  const tags = getNormalizedList(station.tags).slice(0, MAX_TAGS_TO_FETCH);
 
   if (stationId.length === 0) {
     return [];
   }
 
   const requestLimit = getRequestLimit(limit);
-  const stationMap = new Map<string, RadioStation>();
+  const candidateMap = new Map<string, SimilarStationCandidate>();
+  const strategies = getSimilarStationsStrategies(station);
 
-  for (const tag of tags) {
-    const stations = await getStationsByTag(tag, requestLimit, signal);
+  for (const strategy of strategies) {
+    const stations =
+      strategy.type === 'tag'
+        ? await getStationsByTag(strategy.value, requestLimit, signal)
+        : await searchStations(
+            {
+              ...strategy.params,
+              limit: requestLimit,
+            },
+            signal,
+          );
 
-    if (appendUniqueStations(stationMap, stations, stationId, limit)) {
-      return Array.from(stationMap.values()).slice(0, limit);
-    }
+    appendCandidateStations(candidateMap, stations, stationId, strategy.score);
   }
 
-  if (country.length > 0 && primaryLanguage.length > 0) {
-    const stations = await searchStations(
-      {
-        country,
-        language: primaryLanguage,
-        limit: requestLimit,
-      },
-      signal,
-    );
-
-    if (appendUniqueStations(stationMap, stations, stationId, limit)) {
-      return Array.from(stationMap.values()).slice(0, limit);
-    }
-  }
-
-  if (country.length > 0 && state.length > 0) {
-    const stations = await searchStations(
-      {
-        country,
-        state,
-        limit: requestLimit,
-      },
-      signal,
-    );
-
-    if (appendUniqueStations(stationMap, stations, stationId, limit)) {
-      return Array.from(stationMap.values()).slice(0, limit);
-    }
-  }
-
-  if (country.length > 0) {
-    const stations = await searchStations(
-      {
-        country,
-        limit: requestLimit,
-      },
-      signal,
-    );
-
-    if (appendUniqueStations(stationMap, stations, stationId, limit)) {
-      return Array.from(stationMap.values()).slice(0, limit);
-    }
-  }
-
-  if (primaryLanguage.length > 0) {
-    const stations = await searchStations(
-      {
-        language: primaryLanguage,
-        limit: requestLimit,
-      },
-      signal,
-    );
-
-    appendUniqueStations(stationMap, stations, stationId, limit);
-  }
-
-  return Array.from(stationMap.values()).slice(0, limit);
+  return sortCandidates(Array.from(candidateMap.values()))
+    .slice(0, limit)
+    .map((candidate) => candidate.station);
 };
