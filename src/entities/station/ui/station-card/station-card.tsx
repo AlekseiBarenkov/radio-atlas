@@ -5,6 +5,8 @@ import {
   usePlayerActions,
   usePlayerUiState,
 } from '@features/player';
+import { Link } from 'react-router-dom';
+import { getStationPath } from '@entities/station';
 import type { RadioStation } from '@entities/station/model/types';
 import { FavoriteToggle } from '@features/favorites';
 import { getStationPlayerState } from '@entities/station';
@@ -82,7 +84,11 @@ export const StationCard = ({ station }: StationCardProps) => {
       </div>
 
       <div className={S.content}>
-        <h3 className={S.title}>{station.name}</h3>
+        <h3 className={S.title}>
+          <Link className={S.titleLink} to={getStationPath(station.stationuuid)}>
+            {station.name}
+          </Link>
+        </h3>
 
         <div className={S.meta}>
           <span>{station.country || 'Unknown country'}</span>
