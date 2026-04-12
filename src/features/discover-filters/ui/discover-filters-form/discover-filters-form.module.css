@@ -8,6 +8,7 @@
 }
 
 .field {
+  position: relative;
   display: flex;
   flex: 1 1 220px;
   flex-direction: column;
@@ -41,6 +42,63 @@
 .input:focus {
   outline: none;
   border-color: #111827;
+}
+
+.suggestions {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  max-height: 280px;
+  overflow-y: auto;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgb(17 24 39 / 12%);
+}
+
+.suggestionButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  border-bottom: 1px solid #f3f4f6;
+  background: #ffffff;
+  color: #111827;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.suggestionButton:last-child {
+  border-bottom: none;
+}
+
+.suggestionButton:hover {
+  background: #f9fafb;
+}
+
+.suggestionPrimary {
+  min-width: 0;
+}
+
+.suggestionSecondary {
+  flex: 0 0 auto;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.statusText {
+  padding: 10px 14px;
+  color: #6b7280;
+  font-size: 13px;
+  line-height: 1.4;
 }
 
 .checkboxLabel {

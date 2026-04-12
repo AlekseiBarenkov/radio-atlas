@@ -12,9 +12,7 @@ const SIMILAR_STATIONS_SKELETON_COUNT = 3;
 export const SimilarStations = (props: SimilarStationsProps) => {
   const { station } = props;
 
-  if (!hasSimilarStationsSource(station)) {
-    return null;
-  }
+  const isVisible = hasSimilarStationsSource(station);
 
   const similarStationsQuery = useSimilarStations({
     station,
@@ -22,6 +20,10 @@ export const SimilarStations = (props: SimilarStationsProps) => {
   });
 
   const stations = similarStationsQuery.data ?? [];
+
+  if (!isVisible) {
+    return null;
+  }
 
   if (similarStationsQuery.isLoading) {
     return (

@@ -10,6 +10,9 @@ export default defineConfig([
   globalIgnores(['dist']),
   {
     files: ['**/*.{ts,tsx}'],
+    plugins: {
+      '@typescript-eslint': tseslint.plugin,
+    },
     extends: [
       js.configs.recommended,
       tseslint.configs.recommended,
@@ -23,9 +26,10 @@ export default defineConfig([
   },
   eslintConfigPrettier,
   {
-    plugins: { prettier },
+    plugins: {
+      '@typescript-eslint': tseslint.plugin,
+    },
     rules: {
-      'prettier/prettier': 'error',
       '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
       'no-restricted-syntax': [
         'error',

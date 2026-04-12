@@ -1,7 +1,18 @@
 import { useMemo, useState } from 'react';
 import { useQueries } from '@tanstack/react-query';
-import { getStations, StationCard, useSearchStations } from '@entities/station';
-import { DiscoverFiltersForm, getHasActiveDiscoverFilters, useDiscoverFilters } from '@features/discover-filters';
+import {
+  getStations,
+  StationCard,
+  useSearchStationCountries,
+  useSearchStationLanguages,
+  useSearchStations,
+} from '@entities/station';
+import {
+  DiscoverFiltersForm,
+  getHasActiveDiscoverFilters,
+  mapDiscoverFilterOptions,
+  useDiscoverFilters,
+} from '@features/discover-filters';
 import { useDebouncedValue } from '@shared/hooks';
 import { Skeleton, SkeletonCard } from '@shared/ui';
 import { DiscoverLoadMoreButton } from './ui/discover-load-more-button';
@@ -13,17 +24,49 @@ import { mergeStations } from './lib';
 const STATIONS_LIMIT = 48;
 const SKELETON_COUNT = 12;
 const SEARCH_DEBOUNCE_MS = 400;
+const FILTER_SUGGESTIONS_LIMIT = 8;
 
 export const DiscoverPage = () => {
   const [searchValue, setSearchValue] = useState('');
   const [pageOffsets, setPageOffsets] = useState<number[]>([0]);
 
-  const { filters, normalizedFilters, setCountry, setLanguage, setHideBroken, resetFilters } = useDiscoverFilters();
+  const {
+    filters,
+    drafts,
+    normalizedFilters,
+    setCountryDraft,
+    setLanguageDraft,
+    applyCountry,
+    applyLanguage,
+    setHideBroken,
+    resetFilters,
+  } = useDiscoverFilters();
 
   const debouncedSearchValue = useDebouncedValue(searchValue, SEARCH_DEBOUNCE_MS);
   const normalizedSearchValue = debouncedSearchValue.trim();
   const debouncedFilters = useDebouncedValue(filters, SEARCH_DEBOUNCE_MS);
+  const debouncedCountryDraft = useDebouncedValue(drafts.country, SEARCH_DEBOUNCE_MS);
+  const debouncedLanguageDraft = useDebouncedValue(drafts.language, SEARCH_DEBOUNCE_MS);
+
   const isSearchMode = normalizedSearchValue.length > 0;
+
+  const countrySuggestionsQuery = useSearchStationCountries({
+    query: debouncedCountryDraft,
+    limit: FILTER_SUGGESTIONS_LIMIT,
+  });
+
+  const languageSuggestionsQuery = useSearchStationLanguages({
+    query: debouncedLanguageDraft,
+    limit: FILTER_SUGGESTIONS_LIMIT,
+  });
+
+  const countryOptions = useMemo(() => {
+    return mapDiscoverFilterOptions(countrySuggestionsQuery.data ?? []);
+  }, [countrySuggestionsQuery.data]);
+
+  const languageOptions = useMemo(() => {
+    return mapDiscoverFilterOptions(languageSuggestionsQuery.data ?? []);
+  }, [languageSuggestionsQuery.data]);
 
   const hasActiveFilters = getHasActiveDiscoverFilters(normalizedFilters);
   const isFilteredMode = isSearchMode || hasActiveFilters;
@@ -84,6 +127,10 @@ export const DiscoverPage = () => {
   const isLoadMoreVisible = !isSearchMode && lastStationsPage.length === STATIONS_LIMIT;
   const isLoadMoreDisabled = !isSearchMode && stationsQueries.some((query) => query.isPending);
 
+  const resetPagination = () => {
+    setPageOffsets([0]);
+  };
+
   const handleLoadMore = () => {
     const nextOffset = pageOffsets[pageOffsets.length - 1] + STATIONS_LIMIT;
 
@@ -92,27 +139,52 @@ export const DiscoverPage = () => {
 
   const handleSearchChange = (value: string) => {
     setSearchValue(value);
-    setPageOffsets([0]);
+    resetPagination();
   };
 
   const handleCountryChange = (value: string) => {
-    setCountry(value);
-    setPageOffsets([0]);
+    setCountryDraft(value);
+
+    if (value.trim().length === 0) {
+      resetPagination();
+    }
   };
 
   const handleLanguageChange = (value: string) => {
-    setLanguage(value);
-    setPageOffsets([0]);
+    setLanguageDraft(value);
+
+    if (value.trim().length === 0) {
+      resetPagination();
+    }
+  };
+
+  const applyFiltersChange = (callback: () => void) => {
+    callback();
+    resetPagination();
+  };
+
+  const handleCountrySelect = (value: string) => {
+    applyFiltersChange(() => {
+      applyCountry(value);
+    });
+  };
+
+  const handleLanguageSelect = (value: string) => {
+    applyFiltersChange(() => {
+      applyLanguage(value);
+    });
   };
 
   const handleHideBrokenChange = (value: boolean) => {
-    setHideBroken(value);
-    setPageOffsets([0]);
+    applyFiltersChange(() => {
+      setHideBroken(value);
+    });
   };
 
   const handleResetFilters = () => {
-    resetFilters();
-    setPageOffsets([0]);
+    applyFiltersChange(() => {
+      resetFilters();
+    });
   };
 
   const controls = (
@@ -120,8 +192,15 @@ export const DiscoverPage = () => {
       <DiscoverSearchForm value={searchValue} onChange={handleSearchChange} />
       <DiscoverFiltersForm
         filters={filters}
+        drafts={drafts}
+        countryOptions={countryOptions}
+        languageOptions={languageOptions}
+        isCountryOptionsLoading={countrySuggestionsQuery.isPending}
+        isLanguageOptionsLoading={languageSuggestionsQuery.isPending}
         onCountryChange={handleCountryChange}
         onLanguageChange={handleLanguageChange}
+        onCountrySelect={handleCountrySelect}
+        onLanguageSelect={handleLanguageSelect}
         onHideBrokenChange={handleHideBrokenChange}
         onReset={handleResetFilters}
       />
