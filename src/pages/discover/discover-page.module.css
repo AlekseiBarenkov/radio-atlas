@@ -9,6 +9,7 @@
   flex-wrap: wrap;
   gap: 16px;
   align-items: flex-end;
+  min-width: 0;
 }
 
 .grid {
@@ -22,4 +23,10 @@
 
   display: flex;
   justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .controls {
+    align-items: stretch;
+  }
 }

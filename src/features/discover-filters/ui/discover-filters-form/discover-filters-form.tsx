@@ -42,7 +42,7 @@ export const DiscoverFiltersForm = (props: DiscoverFiltersFormProps) => {
           className={S.input}
           value={filters.country}
           onChange={handleCountryChange}
-          placeholder="Filter by country"
+          placeholder="For example: Germany"
           autoComplete="off"
         />
       </div>
@@ -59,7 +59,7 @@ export const DiscoverFiltersForm = (props: DiscoverFiltersFormProps) => {
           className={S.input}
           value={filters.language}
           onChange={handleLanguageChange}
-          placeholder="Filter by language"
+          placeholder="For example: English"
           autoComplete="off"
         />
       </div>
@@ -71,7 +71,7 @@ export const DiscoverFiltersForm = (props: DiscoverFiltersFormProps) => {
 
       <div className={S.actions}>
         <button className={S.resetButton} type="button" onClick={onReset} disabled={!hasActiveFilters}>
-          Reset filters
+          Clear filters
         </button>
       </div>
     </div>

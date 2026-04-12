@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useQueries } from '@tanstack/react-query';
-import { getStations, StationCard, useSearchStations, type RadioStation } from '@entities/station';
+import { getStations, StationCard, useSearchStations } from '@entities/station';
 import { DiscoverFiltersForm, getHasActiveDiscoverFilters, useDiscoverFilters } from '@features/discover-filters';
 import { useDebouncedValue } from '@shared/hooks';
 import { Skeleton, SkeletonCard } from '@shared/ui';
@@ -8,22 +8,11 @@ import { DiscoverLoadMoreButton } from './ui/discover-load-more-button';
 import { DiscoverSearchForm } from './ui/discover-search-form';
 import { DiscoverPageHeader } from './ui/discover-page-header';
 import S from './discover-page.module.css';
+import { mergeStations } from './lib';
 
 const STATIONS_LIMIT = 48;
 const SKELETON_COUNT = 12;
 const SEARCH_DEBOUNCE_MS = 400;
-
-const mergeStations = (stationPages: RadioStation[][]): RadioStation[] => {
-  const stationMap = new Map<string, RadioStation>();
-
-  stationPages.forEach((page) => {
-    page.forEach((station) => {
-      stationMap.set(station.stationuuid, station);
-    });
-  });
-
-  return Array.from(stationMap.values());
-};
 
 export const DiscoverPage = () => {
   const [searchValue, setSearchValue] = useState('');
@@ -33,6 +22,7 @@ export const DiscoverPage = () => {
 
   const debouncedSearchValue = useDebouncedValue(searchValue, SEARCH_DEBOUNCE_MS);
   const normalizedSearchValue = debouncedSearchValue.trim();
+  const debouncedFilters = useDebouncedValue(filters, SEARCH_DEBOUNCE_MS);
   const isSearchMode = normalizedSearchValue.length > 0;
 
   const hasActiveFilters = getHasActiveDiscoverFilters(normalizedFilters);
@@ -44,18 +34,18 @@ export const DiscoverPage = () => {
         'stations',
         offset,
         STATIONS_LIMIT,
-        normalizedFilters.hideBroken,
-        normalizedFilters.country,
-        normalizedFilters.language,
+        debouncedFilters.hideBroken,
+        debouncedFilters.country,
+        debouncedFilters.language,
       ] as const,
       queryFn: ({ signal }: { signal: AbortSignal }) =>
         getStations(
           {
             limit: STATIONS_LIMIT,
             offset,
-            hideBroken: normalizedFilters.hideBroken,
-            country: normalizedFilters.country,
-            language: normalizedFilters.language,
+            hideBroken: debouncedFilters.hideBroken,
+            country: debouncedFilters.country,
+            language: debouncedFilters.language,
           },
           signal,
         ),
@@ -124,7 +114,20 @@ export const DiscoverPage = () => {
     resetFilters();
     setPageOffsets([0]);
   };
-  console.log(activeIsPending);
+
+  const controls = (
+    <div className={S.controls}>
+      <DiscoverSearchForm value={searchValue} onChange={handleSearchChange} />
+      <DiscoverFiltersForm
+        filters={filters}
+        onCountryChange={handleCountryChange}
+        onLanguageChange={handleLanguageChange}
+        onHideBrokenChange={handleHideBrokenChange}
+        onReset={handleResetFilters}
+      />
+    </div>
+  );
+
   if (activeIsPending) {
     return (
       <section className={S.page}>
@@ -133,16 +136,7 @@ export const DiscoverPage = () => {
           <Skeleton width={320} height={20} />
         </header>
 
-        <div className={S.controls}>
-          <DiscoverSearchForm value={searchValue} onChange={handleSearchChange} />
-          <DiscoverFiltersForm
-            filters={filters}
-            onCountryChange={handleCountryChange}
-            onLanguageChange={handleLanguageChange}
-            onHideBrokenChange={handleHideBrokenChange}
-            onReset={handleResetFilters}
-          />
-        </div>
+        {controls}
 
         <div className={S.grid}>
           {Array.from({ length: SKELETON_COUNT }).map((_, index) => (
@@ -158,16 +152,7 @@ export const DiscoverPage = () => {
       <section className={S.page}>
         <DiscoverPageHeader />
 
-        <div className={S.controls}>
-          <DiscoverSearchForm value={searchValue} onChange={handleSearchChange} />
-          <DiscoverFiltersForm
-            filters={filters}
-            onCountryChange={handleCountryChange}
-            onLanguageChange={handleLanguageChange}
-            onHideBrokenChange={handleHideBrokenChange}
-            onReset={handleResetFilters}
-          />
-        </div>
+        {controls}
 
         <div>Ошибка загрузки: {activeError?.message ?? 'Unknown error'}</div>
       </section>
@@ -179,16 +164,7 @@ export const DiscoverPage = () => {
       <section className={S.page}>
         <DiscoverPageHeader />
 
-        <div className={S.controls}>
-          <DiscoverSearchForm value={searchValue} onChange={handleSearchChange} />
-          <DiscoverFiltersForm
-            filters={filters}
-            onCountryChange={handleCountryChange}
-            onLanguageChange={handleLanguageChange}
-            onHideBrokenChange={handleHideBrokenChange}
-            onReset={handleResetFilters}
-          />
-        </div>
+        {controls}
 
         <div>{isFilteredMode ? 'Станции по текущим параметрам не найдены' : 'Станции не найдены'}</div>
       </section>
@@ -199,16 +175,7 @@ export const DiscoverPage = () => {
     <section className={S.page}>
       <DiscoverPageHeader />
 
-      <div className={S.controls}>
-        <DiscoverSearchForm value={searchValue} onChange={handleSearchChange} />
-        <DiscoverFiltersForm
-          filters={filters}
-          onCountryChange={handleCountryChange}
-          onLanguageChange={handleLanguageChange}
-          onHideBrokenChange={handleHideBrokenChange}
-          onReset={handleResetFilters}
-        />
-      </div>
+      {controls}
 
       <div className={S.grid}>
         {stations.map((station) => (

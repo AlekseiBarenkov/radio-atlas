@@ -1,14 +1,18 @@
 .form {
   display: flex;
+  flex: 1 1 100%;
   flex-wrap: wrap;
   gap: 12px;
   align-items: flex-end;
+  min-width: 0;
 }
 
 .field {
   display: flex;
+  flex: 1 1 220px;
   flex-direction: column;
   gap: 8px;
+  min-width: 0;
 }
 
 .label {
@@ -18,7 +22,8 @@
 }
 
 .input {
-  min-width: 220px;
+  width: 100%;
+  min-width: 0;
   height: 44px;
   padding: 0 14px;
   border: 1px solid #d1d5db;
@@ -26,6 +31,7 @@
   background: #ffffff;
   color: #111827;
   font: inherit;
+  box-sizing: border-box;
 }
 
 .input::placeholder {
@@ -52,6 +58,7 @@
   width: 16px;
   height: 16px;
   margin: 0;
+  flex: 0 0 auto;
 }
 
 .actions {
@@ -75,4 +82,20 @@
 .resetButton:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .form {
+    align-items: stretch;
+  }
+
+  .field,
+  .checkboxLabel,
+  .actions {
+    width: 100%;
+  }
+
+  .resetButton {
+    width: 100%;
+  }
 }
