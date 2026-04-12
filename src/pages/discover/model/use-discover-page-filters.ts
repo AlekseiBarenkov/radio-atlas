@@ -1,9 +1,9 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useSearchStationCountries, useSearchStationLanguages } from '@entities/station';
 import {
-  DEFAULT_DISCOVER_FILTERS,
   mapDiscoverFilterOptions,
+  normalizeDiscoverFilters,
   setDiscoverFiltersToSearchParams,
   useDiscoverFilters,
   type DiscoverFiltersState,
@@ -18,7 +18,6 @@ type UseDiscoverPageFiltersParams = {
 type UseDiscoverPageFiltersResult = {
   filters: ReturnType<typeof useDiscoverFilters>['filters'];
   drafts: ReturnType<typeof useDiscoverFilters>['drafts'];
-  normalizedFilters: ReturnType<typeof useDiscoverFilters>['normalizedFilters'];
   countryOptions: ReturnType<typeof mapDiscoverFilterOptions>;
   languageOptions: ReturnType<typeof mapDiscoverFilterOptions>;
   isCountryOptionsLoading: boolean;
@@ -33,16 +32,26 @@ type UseDiscoverPageFiltersResult = {
 
 const FILTER_SUGGESTIONS_LIMIT = 8;
 const FILTER_SUGGESTIONS_DEBOUNCE_MS = 400;
+const FILTERS_DEBOUNCE_MS = 400;
+
+const isSameFilters = (left: DiscoverFiltersState, right: DiscoverFiltersState): boolean => {
+  return left.country === right.country && left.language === right.language && left.hideBroken === right.hideBroken;
+};
 
 export const useDiscoverPageFilters = (params: UseDiscoverPageFiltersParams): UseDiscoverPageFiltersResult => {
   const { initialFilters, onAppliedFiltersChange } = params;
+
+  const normalizedInitialFilters = useMemo(() => {
+    return normalizeDiscoverFilters(initialFilters);
+  }, [initialFilters]);
+
+  const previousDebouncedFiltersRef = useRef(normalizedInitialFilters);
 
   const [, setSearchParams] = useSearchParams();
 
   const {
     filters,
     drafts,
-    normalizedFilters,
     setCountryDraft,
     setLanguageDraft,
     applyCountry,
@@ -50,9 +59,10 @@ export const useDiscoverPageFilters = (params: UseDiscoverPageFiltersParams): Us
     setHideBroken,
     resetFilters,
   } = useDiscoverFilters({
-    initialFilters,
+    initialFilters: normalizedInitialFilters,
   });
 
+  const debouncedFilters = useDebouncedValue(filters, FILTERS_DEBOUNCE_MS);
   const debouncedCountryDraft = useDebouncedValue(drafts.country, FILTER_SUGGESTIONS_DEBOUNCE_MS);
   const debouncedLanguageDraft = useDebouncedValue(drafts.language, FILTER_SUGGESTIONS_DEBOUNCE_MS);
 
@@ -74,93 +84,54 @@ export const useDiscoverPageFilters = (params: UseDiscoverPageFiltersParams): Us
     return mapDiscoverFilterOptions(languageSuggestionsQuery.data ?? []);
   }, [languageSuggestionsQuery.data]);
 
-  const syncFiltersToUrl = (nextFilters: typeof filters) => {
-    setSearchParams((currentSearchParams) => {
-      return setDiscoverFiltersToSearchParams(currentSearchParams, nextFilters);
-    });
-  };
+  useEffect(() => {
+    const normalizedDebouncedFilters = normalizeDiscoverFilters(debouncedFilters);
 
-  const applyFiltersChange = (callback: () => void, nextFilters: typeof filters) => {
-    callback();
-    syncFiltersToUrl(nextFilters);
-    onAppliedFiltersChange();
-  };
-
-  const handleCountryChange = (value: string) => {
-    setCountryDraft(value);
-
-    if (value.trim().length > 0) {
+    if (isSameFilters(normalizedDebouncedFilters, normalizedInitialFilters)) {
+      previousDebouncedFiltersRef.current = normalizedDebouncedFilters;
       return;
     }
 
-    const nextFilters = {
-      ...filters,
-      country: '',
-    };
+    if (isSameFilters(normalizedDebouncedFilters, previousDebouncedFiltersRef.current)) {
+      return;
+    }
 
-    syncFiltersToUrl(nextFilters);
+    previousDebouncedFiltersRef.current = normalizedDebouncedFilters;
+
+    setSearchParams((currentSearchParams) => {
+      return setDiscoverFiltersToSearchParams(currentSearchParams, normalizedDebouncedFilters);
+    });
+
     onAppliedFiltersChange();
+  }, [debouncedFilters, normalizedInitialFilters, onAppliedFiltersChange, setSearchParams]);
+
+  const handleCountryChange = (value: string) => {
+    setCountryDraft(value);
   };
 
   const handleLanguageChange = (value: string) => {
     setLanguageDraft(value);
-
-    if (value.trim().length > 0) {
-      return;
-    }
-
-    const nextFilters = {
-      ...filters,
-      language: '',
-    };
-
-    syncFiltersToUrl(nextFilters);
-    onAppliedFiltersChange();
   };
 
   const handleCountrySelect = (value: string) => {
-    const nextFilters = {
-      ...filters,
-      country: value,
-    };
-
-    applyFiltersChange(() => {
-      applyCountry(value);
-    }, nextFilters);
+    applyCountry(value);
   };
 
   const handleLanguageSelect = (value: string) => {
-    const nextFilters = {
-      ...filters,
-      language: value,
-    };
-
-    applyFiltersChange(() => {
-      applyLanguage(value);
-    }, nextFilters);
+    applyLanguage(value);
   };
 
   const handleHideBrokenChange = (value: boolean) => {
-    const nextFilters = {
-      ...filters,
-      hideBroken: value,
-    };
-
-    applyFiltersChange(() => {
-      setHideBroken(value);
-    }, nextFilters);
+    setHideBroken(value);
   };
 
   const handleResetFilters = () => {
-    applyFiltersChange(() => {
-      resetFilters();
-    }, DEFAULT_DISCOVER_FILTERS);
+    resetFilters();
   };
 
   return {
     filters,
     drafts,
-    normalizedFilters,
     countryOptions,
     languageOptions,
     isCountryOptionsLoading: countrySuggestionsQuery.isPending,

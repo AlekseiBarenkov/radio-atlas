@@ -3,6 +3,7 @@ export {
   useDiscoverFilters,
   DEFAULT_DISCOVER_FILTERS,
   DEFAULT_DISCOVER_FILTER_DRAFTS,
+  normalizeDiscoverFilters,
   getHasActiveDiscoverFilters,
   mapDiscoverFilterOptions,
   getDiscoverFiltersFromSearchParams,

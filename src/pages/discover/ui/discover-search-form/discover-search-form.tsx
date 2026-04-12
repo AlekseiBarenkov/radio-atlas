@@ -1,16 +1,34 @@
-import { type ChangeEvent } from 'react';
+import { type ChangeEvent, useEffect, useState } from 'react';
+import { useDebouncedValue } from '@shared/hooks';
 import S from './discover-search-form.module.css';
 
 type DiscoverSearchFormProps = {
-  value: string;
+  initialValue: string;
   onChange: (value: string) => void;
 };
 
+const SEARCH_DEBOUNCE_MS = 400;
+
 export const DiscoverSearchForm = (props: DiscoverSearchFormProps) => {
-  const { value, onChange } = props;
+  const { initialValue, onChange } = props;
+
+  const [inputValue, setInputValue] = useState(initialValue);
+  const debouncedValue = useDebouncedValue(inputValue, SEARCH_DEBOUNCE_MS);
+
+  useEffect(() => {
+    setInputValue(initialValue);
+  }, [initialValue]);
+
+  useEffect(() => {
+    if (debouncedValue === initialValue) {
+      return;
+    }
+
+    onChange(debouncedValue);
+  }, [debouncedValue, initialValue, onChange]);
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-    onChange(event.target.value);
+    setInputValue(event.target.value);
   };
 
   return (
@@ -24,7 +42,7 @@ export const DiscoverSearchForm = (props: DiscoverSearchFormProps) => {
         name="discover-search"
         type="search"
         className={S.input}
-        value={value}
+        value={inputValue}
         onChange={handleChange}
         placeholder="Search by station name"
         autoComplete="off"

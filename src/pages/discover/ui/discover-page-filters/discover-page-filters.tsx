@@ -33,7 +33,7 @@ export const DiscoverPageFilters = (props: DiscoverPageFiltersProps) => {
 
   return (
     <div className={S.controls}>
-      <DiscoverSearchForm value={searchValue} onChange={onSearchChange} />
+      <DiscoverSearchForm initialValue={searchValue} onChange={onSearchChange} />
 
       <DiscoverFiltersForm
         filters={filters}

@@ -14,7 +14,6 @@ type UseDiscoverFiltersParams = {
 type UseDiscoverFiltersResult = {
   filters: DiscoverFiltersState;
   drafts: DiscoverFiltersDraftState;
-  normalizedFilters: DiscoverFiltersState;
   setCountryDraft: (value: string) => void;
   setLanguageDraft: (value: string) => void;
   applyCountry: (value: string) => void;
@@ -45,10 +44,6 @@ export const useDiscoverFilters = (params: UseDiscoverFiltersParams = {}): UseDi
 
   const [filters, setFilters] = useState<DiscoverFiltersState>(initialFilters);
   const [drafts, setDrafts] = useState<DiscoverFiltersDraftState>(initialDrafts);
-
-  const normalizedFilters = useMemo(() => {
-    return normalizeDiscoverFilters(filters);
-  }, [filters]);
 
   const setCountryDraft = (value: string) => {
     setDrafts((currentDrafts) => ({
@@ -117,7 +112,6 @@ export const useDiscoverFilters = (params: UseDiscoverFiltersParams = {}): UseDi
   return {
     filters,
     drafts,
-    normalizedFilters,
     setCountryDraft,
     setLanguageDraft,
     applyCountry,

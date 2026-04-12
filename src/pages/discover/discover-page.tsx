@@ -3,8 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useQueries } from '@tanstack/react-query';
 import { getStations, useSearchStations, StationCard } from '@entities/station';
 import { getDiscoverFiltersFromSearchParams, getHasActiveDiscoverFilters } from '@features/discover-filters';
-import { useDebouncedValue } from '@shared/hooks';
-import { Skeleton, SkeletonCard } from '@shared/ui';
+import { SkeletonCard } from '@shared/ui';
 import { mergeStations } from './lib';
 import { DiscoverLoadMoreButton } from './ui/discover-load-more-button';
 import { DiscoverPageFilters } from './ui/discover-page-filters';
@@ -13,21 +12,17 @@ import S from './discover-page.module.css';
 
 const STATIONS_LIMIT = 48;
 const SKELETON_COUNT = 12;
-const SEARCH_DEBOUNCE_MS = 400;
 
 export const DiscoverPage = () => {
   const [searchParams] = useSearchParams();
   const [searchValue, setSearchValue] = useState('');
   const [pageOffsets, setPageOffsets] = useState<number[]>([0]);
-  console.log(1);
+
   const filters = useMemo(() => {
     return getDiscoverFiltersFromSearchParams(searchParams);
   }, [searchParams]);
 
-  const debouncedSearchValue = useDebouncedValue(searchValue, SEARCH_DEBOUNCE_MS);
-  const debouncedFilters = useDebouncedValue(filters, SEARCH_DEBOUNCE_MS);
-
-  const normalizedSearchValue = debouncedSearchValue.trim();
+  const normalizedSearchValue = searchValue.trim();
   const isSearchMode = normalizedSearchValue.length > 0;
   const hasActiveFilters = getHasActiveDiscoverFilters(filters);
   const isFilteredMode = isSearchMode || hasActiveFilters;
@@ -35,22 +30,15 @@ export const DiscoverPage = () => {
 
   const stationsQueries = useQueries({
     queries: pageOffsets.map((offset) => ({
-      queryKey: [
-        'stations',
-        offset,
-        STATIONS_LIMIT,
-        debouncedFilters.hideBroken,
-        debouncedFilters.country,
-        debouncedFilters.language,
-      ] as const,
+      queryKey: ['stations', offset, STATIONS_LIMIT, filters.hideBroken, filters.country, filters.language] as const,
       queryFn: ({ signal }: { signal: AbortSignal }) =>
         getStations(
           {
             limit: STATIONS_LIMIT,
             offset,
-            hideBroken: debouncedFilters.hideBroken,
-            country: debouncedFilters.country,
-            language: debouncedFilters.language,
+            hideBroken: filters.hideBroken,
+            country: filters.country,
+            language: filters.language,
           },
           signal,
         ),
@@ -109,14 +97,7 @@ export const DiscoverPage = () => {
 
   return (
     <section className={S.page}>
-      {activeIsPending ? (
-        <header>
-          <Skeleton width={180} height={38} />
-          <Skeleton width={320} height={20} />
-        </header>
-      ) : (
-        <DiscoverPageHeader />
-      )}
+      <DiscoverPageHeader />
 
       <DiscoverPageFilters
         key={searchParamsStateKey}
