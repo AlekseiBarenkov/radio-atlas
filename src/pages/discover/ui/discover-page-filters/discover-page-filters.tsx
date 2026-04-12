@@ -18,7 +18,6 @@ type DiscoverPageFiltersProps = {
   initialFilters: DiscoverFiltersState;
   searchValue: string;
   onSearchChange: (value: string) => void;
-  onAppliedFiltersChange: () => void;
 };
 
 const FILTER_SUGGESTIONS_LIMIT = 8;
@@ -29,7 +28,7 @@ const updateSearchParams = (searchParams: URLSearchParams, filters: DiscoverFilt
 };
 
 export const DiscoverPageFilters = (props: DiscoverPageFiltersProps) => {
-  const { initialFilters, searchValue, onSearchChange, onAppliedFiltersChange } = props;
+  const { initialFilters, searchValue, onSearchChange } = props;
 
   const normalizedInitialFilters = normalizeDiscoverFilters(initialFilters);
 
@@ -58,8 +57,6 @@ export const DiscoverPageFilters = (props: DiscoverPageFiltersProps) => {
     setSearchParams((currentSearchParams) => {
       return updateSearchParams(currentSearchParams, nextFilters);
     });
-
-    onAppliedFiltersChange();
   };
 
   const setInputValue = (name: DiscoverFiltersFieldName, value: string) => {
