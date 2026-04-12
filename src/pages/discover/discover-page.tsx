@@ -56,14 +56,20 @@ export const DiscoverPage = () => {
     ? (searchQuery.data ?? [])
     : mergeStations(stationsQueries.map((query) => query.data ?? []));
 
-  const isInitialStationsPending =
-    !isSearchMode && stationsQueries.some((query) => query.isPending) && stations.length === 0;
-  const isStationsError = !isSearchMode && stationsQueries.some((query) => query.isError) && stations.length === 0;
-  const stationsError = !isSearchMode ? (stationsQueries.find((query) => query.error)?.error ?? null) : null;
+  const activeState = isSearchMode
+    ? {
+        isPending: searchQuery.isPending,
+        isError: searchQuery.isError,
+        error: searchQuery.error ?? null,
+      }
+    : {
+        isPending: stationsQueries.some((query) => query.isPending) && stations.length === 0,
+        isError: stationsQueries.some((query) => query.isError) && stations.length === 0,
+        error: stationsQueries.find((query) => query.error)?.error ?? null,
+      };
 
-  const activeIsPending = isSearchMode ? searchQuery.isPending : isInitialStationsPending;
-  const activeIsError = isSearchMode ? searchQuery.isError : isStationsError;
-  const activeError = isSearchMode ? (searchQuery.error ?? null) : stationsError;
+  const showEmpty = !activeState.isPending && !activeState.isError && stations.length === 0;
+  const showList = !showEmpty && !activeState.isPending && !activeState.isError;
 
   const lastStationsQuery = isSearchMode ? null : stationsQueries[stationsQueries.length - 1];
   const lastStationsPage = lastStationsQuery?.data ?? [];
@@ -76,18 +82,17 @@ export const DiscoverPage = () => {
   };
 
   const handleLoadMore = () => {
-    const nextOffset = pageOffsets[pageOffsets.length - 1] + STATIONS_LIMIT;
+    setPageOffsets((prev) => {
+      const nextOffset = prev[prev.length - 1] + STATIONS_LIMIT;
 
-    setPageOffsets((prev) => [...prev, nextOffset]);
+      return [...prev, nextOffset];
+    });
   };
 
   const handleSearchChange = (value: string) => {
     setSearchValue(value);
     resetPagination();
   };
-
-  const showEmpty = !activeIsPending && !activeIsError && stations.length === 0;
-  const showList = !showEmpty && !activeIsPending && !activeIsError;
 
   return (
     <section className={S.page}>
@@ -101,7 +106,7 @@ export const DiscoverPage = () => {
         onAppliedFiltersChange={resetPagination}
       />
 
-      {activeIsPending && (
+      {activeState.isPending && (
         <div className={S.grid}>
           {Array.from({ length: SKELETON_COUNT }).map((_, index) => (
             <SkeletonCard key={index} />
@@ -109,7 +114,7 @@ export const DiscoverPage = () => {
         </div>
       )}
 
-      {activeIsError && <div>Ошибка загрузки: {activeError?.message ?? 'Unknown error'}</div>}
+      {activeState.isError && <div>Ошибка загрузки: {activeState.error?.message ?? 'Unknown error'}</div>}
 
       {showEmpty && <div>{isFilteredMode ? 'Станции по текущим параметрам не найдены' : 'Станции не найдены'}</div>}
 
