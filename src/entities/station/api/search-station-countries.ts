@@ -18,6 +18,9 @@ export type StationCountrySuggestion = {
 
 const DEFAULT_LIMIT = 12;
 
+let countriesCache: StationCountrySuggestion[] | null = null;
+let countriesRequestPromise: Promise<StationCountrySuggestion[]> | null = null;
+
 const normalizeCountrySuggestion = (country: RadioBrowserCountry): StationCountrySuggestion | null => {
   const normalizedName = country.name.trim();
 
@@ -35,6 +38,43 @@ const includesQuery = (value: string, query: string): boolean => {
   return value.toLocaleLowerCase().includes(query.toLocaleLowerCase());
 };
 
+const loadCountries = async (signal?: AbortSignal): Promise<StationCountrySuggestion[]> => {
+  if (countriesCache !== null) {
+    return countriesCache;
+  }
+
+  if (countriesRequestPromise !== null) {
+    return countriesRequestPromise;
+  }
+
+  const searchParams = new URLSearchParams({
+    order: 'stationcount',
+    reverse: 'true',
+    hidebroken: 'true',
+  });
+
+  countriesRequestPromise = request<RadioBrowserCountry[]>(
+    `${RADIO_BROWSER_API_BASE_URL}/countries?${searchParams.toString()}`,
+    {
+      signal,
+    },
+  )
+    .then((countries) => {
+      const normalizedCountries = countries
+        .map(normalizeCountrySuggestion)
+        .filter((country): country is StationCountrySuggestion => country !== null);
+
+      countriesCache = normalizedCountries;
+
+      return normalizedCountries;
+    })
+    .finally(() => {
+      countriesRequestPromise = null;
+    });
+
+  return countriesRequestPromise;
+};
+
 export const searchStationCountries = async (
   params: SearchStationCountriesParams,
   signal?: AbortSignal,
@@ -45,20 +85,9 @@ export const searchStationCountries = async (
     return [];
   }
 
-  const countries = await request<RadioBrowserCountry[]>(`${RADIO_BROWSER_API_BASE_URL}/countries`, {
-    signal,
-  });
+  const countries = await loadCountries(signal);
 
   return countries
-    .map(normalizeCountrySuggestion)
-    .filter((country): country is StationCountrySuggestion => country !== null)
     .filter((country) => includesQuery(country.name, normalizedQuery))
-    .sort((left, right) => {
-      if (left.name.length !== right.name.length) {
-        return left.name.length - right.name.length;
-      }
-
-      return left.name.localeCompare(right.name);
-    })
     .slice(0, params.limit ?? DEFAULT_LIMIT);
 };

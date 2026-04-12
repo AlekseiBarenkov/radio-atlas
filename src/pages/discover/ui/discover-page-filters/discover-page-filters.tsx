@@ -27,6 +27,10 @@ const updateSearchParams = (searchParams: URLSearchParams, filters: DiscoverFilt
   return setDiscoverFiltersToSearchParams(searchParams, normalizeDiscoverFilters(filters));
 };
 
+const getSuggestionsQueryValue = (inputValue: string, appliedValue: string): string => {
+  return inputValue.trim() === appliedValue.trim() ? '' : inputValue;
+};
+
 export const DiscoverPageFilters = (props: DiscoverPageFiltersProps) => {
   const { initialFilters, searchValue, onSearchChange } = props;
 
@@ -40,13 +44,23 @@ export const DiscoverPageFilters = (props: DiscoverPageFiltersProps) => {
   const debouncedCountryValue = useDebouncedValue(countryValue, FILTER_SUGGESTIONS_DEBOUNCE_MS);
   const debouncedLanguageValue = useDebouncedValue(languageValue, FILTER_SUGGESTIONS_DEBOUNCE_MS);
 
+  const countrySuggestionsQueryValue = getSuggestionsQueryValue(
+    debouncedCountryValue,
+    normalizedInitialFilters.country,
+  );
+
+  const languageSuggestionsQueryValue = getSuggestionsQueryValue(
+    debouncedLanguageValue,
+    normalizedInitialFilters.language,
+  );
+
   const countrySuggestionsQuery = useSearchStationCountries({
-    query: debouncedCountryValue,
+    query: countrySuggestionsQueryValue,
     limit: FILTER_SUGGESTIONS_LIMIT,
   });
 
   const languageSuggestionsQuery = useSearchStationLanguages({
-    query: debouncedLanguageValue,
+    query: languageSuggestionsQueryValue,
     limit: FILTER_SUGGESTIONS_LIMIT,
   });
 

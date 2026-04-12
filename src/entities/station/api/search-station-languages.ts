@@ -3,6 +3,7 @@ import { request } from '@shared/api/request';
 
 type RadioBrowserLanguage = {
   name: string;
+  iso_639: string | null;
   stationcount: number;
 };
 
@@ -18,23 +19,6 @@ export type StationLanguageSuggestion = {
 
 const DEFAULT_LIMIT = 12;
 
-const normalizeLanguageSuggestion = (language: RadioBrowserLanguage): StationLanguageSuggestion | null => {
-  const normalizedName = language.name.trim();
-
-  if (normalizedName.length === 0) {
-    return null;
-  }
-
-  return {
-    name: normalizedName,
-    stationCount: language.stationcount,
-  };
-};
-
-const includesQuery = (value: string, query: string): boolean => {
-  return value.toLocaleLowerCase().includes(query.toLocaleLowerCase());
-};
-
 export const searchStationLanguages = async (
   params: SearchStationLanguagesParams,
   signal?: AbortSignal,
@@ -45,20 +29,24 @@ export const searchStationLanguages = async (
     return [];
   }
 
-  const languages = await request<RadioBrowserLanguage[]>(`${RADIO_BROWSER_API_BASE_URL}/languages`, {
-    signal,
+  const searchParams = new URLSearchParams({
+    order: 'name',
+    reverse: 'false',
+    hidebroken: 'true',
+    limit: String(params.limit ?? DEFAULT_LIMIT),
   });
 
-  return languages
-    .map(normalizeLanguageSuggestion)
-    .filter((language): language is StationLanguageSuggestion => language !== null)
-    .filter((language) => includesQuery(language.name, normalizedQuery))
-    .sort((left, right) => {
-      if (left.name.length !== right.name.length) {
-        return left.name.length - right.name.length;
-      }
+  const languages = await request<RadioBrowserLanguage[]>(
+    `${RADIO_BROWSER_API_BASE_URL}/languages/${encodeURIComponent(normalizedQuery)}?${searchParams.toString()}`,
+    {
+      signal,
+    },
+  );
 
-      return left.name.localeCompare(right.name);
-    })
-    .slice(0, params.limit ?? DEFAULT_LIMIT);
+  return languages
+    .map((language) => ({
+      name: language.name.trim(),
+      stationCount: language.stationcount,
+    }))
+    .filter((language) => language.name.length > 0);
 };

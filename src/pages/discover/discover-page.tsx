@@ -55,9 +55,7 @@ export const DiscoverPage = () => {
   });
 
   const stations = stationsQuery.data?.pages.flat() ?? [];
-  const isPending = stationsQuery.isPending;
-  const isError = stationsQuery.isError;
-  const error = stationsQuery.error ?? null;
+  const { isPending, isError, error } = stationsQuery;
 
   const isLoadMoreVisible = stationsQuery.hasNextPage;
   const isLoadMoreDisabled = stationsQuery.isFetchingNextPage;
