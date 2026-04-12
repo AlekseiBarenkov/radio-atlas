@@ -4,14 +4,6 @@
   gap: 24px;
 }
 
-.controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  align-items: flex-end;
-  min-width: 0;
-}
-
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -23,10 +15,4 @@
 
   display: flex;
   justify-content: center;
-}
-
-@media (max-width: 768px) {
-  .controls {
-    align-items: stretch;
-  }
 }

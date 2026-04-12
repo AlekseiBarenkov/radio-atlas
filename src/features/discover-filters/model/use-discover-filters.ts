@@ -7,6 +7,10 @@ import {
   type DiscoverFiltersState,
 } from './index';
 
+type UseDiscoverFiltersParams = {
+  initialFilters?: DiscoverFiltersState;
+};
+
 type UseDiscoverFiltersResult = {
   filters: DiscoverFiltersState;
   drafts: DiscoverFiltersDraftState;
@@ -23,9 +27,24 @@ const isEmptyValue = (value: string): boolean => {
   return value.trim().length === 0;
 };
 
-export const useDiscoverFilters = (): UseDiscoverFiltersResult => {
-  const [filters, setFilters] = useState<DiscoverFiltersState>(DEFAULT_DISCOVER_FILTERS);
-  const [drafts, setDrafts] = useState<DiscoverFiltersDraftState>(DEFAULT_DISCOVER_FILTER_DRAFTS);
+const getDraftsFromFilters = (filters: DiscoverFiltersState): DiscoverFiltersDraftState => {
+  return {
+    country: filters.country,
+    language: filters.language,
+  };
+};
+
+export const useDiscoverFilters = (params: UseDiscoverFiltersParams = {}): UseDiscoverFiltersResult => {
+  const initialFilters = useMemo(() => {
+    return normalizeDiscoverFilters(params.initialFilters ?? DEFAULT_DISCOVER_FILTERS);
+  }, [params.initialFilters]);
+
+  const initialDrafts = useMemo(() => {
+    return getDraftsFromFilters(initialFilters);
+  }, [initialFilters]);
+
+  const [filters, setFilters] = useState<DiscoverFiltersState>(initialFilters);
+  const [drafts, setDrafts] = useState<DiscoverFiltersDraftState>(initialDrafts);
 
   const normalizedFilters = useMemo(() => {
     return normalizeDiscoverFilters(filters);

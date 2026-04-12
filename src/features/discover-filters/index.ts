@@ -5,6 +5,8 @@ export {
   DEFAULT_DISCOVER_FILTER_DRAFTS,
   getHasActiveDiscoverFilters,
   mapDiscoverFilterOptions,
+  getDiscoverFiltersFromSearchParams,
+  setDiscoverFiltersToSearchParams,
 } from './model';
 
 export type {

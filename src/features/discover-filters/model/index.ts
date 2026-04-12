@@ -11,4 +11,5 @@ export type {
 export { getHasActiveDiscoverFilters } from './get-has-active-discover-filters';
 export { normalizeDiscoverFilters } from './normalize-discover-filters';
 export { mapDiscoverFilterOptions } from './map-discover-filter-options';
+export { getDiscoverFiltersFromSearchParams, setDiscoverFiltersToSearchParams } from './discover-filters-search-params';
 export { useDiscoverFilters } from './use-discover-filters';
