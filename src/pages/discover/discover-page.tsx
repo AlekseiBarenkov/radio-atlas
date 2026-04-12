@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQueries } from '@tanstack/react-query';
 import { getStations, useSearchStations, StationCard } from '@entities/station';
@@ -18,15 +18,13 @@ export const DiscoverPage = () => {
   const [searchValue, setSearchValue] = useState('');
   const [pageOffsets, setPageOffsets] = useState<number[]>([0]);
 
-  const filters = useMemo(() => {
-    return getDiscoverFiltersFromSearchParams(searchParams);
-  }, [searchParams]);
-
+  const filters = getDiscoverFiltersFromSearchParams(searchParams);
   const normalizedSearchValue = searchValue.trim();
+  const searchParamsStateKey = searchParams.toString();
+
   const isSearchMode = normalizedSearchValue.length > 0;
   const hasActiveFilters = getHasActiveDiscoverFilters(filters);
   const isFilteredMode = isSearchMode || hasActiveFilters;
-  const searchParamsStateKey = searchParams.toString();
 
   const stationsQueries = useQueries({
     queries: pageOffsets.map((offset) => ({
@@ -54,13 +52,9 @@ export const DiscoverPage = () => {
     hideBroken: filters.hideBroken,
   });
 
-  const stations = useMemo(() => {
-    if (isSearchMode) {
-      return searchQuery.data ?? [];
-    }
-
-    return mergeStations(stationsQueries.map((query) => query.data ?? []));
-  }, [isSearchMode, searchQuery.data, stationsQueries]);
+  const stations = isSearchMode
+    ? (searchQuery.data ?? [])
+    : mergeStations(stationsQueries.map((query) => query.data ?? []));
 
   const isInitialStationsPending =
     !isSearchMode && stationsQueries.some((query) => query.isPending) && stations.length === 0;

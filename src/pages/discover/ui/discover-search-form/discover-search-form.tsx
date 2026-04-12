@@ -1,5 +1,4 @@
-import { type ChangeEvent, useEffect, useState } from 'react';
-import { useDebouncedValue } from '@shared/hooks';
+import { type ChangeEvent, type KeyboardEvent, useRef, useState } from 'react';
 import S from './discover-search-form.module.css';
 
 type DiscoverSearchFormProps = {
@@ -13,22 +12,53 @@ export const DiscoverSearchForm = (props: DiscoverSearchFormProps) => {
   const { initialValue, onChange } = props;
 
   const [inputValue, setInputValue] = useState(initialValue);
-  const debouncedValue = useDebouncedValue(inputValue, SEARCH_DEBOUNCE_MS);
+  const debounceTimeoutRef = useRef<number | null>(null);
 
-  useEffect(() => {
-    setInputValue(initialValue);
-  }, [initialValue]);
-
-  useEffect(() => {
-    if (debouncedValue === initialValue) {
+  const clearDebounceTimeout = () => {
+    if (debounceTimeoutRef.current === null) {
       return;
     }
 
-    onChange(debouncedValue);
-  }, [debouncedValue, initialValue, onChange]);
+    window.clearTimeout(debounceTimeoutRef.current);
+    debounceTimeoutRef.current = null;
+  };
+
+  const emitChange = (value: string) => {
+    if (value.trim() === initialValue.trim()) {
+      return;
+    }
+
+    onChange(value);
+  };
+
+  const scheduleChange = (value: string) => {
+    clearDebounceTimeout();
+
+    debounceTimeoutRef.current = window.setTimeout(() => {
+      debounceTimeoutRef.current = null;
+      emitChange(value);
+    }, SEARCH_DEBOUNCE_MS);
+  };
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setInputValue(event.target.value);
+    const nextValue = event.target.value;
+
+    setInputValue(nextValue);
+    scheduleChange(nextValue);
+  };
+
+  const handleBlur = () => {
+    clearDebounceTimeout();
+    emitChange(inputValue);
+  };
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key !== 'Enter') {
+      return;
+    }
+
+    clearDebounceTimeout();
+    emitChange(inputValue);
   };
 
   return (
@@ -44,6 +74,8 @@ export const DiscoverSearchForm = (props: DiscoverSearchFormProps) => {
         className={S.input}
         value={inputValue}
         onChange={handleChange}
+        onBlur={handleBlur}
+        onKeyDown={handleKeyDown}
         placeholder="Search by station name"
         autoComplete="off"
       />
