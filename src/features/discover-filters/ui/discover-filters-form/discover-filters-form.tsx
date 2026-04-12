@@ -1,11 +1,12 @@
 import { type ChangeEvent, type FocusEvent, type KeyboardEvent, useState } from 'react';
-import type { DiscoverFilterOption, DiscoverFiltersDraftState, DiscoverFiltersState } from '../../model';
+import type { DiscoverFilterOption, DiscoverFiltersState } from '../../model';
 import { getHasActiveDiscoverFilters } from '../../model';
 import S from './discover-filters-form.module.css';
 
 type DiscoverFiltersFormProps = {
   filters: DiscoverFiltersState;
-  drafts: DiscoverFiltersDraftState;
+  countryValue: string;
+  languageValue: string;
   countryOptions: DiscoverFilterOption[];
   languageOptions: DiscoverFilterOption[];
   isCountryOptionsLoading?: boolean;
@@ -22,12 +23,12 @@ const isSameValue = (left: string, right: string): boolean => {
   return left.trim() === right.trim();
 };
 
-const hasDraftValues = (drafts: DiscoverFiltersDraftState): boolean => {
-  return drafts.country.trim().length > 0 || drafts.language.trim().length > 0;
+const hasInputValues = (params: { countryValue: string; languageValue: string }): boolean => {
+  return params.countryValue.trim().length > 0 || params.languageValue.trim().length > 0;
 };
 
-const shouldShowSuggestions = (draftValue: string, appliedValue: string, isOpen: boolean): boolean => {
-  return isOpen && draftValue.trim().length > 0 && !isSameValue(draftValue, appliedValue);
+const shouldShowSuggestions = (inputValue: string, appliedValue: string, isOpen: boolean): boolean => {
+  return isOpen && inputValue.trim().length > 0 && !isSameValue(inputValue, appliedValue);
 };
 
 const getFirstOptionValue = (options: DiscoverFilterOption[]): string | null => {
@@ -37,7 +38,8 @@ const getFirstOptionValue = (options: DiscoverFilterOption[]): string | null => 
 export const DiscoverFiltersForm = (props: DiscoverFiltersFormProps) => {
   const {
     filters,
-    drafts,
+    countryValue,
+    languageValue,
     countryOptions,
     languageOptions,
     isCountryOptionsLoading = false,
@@ -54,7 +56,7 @@ export const DiscoverFiltersForm = (props: DiscoverFiltersFormProps) => {
   const [isLanguageSuggestionsOpen, setIsLanguageSuggestionsOpen] = useState(false);
 
   const hasActiveFilters = getHasActiveDiscoverFilters(filters);
-  const isResetDisabled = !hasActiveFilters && !hasDraftValues(drafts);
+  const isResetDisabled = !hasActiveFilters && !hasInputValues({ countryValue, languageValue });
 
   const countrySuggestionsId = 'discover-filter-country-suggestions';
   const languageSuggestionsId = 'discover-filter-language-suggestions';
@@ -169,18 +171,18 @@ export const DiscoverFiltersForm = (props: DiscoverFiltersFormProps) => {
           role="combobox"
           aria-haspopup="listbox"
           className={S.input}
-          value={drafts.country}
+          value={countryValue}
           onChange={handleCountryChange}
           onFocus={handleCountryFocus}
           onKeyDown={handleCountryKeyDown}
           placeholder="Type country"
           autoComplete="off"
-          aria-expanded={shouldShowSuggestions(drafts.country, filters.country, isCountrySuggestionsOpen)}
+          aria-expanded={shouldShowSuggestions(countryValue, filters.country, isCountrySuggestionsOpen)}
           aria-controls={countrySuggestionsId}
           aria-autocomplete="list"
         />
 
-        {shouldShowSuggestions(drafts.country, filters.country, isCountrySuggestionsOpen) && (
+        {shouldShowSuggestions(countryValue, filters.country, isCountrySuggestionsOpen) && (
           <div id={countrySuggestionsId} className={S.suggestions} role="listbox">
             {isCountryOptionsLoading ? (
               <div className={S.statusText}>Loading countries...</div>
@@ -220,18 +222,18 @@ export const DiscoverFiltersForm = (props: DiscoverFiltersFormProps) => {
           role="combobox"
           aria-haspopup="listbox"
           className={S.input}
-          value={drafts.language}
+          value={languageValue}
           onChange={handleLanguageChange}
           onFocus={handleLanguageFocus}
           onKeyDown={handleLanguageKeyDown}
           placeholder="Type language"
           autoComplete="off"
-          aria-expanded={shouldShowSuggestions(drafts.language, filters.language, isLanguageSuggestionsOpen)}
+          aria-expanded={shouldShowSuggestions(languageValue, filters.language, isLanguageSuggestionsOpen)}
           aria-controls={languageSuggestionsId}
           aria-autocomplete="list"
         />
 
-        {shouldShowSuggestions(drafts.language, filters.language, isLanguageSuggestionsOpen) && (
+        {shouldShowSuggestions(languageValue, filters.language, isLanguageSuggestionsOpen) && (
           <div id={languageSuggestionsId} className={S.suggestions} role="listbox">
             {isLanguageOptionsLoading ? (
               <div className={S.statusText}>Loading languages...</div>
