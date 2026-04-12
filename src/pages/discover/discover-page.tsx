@@ -19,7 +19,7 @@ export const DiscoverPage = () => {
   const [searchParams] = useSearchParams();
   const [searchValue, setSearchValue] = useState('');
   const [pageOffsets, setPageOffsets] = useState<number[]>([0]);
-
+  console.log(1);
   const filters = useMemo(() => {
     return getDiscoverFiltersFromSearchParams(searchParams);
   }, [searchParams]);
@@ -120,6 +120,7 @@ export const DiscoverPage = () => {
 
       <DiscoverPageFilters
         key={searchParamsStateKey}
+        initialFilters={filters}
         searchValue={searchValue}
         onSearchChange={handleSearchChange}
         onAppliedFiltersChange={resetPagination}

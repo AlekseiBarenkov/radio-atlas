@@ -1,16 +1,17 @@
-import { DiscoverFiltersForm } from '@features/discover-filters';
-import { DiscoverSearchForm } from '../discover-search-form';
+import { DiscoverFiltersForm, type DiscoverFiltersState } from '@features/discover-filters';
 import { useDiscoverPageFilters } from '../../model';
+import { DiscoverSearchForm } from '../discover-search-form';
 import S from './discover-page-filters.module.css';
 
 type DiscoverPageFiltersProps = {
+  initialFilters: DiscoverFiltersState;
   searchValue: string;
   onSearchChange: (value: string) => void;
   onAppliedFiltersChange: () => void;
 };
 
 export const DiscoverPageFilters = (props: DiscoverPageFiltersProps) => {
-  const { searchValue, onSearchChange, onAppliedFiltersChange } = props;
+  const { initialFilters, searchValue, onSearchChange, onAppliedFiltersChange } = props;
 
   const {
     filters,
@@ -26,6 +27,7 @@ export const DiscoverPageFilters = (props: DiscoverPageFiltersProps) => {
     handleHideBrokenChange,
     handleResetFilters,
   } = useDiscoverPageFilters({
+    initialFilters,
     onAppliedFiltersChange,
   });
 

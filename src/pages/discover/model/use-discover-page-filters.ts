@@ -3,14 +3,15 @@ import { useSearchParams } from 'react-router-dom';
 import { useSearchStationCountries, useSearchStationLanguages } from '@entities/station';
 import {
   DEFAULT_DISCOVER_FILTERS,
-  getDiscoverFiltersFromSearchParams,
   mapDiscoverFilterOptions,
   setDiscoverFiltersToSearchParams,
   useDiscoverFilters,
+  type DiscoverFiltersState,
 } from '@features/discover-filters';
 import { useDebouncedValue } from '@shared/hooks';
 
 type UseDiscoverPageFiltersParams = {
+  initialFilters: DiscoverFiltersState;
   onAppliedFiltersChange: () => void;
 };
 
@@ -28,28 +29,15 @@ type UseDiscoverPageFiltersResult = {
   handleLanguageSelect: (value: string) => void;
   handleHideBrokenChange: (value: boolean) => void;
   handleResetFilters: () => void;
-  searchParamsStateKey: string;
 };
 
 const FILTER_SUGGESTIONS_LIMIT = 8;
 const FILTER_SUGGESTIONS_DEBOUNCE_MS = 400;
 
-const getSearchParamsStateKey = (searchParams: URLSearchParams): string => {
-  return searchParams.toString();
-};
-
 export const useDiscoverPageFilters = (params: UseDiscoverPageFiltersParams): UseDiscoverPageFiltersResult => {
-  const { onAppliedFiltersChange } = params;
+  const { initialFilters, onAppliedFiltersChange } = params;
 
-  const [searchParams, setSearchParams] = useSearchParams();
-
-  const initialFilters = useMemo(() => {
-    return getDiscoverFiltersFromSearchParams(searchParams);
-  }, [searchParams]);
-
-  const searchParamsStateKey = useMemo(() => {
-    return getSearchParamsStateKey(searchParams);
-  }, [searchParams]);
+  const [, setSearchParams] = useSearchParams();
 
   const {
     filters,
@@ -183,6 +171,5 @@ export const useDiscoverPageFilters = (params: UseDiscoverPageFiltersParams): Us
     handleLanguageSelect,
     handleHideBrokenChange,
     handleResetFilters,
-    searchParamsStateKey,
   };
 };
