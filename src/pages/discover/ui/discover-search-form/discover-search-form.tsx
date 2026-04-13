@@ -1,17 +1,13 @@
 import { type ChangeEvent, type KeyboardEvent, useRef, useState } from 'react';
+import { useDiscoverContext } from '../../model';
 import S from './discover-search-form.module.css';
-
-type DiscoverSearchFormProps = {
-  initialValue: string;
-  onChange: (value: string) => void;
-};
 
 const SEARCH_DEBOUNCE_MS = 400;
 
-export const DiscoverSearchForm = (props: DiscoverSearchFormProps) => {
-  const { initialValue, onChange } = props;
+export const DiscoverSearchForm = () => {
+  const { search, onSearchChange } = useDiscoverContext();
 
-  const [inputValue, setInputValue] = useState(initialValue);
+  const [inputValue, setInputValue] = useState(search);
   const debounceTimeoutRef = useRef<number | null>(null);
 
   const clearDebounceTimeout = () => {
@@ -23,20 +19,12 @@ export const DiscoverSearchForm = (props: DiscoverSearchFormProps) => {
     debounceTimeoutRef.current = null;
   };
 
-  const emitChange = (value: string) => {
-    if (value.trim() === initialValue.trim()) {
-      return;
-    }
-
-    onChange(value);
-  };
-
   const scheduleChange = (value: string) => {
     clearDebounceTimeout();
 
     debounceTimeoutRef.current = window.setTimeout(() => {
       debounceTimeoutRef.current = null;
-      emitChange(value);
+      onSearchChange(value);
     }, SEARCH_DEBOUNCE_MS);
   };
 
@@ -49,7 +37,7 @@ export const DiscoverSearchForm = (props: DiscoverSearchFormProps) => {
 
   const handleBlur = () => {
     clearDebounceTimeout();
-    emitChange(inputValue);
+    onSearchChange(inputValue);
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
@@ -58,7 +46,7 @@ export const DiscoverSearchForm = (props: DiscoverSearchFormProps) => {
     }
 
     clearDebounceTimeout();
-    emitChange(inputValue);
+    onSearchChange(inputValue);
   };
 
   return (

@@ -1,5 +1,4 @@
 import { DEFAULT_DISCOVER_FILTERS } from './constants';
-import { normalizeDiscoverFilters } from './normalize-discover-filters';
 import type { DiscoverFiltersState } from './types';
 
 const COUNTRY_PARAM_NAME = 'country';
@@ -17,33 +16,32 @@ const getHideBrokenValue = (searchParams: URLSearchParams): boolean => {
 };
 
 export const getDiscoverFiltersFromSearchParams = (searchParams: URLSearchParams): DiscoverFiltersState => {
-  return normalizeDiscoverFilters({
+  return {
     country: getNormalizedParamValue(searchParams, COUNTRY_PARAM_NAME),
     language: getNormalizedParamValue(searchParams, LANGUAGE_PARAM_NAME),
     hideBroken: getHideBrokenValue(searchParams),
-  });
+  };
 };
 
 export const setDiscoverFiltersToSearchParams = (
   searchParams: URLSearchParams,
   filters: DiscoverFiltersState,
 ): URLSearchParams => {
-  const normalizedFilters = normalizeDiscoverFilters(filters);
   const nextSearchParams = new URLSearchParams(searchParams);
 
-  if (normalizedFilters.country.length > 0) {
-    nextSearchParams.set(COUNTRY_PARAM_NAME, normalizedFilters.country);
+  if (filters.country.length > 0) {
+    nextSearchParams.set(COUNTRY_PARAM_NAME, filters.country);
   } else {
     nextSearchParams.delete(COUNTRY_PARAM_NAME);
   }
 
-  if (normalizedFilters.language.length > 0) {
-    nextSearchParams.set(LANGUAGE_PARAM_NAME, normalizedFilters.language);
+  if (filters.language.length > 0) {
+    nextSearchParams.set(LANGUAGE_PARAM_NAME, filters.language);
   } else {
     nextSearchParams.delete(LANGUAGE_PARAM_NAME);
   }
 
-  if (normalizedFilters.hideBroken === DEFAULT_DISCOVER_FILTERS.hideBroken) {
+  if (filters.hideBroken === DEFAULT_DISCOVER_FILTERS.hideBroken) {
     nextSearchParams.delete(HIDE_BROKEN_PARAM_NAME);
   } else {
     nextSearchParams.set(HIDE_BROKEN_PARAM_NAME, FALSE_PARAM_VALUE);

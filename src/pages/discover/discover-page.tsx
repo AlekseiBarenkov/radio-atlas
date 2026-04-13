@@ -1,41 +1,27 @@
-import { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { getStations, StationCard } from '@entities/station';
-import { getDiscoverFiltersFromSearchParams, getHasActiveDiscoverFilters } from '@features/discover-filters';
 import { SkeletonCard } from '@shared/ui';
+import { DiscoverProvider, useDiscoverContext } from './model';
 import { DiscoverLoadMoreButton } from './ui/discover-load-more-button';
 import { DiscoverPageFilters } from './ui/discover-page-filters';
 import { DiscoverPageHeader } from './ui/discover-page-header';
 import S from './discover-page.module.css';
+import { getHasActiveDiscoverFilters } from './model/discover-filters';
 
 const STATIONS_LIMIT = 48;
 const SKELETON_COUNT = 12;
 
-export const DiscoverPage = () => {
-  const [searchParams] = useSearchParams();
-  const [searchValue, setSearchValue] = useState('');
+const DiscoverPageContent = () => {
+  const { search, filters } = useDiscoverContext();
 
-  const filters = getDiscoverFiltersFromSearchParams(searchParams);
-  const normalizedSearchValue = searchValue.trim();
-  const searchParamsStateKey = searchParams.toString();
-
-  const hasActiveFilters = getHasActiveDiscoverFilters(filters);
-  const isFilteredMode = normalizedSearchValue.length > 0 || hasActiveFilters;
+  const isFilteredMode = search.length > 0 || getHasActiveDiscoverFilters(filters);
 
   const stationsQuery = useInfiniteQuery({
-    queryKey: [
-      'stations',
-      normalizedSearchValue,
-      filters.country,
-      filters.language,
-      filters.hideBroken,
-      STATIONS_LIMIT,
-    ] as const,
+    queryKey: ['stations', search, filters.country, filters.language, filters.hideBroken, STATIONS_LIMIT],
     queryFn: ({ pageParam, signal }) =>
       getStations(
         {
-          name: normalizedSearchValue,
+          name: search,
           country: filters.country,
           language: filters.language,
           hideBroken: filters.hideBroken,
@@ -57,17 +43,6 @@ export const DiscoverPage = () => {
   const stations = stationsQuery.data?.pages.flat() ?? [];
   const { isPending, isError, error } = stationsQuery;
 
-  const isLoadMoreVisible = stationsQuery.hasNextPage;
-  const isLoadMoreDisabled = stationsQuery.isFetchingNextPage;
-
-  const handleLoadMore = () => {
-    stationsQuery.fetchNextPage();
-  };
-
-  const handleSearchChange = (value: string) => {
-    setSearchValue(value);
-  };
-
   const showEmpty = !isPending && !isError && stations.length === 0;
   const showList = !showEmpty && !isPending && !isError;
 
@@ -75,12 +50,7 @@ export const DiscoverPage = () => {
     <section className={S.page}>
       <DiscoverPageHeader />
 
-      <DiscoverPageFilters
-        key={searchParamsStateKey}
-        initialFilters={filters}
-        searchValue={searchValue}
-        onSearchChange={handleSearchChange}
-      />
+      <DiscoverPageFilters />
 
       {isPending && (
         <div className={S.grid}>
@@ -102,13 +72,26 @@ export const DiscoverPage = () => {
             ))}
           </div>
 
-          {isLoadMoreVisible && (
+          {stationsQuery.hasNextPage && (
             <div className={S.loadMore}>
-              <DiscoverLoadMoreButton onClick={handleLoadMore} disabled={isLoadMoreDisabled} />
+              <DiscoverLoadMoreButton
+                onClick={() => {
+                  stationsQuery.fetchNextPage();
+                }}
+                disabled={stationsQuery.isFetchingNextPage}
+              />
             </div>
           )}
         </>
       )}
     </section>
+  );
+};
+
+export const DiscoverPage = () => {
+  return (
+    <DiscoverProvider>
+      <DiscoverPageContent />
+    </DiscoverProvider>
   );
 };
