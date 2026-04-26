@@ -6,9 +6,12 @@ import { useDiscoverContext } from '../../model';
 import { FILTER_SUGGESTIONS_DEBOUNCE_MS, FILTER_SUGGESTIONS_LIMIT } from '../discover-filters-form/model/constants';
 import { getSuggestionsQueryValue } from '../discover-filters-form/model/helpers';
 import { DiscoverSuggestFilter } from '../discover-suggest-filter';
+import { useTranslation } from '@/features/localization';
 
 export const DiscoverCountryFilter = () => {
   const { filters, onCountryChange } = useDiscoverContext();
+
+  const t = useTranslation();
 
   const [inputValue, setInputValue] = useState(filters.country);
 
@@ -24,14 +27,14 @@ export const DiscoverCountryFilter = () => {
     <DiscoverSuggestFilter
       inputId="discover-filter-country"
       inputName="discover-filter-country"
-      label="Country"
-      placeholder="Type country"
+      label={t.discover.countryLabel}
+      placeholder={t.discover.countryPlaceholder}
+      loadingText={t.discover.loadingCountries}
+      emptyText={t.discover.noMatchingCountries}
       inputValue={inputValue}
       appliedValue={filters.country}
       options={mapDiscoverFilterOptions(suggestionsQuery.data ?? [])}
       isOptionsLoading={suggestionsQuery.isPending}
-      loadingText="Loading countries..."
-      emptyText="No matching countries"
       onInputChange={setInputValue}
       onAppliedChange={onCountryChange}
     />

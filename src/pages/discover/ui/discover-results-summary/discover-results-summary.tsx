@@ -1,9 +1,12 @@
+import { useTranslation } from '@/features/localization';
 import { useDiscoverContext } from '../../model';
 import { getHasActiveDiscoverFilters } from '../../model/discover-filters';
 import S from './discover-results-summary.module.css';
 
 export const DiscoverResultsSummary = () => {
   const { search, filters } = useDiscoverContext();
+
+  const t = useTranslation();
 
   const hasSearch = search.length > 0;
   const hasFilters = getHasActiveDiscoverFilters(filters);
@@ -19,20 +22,25 @@ export const DiscoverResultsSummary = () => {
   }
 
   if (filters.tag.length > 0) {
-    parts.push(`tag: ${filters.tag}`);
+    parts.push(`${t.discover.tag}: ${filters.tag}`);
   }
 
   if (filters.country.length > 0) {
-    parts.push(`country: ${filters.country}`);
+    parts.push(`${t.discover.country}: ${filters.country}`);
   }
 
   if (filters.language.length > 0) {
-    parts.push(`language: ${filters.language}`);
+    parts.push(`${t.discover.language}: ${filters.language}`);
   }
 
   if (filters.hideBroken === false) {
-    parts.push('including broken');
+    parts.push(t.discover.includingBroken);
   }
 
-  return <p className={S.summary}>Results for {parts.join(', ')}</p>;
+  return (
+    <p className={S.summary}>
+      {' '}
+      {t.discover.resultsFor} {parts.join(', ')}
+    </p>
+  );
 };

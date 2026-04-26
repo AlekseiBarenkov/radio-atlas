@@ -2,10 +2,13 @@ import { type ChangeEvent, type KeyboardEvent, useRef, useState } from 'react';
 import { useDiscoverContext } from '../../model';
 import S from './discover-search-form.module.css';
 import { hasSearchValue } from './lib/has-search-value';
+import { useTranslation } from '@/features/localization';
 
 const SEARCH_DEBOUNCE_MS = 400;
 
 export const DiscoverSearchForm = () => {
+  const t = useTranslation();
+
   const { search, onSearchChange } = useDiscoverContext();
 
   const [inputValue, setInputValue] = useState(search);
@@ -53,7 +56,7 @@ export const DiscoverSearchForm = () => {
   return (
     <form className={S.form} role="search">
       <label className={S.label} htmlFor="discover-search">
-        Search stations
+        {t.discover.searchLabel}
       </label>
 
       <div className={S.field}>
@@ -66,7 +69,7 @@ export const DiscoverSearchForm = () => {
           onChange={handleChange}
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
-          placeholder="Search by station name"
+          placeholder={t.discover.searchPlaceholder}
           autoComplete="off"
         />
 
@@ -79,7 +82,7 @@ export const DiscoverSearchForm = () => {
               onSearchChange('');
             }}
           >
-            Clear
+            {t.discover.clearSearch}
           </button>
         )}
       </div>

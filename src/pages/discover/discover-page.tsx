@@ -8,6 +8,7 @@ import S from './discover-page.module.css';
 import { getHasActiveDiscoverFilters } from './model/discover-filters';
 import { DiscoverResultsSummary } from './ui/discover-results-summary';
 import { DiscoverInfiniteScrollTrigger } from './ui/discover-infinite-scroll-trigger';
+import { useTranslation } from '@/features/localization';
 
 const STATIONS_LIMIT = 48;
 const SKELETON_COUNT = 12;
@@ -17,6 +18,8 @@ const DISCOVER_STATIONS_GC_TIME = 1000 * 60 * 60;
 
 const DiscoverPageContent = () => {
   const { search, filters } = useDiscoverContext();
+
+  const t = useTranslation();
 
   const isFilteredMode = search.length > 0 || getHasActiveDiscoverFilters(filters);
 
@@ -71,9 +74,13 @@ const DiscoverPageContent = () => {
         </div>
       )}
 
-      {isError && <div>Ошибка загрузки: {error?.message ?? 'Unknown error'}</div>}
+      {isError && (
+        <div>
+          {t.discover.loadingError}: {error?.message ?? t.common.unknownError}
+        </div>
+      )}
 
-      {showEmpty && <div>{isFilteredMode ? 'Станции по текущим параметрам не найдены' : 'Станции не найдены'}</div>}
+      {showEmpty && <div>{isFilteredMode ? t.discover.emptyFiltered : t.discover.emptyDefault}</div>}
 
       {showList && (
         <>

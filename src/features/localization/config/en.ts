@@ -85,6 +85,47 @@ export const en = {
   discover: {
     title: 'Discover stations',
     description: 'Advanced station list from Radio Browser',
+
+    country: 'Country',
+    language: 'Language',
+    tag: 'Tag',
+
+    searchLabel: 'Search stations',
+    searchPlaceholder: 'Search by station name',
+    clearSearch: 'Clear',
+
+    countryLabel: 'Country',
+    countryPlaceholder: 'Type country',
+    loadingCountries: 'Loading countries...',
+    noMatchingCountries: 'No matching countries',
+
+    languageLabel: 'Language',
+    languagePlaceholder: 'Type language',
+    loadingLanguages: 'Loading languages...',
+    noMatchingLanguages: 'No matching languages',
+
+    tagLabel: 'Genre / tag',
+    tagPlaceholder: 'Type genre or tag',
+    loadingTags: 'Loading tags...',
+    noMatchingTags: 'No matching tags',
+
+    hideBroken: 'Hide broken stations',
+    clearFilters: 'Clear filters',
+    activeFiltersAriaLabel: 'Active filters',
+    removeCountryFilter: 'Remove country filter',
+    removeLanguageFilter: 'Remove language filter',
+    removeTagFilter: 'Remove tag filter',
+    resetHideBrokenFilter: 'Reset hide broken filter',
+    brokenStationsVisible: 'Broken stations visible',
+
+    resultsFor: 'Results for',
+    includingBroken: 'including broken',
+    station: 'station',
+    stations: 'stations',
+
+    loadingError: 'Loading error',
+    emptyFiltered: 'No stations found for current parameters',
+    emptyDefault: 'Stations not found',
   },
 } as const;
 

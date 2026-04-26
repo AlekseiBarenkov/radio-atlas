@@ -81,5 +81,46 @@ export const ru = {
   discover: {
     title: 'Поиск станций',
     description: 'Расширенный список станций из Radio Browser',
+
+    country: 'Страна',
+    language: 'Язык',
+    tag: 'Тег',
+
+    searchLabel: 'Поиск станций',
+    searchPlaceholder: 'Поиск по названию станции',
+    clearSearch: 'Очистить',
+
+    countryLabel: 'Страна',
+    countryPlaceholder: 'Введите страну',
+    loadingCountries: 'Загрузка стран...',
+    noMatchingCountries: 'Подходящие страны не найдены',
+
+    languageLabel: 'Язык',
+    languagePlaceholder: 'Введите язык',
+    loadingLanguages: 'Загрузка языков...',
+    noMatchingLanguages: 'Подходящие языки не найдены',
+
+    tagLabel: 'Жанр / тег',
+    tagPlaceholder: 'Введите жанр или тег',
+    loadingTags: 'Загрузка тегов...',
+    noMatchingTags: 'Подходящие теги не найдены',
+
+    hideBroken: 'Скрывать неработающие станции',
+    clearFilters: 'Очистить фильтры',
+    activeFiltersAriaLabel: 'Активные фильтры',
+    removeCountryFilter: 'Убрать фильтр страны',
+    removeLanguageFilter: 'Убрать фильтр языка',
+    removeTagFilter: 'Убрать фильтр тега',
+    resetHideBrokenFilter: 'Сбросить фильтр неработающих станций',
+    brokenStationsVisible: 'Неработающие станции показаны',
+
+    resultsFor: 'Результаты для',
+    includingBroken: 'включая неработающие',
+    station: 'станция',
+    stations: 'станций',
+
+    loadingError: 'Ошибка загрузки',
+    emptyFiltered: 'Станции по текущим параметрам не найдены',
+    emptyDefault: 'Станции не найдены',
   },
 } as const satisfies Translation;

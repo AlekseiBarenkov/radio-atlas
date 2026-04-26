@@ -1,6 +1,7 @@
 import { DEFAULT_DISCOVER_FILTERS } from '../../model/discover-filters';
 import { useDiscoverContext } from '../../model';
 import S from './discover-active-filters.module.css';
+import { useTranslation } from '@/features/localization';
 
 type DiscoverActiveFiltersProps = {
   onResetKeyChange: () => void;
@@ -10,6 +11,8 @@ export const DiscoverActiveFilters = (props: DiscoverActiveFiltersProps) => {
   const { onResetKeyChange } = props;
 
   const { filters, onCountryChange, onLanguageChange, onTagChange, onHideBrokenChange } = useDiscoverContext();
+
+  const t = useTranslation();
 
   const hasActiveFilters =
     filters.country.length > 0 ||
@@ -22,10 +25,12 @@ export const DiscoverActiveFilters = (props: DiscoverActiveFiltersProps) => {
   }
 
   return (
-    <div className={S.wrapper} aria-label="Active filters">
+    <div className={S.wrapper} aria-label={t.discover.activeFiltersAriaLabel}>
       {filters.country.length > 0 && (
         <span className={S.chip}>
-          Country: {filters.country}
+          <span>
+            {t.discover.country}: {filters.country}
+          </span>
           <button
             className={S.button}
             type="button"
@@ -33,7 +38,7 @@ export const DiscoverActiveFilters = (props: DiscoverActiveFiltersProps) => {
               onCountryChange('');
               onResetKeyChange();
             }}
-            aria-label="Remove country filter"
+            aria-label={t.discover.removeCountryFilter}
           >
             ×
           </button>
@@ -42,7 +47,9 @@ export const DiscoverActiveFilters = (props: DiscoverActiveFiltersProps) => {
 
       {filters.language.length > 0 && (
         <span className={S.chip}>
-          Language: {filters.language}
+          <span>
+            {t.discover.language}: {filters.language}
+          </span>
           <button
             className={S.button}
             type="button"
@@ -50,7 +57,7 @@ export const DiscoverActiveFilters = (props: DiscoverActiveFiltersProps) => {
               onLanguageChange('');
               onResetKeyChange();
             }}
-            aria-label="Remove language filter"
+            aria-label={t.discover.removeLanguageFilter}
           >
             ×
           </button>
@@ -59,7 +66,9 @@ export const DiscoverActiveFilters = (props: DiscoverActiveFiltersProps) => {
 
       {filters.tag.length > 0 && (
         <span className={S.chip}>
-          Tag: {filters.tag}
+          <span>
+            {t.discover.tag}: {filters.tag}
+          </span>
           <button
             className={S.button}
             type="button"
@@ -67,7 +76,7 @@ export const DiscoverActiveFilters = (props: DiscoverActiveFiltersProps) => {
               onTagChange('');
               onResetKeyChange();
             }}
-            aria-label="Remove tag filter"
+            aria-label={t.discover.removeTagFilter}
           >
             ×
           </button>
@@ -76,7 +85,7 @@ export const DiscoverActiveFilters = (props: DiscoverActiveFiltersProps) => {
 
       {filters.hideBroken !== DEFAULT_DISCOVER_FILTERS.hideBroken && (
         <span className={S.chip}>
-          Broken stations visible
+          <span>{t.discover.brokenStationsVisible}</span>
           <button
             className={S.button}
             type="button"
@@ -84,7 +93,7 @@ export const DiscoverActiveFilters = (props: DiscoverActiveFiltersProps) => {
               onHideBrokenChange(DEFAULT_DISCOVER_FILTERS.hideBroken);
               onResetKeyChange();
             }}
-            aria-label="Reset hide broken filter"
+            aria-label={t.discover.resetHideBrokenFilter}
           >
             ×
           </button>
