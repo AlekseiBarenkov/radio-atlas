@@ -1,6 +1,7 @@
 import { RADIO_BROWSER_API_BASE_URL } from '@shared/api/radio-browser-api';
 import { request } from '@shared/api/request';
 import type { RadioStation } from '../model/types';
+import { rankSimilarStations, type SimilarStationCandidate } from '../lib/rank-similar-stations';
 
 type GetSimilarStationsParams = {
   station: RadioStation;
@@ -26,11 +27,6 @@ type SimilarStationsStrategy =
       params: Omit<SearchStationsParams, 'limit'>;
       score: number;
     };
-
-type SimilarStationCandidate = {
-  station: RadioStation;
-  score: number;
-};
 
 const DEFAULT_LIMIT = 6;
 const MAX_TAGS_TO_FETCH = 3;
@@ -190,7 +186,7 @@ const appendCandidateStations = (
   excludedStationId: string,
   strategyScore: number,
 ) => {
-  stations.forEach((station) => {
+  stations.forEach((station, index) => {
     if (station.stationuuid === excludedStationId) {
       return;
     }
@@ -201,6 +197,7 @@ const appendCandidateStations = (
       candidateMap.set(station.stationuuid, {
         station,
         score: strategyScore,
+        fallbackIndex: index,
       });
 
       return;
@@ -209,25 +206,8 @@ const appendCandidateStations = (
     candidateMap.set(station.stationuuid, {
       station: existingCandidate.station,
       score: existingCandidate.score + strategyScore,
+      fallbackIndex: Math.min(existingCandidate.fallbackIndex, index),
     });
-  });
-};
-
-const sortCandidates = (candidates: SimilarStationCandidate[]): SimilarStationCandidate[] => {
-  return [...candidates].sort((left, right) => {
-    if (right.score !== left.score) {
-      return right.score - left.score;
-    }
-
-    if (right.station.clickcount !== left.station.clickcount) {
-      return right.station.clickcount - left.station.clickcount;
-    }
-
-    if (right.station.votes !== left.station.votes) {
-      return right.station.votes - left.station.votes;
-    }
-
-    return left.station.name.localeCompare(right.station.name);
   });
 };
 
@@ -270,7 +250,10 @@ export const getSimilarStations = async (
     appendCandidateStations(candidateMap, stations, stationId, strategy.score);
   }
 
-  return sortCandidates(Array.from(candidateMap.values()))
+  return rankSimilarStations({
+    candidates: Array.from(candidateMap.values()),
+    currentStation: station,
+  })
     .slice(0, limit)
     .map((candidate) => candidate.station);
 };
