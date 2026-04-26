@@ -10,19 +10,39 @@ export type GetStationsParams = {
   country?: string;
   language?: string;
   tag?: string;
+  order?: 'name' | 'clickcount' | 'votes';
+  reverse?: boolean;
 };
 
 const DEFAULT_LIMIT = 48;
 const DEFAULT_OFFSET = 0;
 
 export const getStations = async (params: GetStationsParams = {}, signal?: AbortSignal): Promise<RadioStation[]> => {
-  const { name, limit = DEFAULT_LIMIT, offset = DEFAULT_OFFSET, hideBroken = true, country, language, tag } = params;
+  const {
+    name,
+    limit = DEFAULT_LIMIT,
+    offset = DEFAULT_OFFSET,
+    hideBroken = true,
+    country,
+    language,
+    tag,
+    order,
+    reverse,
+  } = params;
 
   const searchParams = new URLSearchParams({
     offset: String(offset),
     limit: String(limit),
     hidebroken: String(hideBroken),
   });
+
+  if (order) {
+    searchParams.set('order', order);
+  }
+
+  if (reverse !== undefined) {
+    searchParams.set('reverse', String(reverse));
+  }
 
   const normalizedName = name?.trim() ?? '';
   const normalizedCountry = country?.trim() ?? '';

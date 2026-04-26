@@ -32,6 +32,7 @@ const DiscoverPageContent = () => {
           hideBroken: filters.hideBroken,
           limit: STATIONS_LIMIT,
           offset: pageParam,
+          order: search.length > 0 ? 'name' : undefined,
         },
         signal,
       ),
