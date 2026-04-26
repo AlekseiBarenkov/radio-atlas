@@ -1,5 +1,5 @@
 import { StationCard, hasSimilarStationsSource, useSimilarStations, type RadioStation } from '@entities/station';
-import { SkeletonCard } from '@shared/ui';
+import { Notice, SkeletonCard } from '@shared/ui';
 import S from './similar-stations.module.css';
 import { useTranslation } from '@/features/localization';
 
@@ -46,7 +46,10 @@ export const SimilarStations = (props: SimilarStationsProps) => {
     return (
       <section className={S.wrapper}>
         <h2 className={S.header}>{t.similarStations.title}</h2>
-        <div className={S.empty}>{t.similarStations.error}</div>
+        <Notice
+          tone="error"
+          title={`${t.similarStations.error}: ${similarStationsQuery.error?.message ?? t.common.unknownError}`}
+        />
       </section>
     );
   }

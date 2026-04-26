@@ -2,7 +2,7 @@ import { StationCard } from '@entities/station';
 import { useFavorites } from '@features/favorites';
 import S from './favorites-page.module.css';
 import { useTranslation } from '@/features/localization';
-import { PageHeader } from '@/shared/ui';
+import { Notice, PageHeader } from '@/shared/ui';
 
 export const FavoritesPage = () => {
   const t = useTranslation();
@@ -20,7 +20,7 @@ export const FavoritesPage = () => {
         )}
       </PageHeader>
 
-      {favoritesCount === 0 && <div className={S.empty}>{t.favoritesPage.empty}</div>}
+      {favoritesCount === 0 && <Notice title={t.favoritesPage.empty} />}
 
       {favoritesCount > 0 && (
         <div className={S.grid}>

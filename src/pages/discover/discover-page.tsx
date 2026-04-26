@@ -1,6 +1,6 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { getStations, StationCard } from '@entities/station';
-import { PageHeader, SkeletonCard } from '@shared/ui';
+import { Notice, PageHeader, SkeletonCard } from '@shared/ui';
 import { DiscoverProvider, useDiscoverContext } from './model';
 import { DiscoverPageFilters } from './ui/discover-page-filters';
 import S from './discover-page.module.css';
@@ -74,12 +74,10 @@ const DiscoverPageContent = () => {
       )}
 
       {isError && (
-        <div>
-          {t.discover.loadingError}: {error?.message ?? t.common.unknownError}
-        </div>
+        <Notice tone="error" title={`${t.discover.loadingError}: ${error?.message ?? t.common.unknownError}`} />
       )}
 
-      {showEmpty && <div>{isFilteredMode ? t.discover.emptyFiltered : t.discover.emptyDefault}</div>}
+      {showEmpty && <Notice title={isFilteredMode ? t.discover.emptyFiltered : t.discover.emptyDefault} />}
 
       {showList && (
         <>

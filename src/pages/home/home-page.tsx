@@ -1,6 +1,6 @@
 import { StationCard, useTopClickStations } from '@entities/station';
 import { RecentlyPlayed } from '@widgets/recently-played';
-import { PageHeader, SkeletonCard } from '@shared/ui';
+import { Notice, PageHeader, SkeletonCard } from '@shared/ui';
 import S from './home-page.module.css';
 import { Link } from 'react-router-dom';
 import { useTranslation } from '@/features/localization';
@@ -60,9 +60,8 @@ export const HomePage = () => {
     return (
       <section className={S.page}>
         {top}
-        <div>
-          {t.home.loadingError}: {error?.message ?? t.common.unknownError}
-        </div>
+
+        <Notice tone="error" title={`${t.home.loadingError}: ${error?.message ?? t.common.unknownError}`} />
       </section>
     );
   }
@@ -71,7 +70,8 @@ export const HomePage = () => {
     return (
       <section className={S.page}>
         {top}
-        <div>{t.home.stationsNotFound}</div>
+
+        <Notice title={t.home.stationsNotFound} />
       </section>
     );
   }

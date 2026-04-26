@@ -8,7 +8,7 @@ import {
   usePlayerActions,
   usePlayerUiState,
 } from '@features/player';
-import { Skeleton } from '@shared/ui';
+import { Notice, Skeleton } from '@shared/ui';
 import S from './station-page.module.css';
 import { useTranslation } from '@/features/localization';
 
@@ -126,9 +126,10 @@ export const StationPage = () => {
           ← {t.stationPage.back}
         </button>
 
-        <div className={S.empty}>
-          {t.stationPage.loadingError}: {stationQuery.error?.message ?? t.common.unknownError}
-        </div>
+        <Notice
+          tone="error"
+          title={`${t.stationPage.loadingError}: ${stationQuery.error?.message ?? t.common.unknownError}`}
+        />
       </section>
     );
   }
@@ -140,7 +141,7 @@ export const StationPage = () => {
           ← {t.stationPage.back}
         </button>
 
-        <div className={S.empty}>{t.stationPage.stationNotFound}</div>
+        <Notice title={t.stationPage.stationNotFound} />
       </section>
     );
   }
@@ -247,7 +248,7 @@ export const StationPage = () => {
             ))}
           </div>
         ) : (
-          <div className={S.empty}>{t.stationPage.tagsEmpty}</div>
+          <Notice title={t.stationPage.tagsEmpty} />
         )}
       </section>
 

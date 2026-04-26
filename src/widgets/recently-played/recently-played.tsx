@@ -4,6 +4,7 @@ import { getVisibleRecentlyPlayedStations } from './lib/get-visible-recently-pla
 import { RecentlyPlayedHeader } from './ui';
 import S from './recently-played.module.css';
 import { useTranslation } from '@/features/localization';
+import { Notice } from '@/shared/ui';
 
 export const RecentlyPlayed = () => {
   const t = useTranslation();
@@ -18,7 +19,7 @@ export const RecentlyPlayed = () => {
     return (
       <section className={S.section}>
         <RecentlyPlayedHeader isClearVisible={false} onClear={handleClear} />
-        <div className={S.empty}>{t.recentlyPlayed.empty}</div>
+        <Notice title={t.recentlyPlayed.empty} />
       </section>
     );
   }
