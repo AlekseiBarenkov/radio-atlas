@@ -18,8 +18,8 @@ const getStationImage = (favicon: string): string | null => {
   return normalizedFavicon.length > 0 ? normalizedFavicon : null;
 };
 
-const getStationBitrateLabel = (bitrate: number): string => {
-  return bitrate > 0 ? `${bitrate} kbps` : 'Unknown';
+const getStationBitrateLabel = (bitrate: number, unknownText: string): string => {
+  return bitrate > 0 ? `${bitrate} kbps` : unknownText;
 };
 
 const getStationTags = (tags: string): string[] => {
@@ -81,7 +81,7 @@ export const StationPage = () => {
     return (
       <section className={S.page}>
         <button className={S.backLink} type="button" onClick={handleBack}>
-          ← Back
+          ← {t.stationPage.back}
         </button>
 
         <div className={S.hero}>
@@ -103,7 +103,7 @@ export const StationPage = () => {
         </div>
 
         <section className={S.metaSection}>
-          <h2 className={S.metaTitle}>Station metadata</h2>
+          <h2 className={S.metaTitle}>{t.stationPage.metadata}</h2>
 
           <div className={S.metaGrid}>
             {Array.from({ length: 4 }).map((_, index) => (
@@ -123,10 +123,12 @@ export const StationPage = () => {
     return (
       <section className={S.page}>
         <button className={S.backLink} type="button" onClick={handleBack}>
-          ← Back
+          ← {t.stationPage.back}
         </button>
 
-        <div className={S.empty}>Ошибка загрузки станции: {stationQuery.error?.message ?? 'Unknown error'}</div>
+        <div className={S.empty}>
+          {t.stationPage.loadingError}: {stationQuery.error?.message ?? t.common.unknownError}
+        </div>
       </section>
     );
   }
@@ -135,10 +137,10 @@ export const StationPage = () => {
     return (
       <section className={S.page}>
         <button className={S.backLink} type="button" onClick={handleBack}>
-          ← Back
+          ← {t.stationPage.back}
         </button>
 
-        <div className={S.empty}>Станция не найдена</div>
+        <div className={S.empty}>{t.stationPage.stationNotFound}</div>
       </section>
     );
   }
@@ -150,7 +152,7 @@ export const StationPage = () => {
   return (
     <section className={S.page}>
       <button className={S.backLink} type="button" onClick={handleBack}>
-        ← Back
+        ← {t.stationPage.back}
       </button>
 
       <div className={S.hero}>
@@ -166,7 +168,7 @@ export const StationPage = () => {
           <header className={S.header}>
             <h1 className={S.title}>{station.name}</h1>
             <p className={S.subtitle}>
-              {station.country || 'Unknown country'} • {station.language || 'Unknown language'}
+              {station.country || t.common.unknownCountry} • {station.language || t.common.unknownLanguage}
             </p>
 
             {stationPlayerState.statusMessage.tone === 'info' && (
@@ -198,43 +200,43 @@ export const StationPage = () => {
       </div>
 
       <section className={S.metaSection}>
-        <h2 className={S.metaTitle}>Station metadata</h2>
+        <h2 className={S.metaTitle}>{t.stationPage.metadata}</h2>
 
         <div className={S.metaGrid}>
           <article className={S.metaCard}>
-            <p className={S.metaLabel}>Country</p>
-            <p className={S.metaValue}>{station.country || 'Unknown'}</p>
+            <p className={S.metaLabel}>{t.stationPage.country}</p>
+            <p className={S.metaValue}>{station.country || t.common.unknown}</p>
           </article>
 
           <article className={S.metaCard}>
-            <p className={S.metaLabel}>Language</p>
-            <p className={S.metaValue}>{station.language || 'Unknown'}</p>
+            <p className={S.metaLabel}>{t.stationPage.language}</p>
+            <p className={S.metaValue}>{station.language || t.common.unknown}</p>
           </article>
 
           <article className={S.metaCard}>
-            <p className={S.metaLabel}>Bitrate</p>
-            <p className={S.metaValue}>{getStationBitrateLabel(station.bitrate)}</p>
+            <p className={S.metaLabel}>{t.stationPage.bitrate}</p>
+            <p className={S.metaValue}>{getStationBitrateLabel(station.bitrate, t.common.unknown)}</p>
           </article>
 
           <article className={S.metaCard}>
-            <p className={S.metaLabel}>Codec</p>
-            <p className={S.metaValue}>{station.codec || 'Unknown'}</p>
+            <p className={S.metaLabel}>{t.stationPage.codec}</p>
+            <p className={S.metaValue}>{station.codec || t.common.unknown}</p>
           </article>
 
           <article className={S.metaCard}>
-            <p className={S.metaLabel}>Clicks</p>
+            <p className={S.metaLabel}>{t.stationPage.clicks}</p>
             <p className={S.metaValue}>{station.clickcount}</p>
           </article>
 
           <article className={S.metaCard}>
-            <p className={S.metaLabel}>Votes</p>
+            <p className={S.metaLabel}>{t.stationPage.votes}</p>
             <p className={S.metaValue}>{station.votes}</p>
           </article>
         </div>
       </section>
 
       <section className={S.metaSection}>
-        <h2 className={S.metaTitle}>Tags</h2>
+        <h2 className={S.metaTitle}>{t.stationPage.tags}</h2>
 
         {tags.length > 0 ? (
           <div className={S.tags}>
@@ -245,7 +247,7 @@ export const StationPage = () => {
             ))}
           </div>
         ) : (
-          <div className={S.empty}>У станции не указаны теги</div>
+          <div className={S.empty}>{t.stationPage.tagsEmpty}</div>
         )}
       </section>
 

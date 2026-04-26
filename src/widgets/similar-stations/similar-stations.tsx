@@ -1,6 +1,7 @@
 import { StationCard, hasSimilarStationsSource, useSimilarStations, type RadioStation } from '@entities/station';
 import { SkeletonCard } from '@shared/ui';
 import S from './similar-stations.module.css';
+import { useTranslation } from '@/features/localization';
 
 type SimilarStationsProps = {
   station: RadioStation;
@@ -11,6 +12,8 @@ const SIMILAR_STATIONS_SKELETON_COUNT = 3;
 
 export const SimilarStations = (props: SimilarStationsProps) => {
   const { station } = props;
+
+  const t = useTranslation();
 
   const isVisible = hasSimilarStationsSource(station);
 
@@ -28,7 +31,7 @@ export const SimilarStations = (props: SimilarStationsProps) => {
   if (similarStationsQuery.isLoading) {
     return (
       <section className={S.wrapper}>
-        <h2 className={S.header}>Similar stations</h2>
+        <h2 className={S.header}>{t.similarStations.title}</h2>
 
         <div className={S.list}>
           {Array.from({ length: SIMILAR_STATIONS_SKELETON_COUNT }).map((_, index) => (
@@ -42,8 +45,8 @@ export const SimilarStations = (props: SimilarStationsProps) => {
   if (similarStationsQuery.isError) {
     return (
       <section className={S.wrapper}>
-        <h2 className={S.header}>Similar stations</h2>
-        <div className={S.empty}>Ошибка загрузки похожих станций</div>
+        <h2 className={S.header}>{t.similarStations.title}</h2>
+        <div className={S.empty}>{t.similarStations.error}</div>
       </section>
     );
   }
@@ -54,7 +57,7 @@ export const SimilarStations = (props: SimilarStationsProps) => {
 
   return (
     <section className={S.wrapper}>
-      <h2 className={S.header}>Similar stations</h2>
+      <h2 className={S.header}>{t.similarStations.title}</h2>
 
       <div className={S.list}>
         {stations.map((similarStation) => (

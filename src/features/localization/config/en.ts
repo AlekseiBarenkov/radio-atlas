@@ -127,6 +127,37 @@ export const en = {
     emptyFiltered: 'No stations found for current parameters',
     emptyDefault: 'Stations not found',
   },
+
+  favoritesPage: {
+    title: 'Favorites',
+    description: 'Your saved radio stations',
+    empty: 'You have no favorite stations yet',
+    savedCount: 'Saved stations',
+  },
+
+  similarStations: {
+    title: 'Similar stations',
+    error: 'Failed to load similar stations',
+  },
+
+  stationPage: {
+    back: 'Back',
+    metadata: 'Station metadata',
+    country: 'Country',
+    language: 'Language',
+    bitrate: 'Bitrate',
+    codec: 'Codec',
+    clicks: 'Clicks',
+    votes: 'Votes',
+    tags: 'Tags',
+    tagsEmpty: 'No tags specified for this station',
+    stationNotFound: 'Station not found',
+    loadingError: 'Station loading error',
+  },
+
+  languageSwitcher: {
+    ariaLabel: 'Language switcher',
+  },
 } as const;
 
 export type Translation = TranslationValue<typeof en>;

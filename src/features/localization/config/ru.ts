@@ -123,4 +123,35 @@ export const ru = {
     emptyFiltered: 'Станции по текущим параметрам не найдены',
     emptyDefault: 'Станции не найдены',
   },
+
+  favoritesPage: {
+    title: 'Избранное',
+    description: 'Ваши сохранённые радиостанции',
+    empty: 'У вас пока нет избранных станций',
+    savedCount: 'Сохранено станций',
+  },
+
+  similarStations: {
+    title: 'Похожие станции',
+    error: 'Не удалось загрузить похожие станции',
+  },
+
+  stationPage: {
+    back: 'Назад',
+    metadata: 'Информация о станции',
+    country: 'Страна',
+    language: 'Язык',
+    bitrate: 'Битрейт',
+    codec: 'Кодек',
+    clicks: 'Клики',
+    votes: 'Голоса',
+    tags: 'Теги',
+    tagsEmpty: 'У станции не указаны теги',
+    stationNotFound: 'Станция не найдена',
+    loadingError: 'Ошибка загрузки станции',
+  },
+
+  languageSwitcher: {
+    ariaLabel: 'Переключатель языка',
+  },
 } as const satisfies Translation;

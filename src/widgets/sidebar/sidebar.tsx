@@ -1,13 +1,15 @@
-import { LanguageSwitcher } from '@/features/localization';
+import { LanguageSwitcher, useTranslation } from '@/features/localization';
 import S from './sidebar.module.css';
 import { SidebarNav } from './ui/sidebar-nav/sidebar-nav';
 
 export const Sidebar = () => {
+  const t = useTranslation();
+
   return (
     <section className={S.sidebar} aria-label="Sidebar">
       <header className={S.header}>
-        <h2 className={S.title}>Radio Atlas</h2>
-        <p className={S.subtitle}>Browse stations and manage favorites</p>
+        <h2 className={S.title}>{t.sidebar.title}</h2>
+        <p className={S.subtitle}>{t.sidebar.subtitle}</p>
       </header>
 
       <div className={S.nav}>
