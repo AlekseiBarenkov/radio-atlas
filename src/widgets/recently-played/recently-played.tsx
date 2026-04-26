@@ -3,8 +3,11 @@ import { usePlayerHistory } from '@features/player-history';
 import { getVisibleRecentlyPlayedStations } from './lib/get-visible-recently-played-stations';
 import { RecentlyPlayedHeader } from './ui';
 import S from './recently-played.module.css';
+import { useTranslation } from '@/features/localization';
 
 export const RecentlyPlayed = () => {
+  const t = useTranslation();
+
   const { stations, clear, hasStations } = usePlayerHistory();
 
   const handleClear = () => {
@@ -15,7 +18,7 @@ export const RecentlyPlayed = () => {
     return (
       <section className={S.section}>
         <RecentlyPlayedHeader isClearVisible={false} onClear={handleClear} />
-        <div className={S.empty}>Вы пока не запускали ни одной станции</div>
+        <div className={S.empty}>{t.recentlyPlayed.empty}</div>
       </section>
     );
   }

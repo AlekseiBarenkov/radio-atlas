@@ -9,8 +9,11 @@ import {
   usePlayerUiState,
 } from '@features/player';
 import S from './mini-player.module.css';
+import { useTranslation } from '@/features/localization';
 
 export const MiniPlayer = () => {
+  const t = useTranslation();
+
   const { currentStation, playerStatus, errorMessage, isReconnectSuggested, isIdle, isLoading } = usePlayerUiState();
   const { stations } = usePlayerHistory();
 
@@ -20,6 +23,7 @@ export const MiniPlayer = () => {
     status: playerStatus,
     isReconnectSuggested,
     errorMessage,
+    t,
   });
 
   const lastPlayedStation = getLastPlayedStation(stations);
@@ -49,16 +53,16 @@ export const MiniPlayer = () => {
           {currentStation && currentStationPath ? (
             <Link to={currentStationPath}>{currentStation.name}</Link>
           ) : (
-            'Ничего не играет'
+            t.miniPlayer.emptyTitle
           )}
         </div>
 
         <div className={S.subtitle}>
           {currentStation
-            ? `${currentStation.country || 'Unknown country'} • ${currentStation.language || 'Unknown language'}`
+            ? `${currentStation.country || t.common.unknownCountry} • ${currentStation.language || t.common.unknownLanguage}`
             : lastPlayedStation
-              ? `Продолжить: ${lastPlayedStation.name}`
-              : 'Выберите радиостанцию'}
+              ? `${t.miniPlayer.continuePrefix}: ${lastPlayedStation.name}`
+              : t.miniPlayer.chooseStation}
         </div>
 
         {statusMessage.tone === 'info' && <div className={S.status}>{statusMessage.text}</div>}
@@ -68,19 +72,20 @@ export const MiniPlayer = () => {
       <div className={S.controls}>
         {isIdle && lastPlayedStation ? (
           <button className={S.button} type="button" onClick={handleContinueListening}>
-            Continue listening
+            {t.miniPlayer.continueListening}
           </button>
         ) : (
           <button className={S.button} type="button" onClick={handleTogglePlay} disabled={isIdle || isLoading}>
             {getPlayerPrimaryButtonLabel({
               status: playerStatus,
               isReconnectSuggested,
+              t,
             })}
           </button>
         )}
 
         <button className={S.secondaryButton} type="button" onClick={actions.stop} disabled={isIdle}>
-          Stop
+          {t.miniPlayer.stop}
         </button>
       </div>
     </div>

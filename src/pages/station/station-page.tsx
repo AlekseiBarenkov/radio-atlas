@@ -10,6 +10,7 @@ import {
 } from '@features/player';
 import { Skeleton } from '@shared/ui';
 import S from './station-page.module.css';
+import { useTranslation } from '@/features/localization';
 
 const getStationImage = (favicon: string): string | null => {
   const normalizedFavicon = favicon.trim();
@@ -32,6 +33,8 @@ export const StationPage = () => {
   const { stationId } = useParams<{ stationId: string }>();
   const navigate = useNavigate();
 
+  const t = useTranslation();
+
   const normalizedStationId = stationId?.trim() ?? '';
   const stationQuery = useStationById(normalizedStationId);
 
@@ -47,6 +50,7 @@ export const StationPage = () => {
         playerStatus,
         errorMessage,
         isReconnectSuggested,
+        t,
       })
     : null;
 
@@ -184,6 +188,7 @@ export const StationPage = () => {
                 status: playerStatus,
                 isReconnectSuggested,
                 isCurrentStation: stationPlayerState.isCurrentStation,
+                t,
               })}
             </button>
 

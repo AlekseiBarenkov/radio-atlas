@@ -1,3 +1,4 @@
+import { useTranslation } from '@features/localization';
 import { NavLink } from 'react-router-dom';
 import S from './sidebar-nav.module.css';
 
@@ -7,27 +8,29 @@ type SidebarNavItem = {
   end?: boolean;
 };
 
-const SIDEBAR_NAV_ITEMS: SidebarNavItem[] = [
-  {
-    to: '/',
-    label: 'Home',
-    end: true,
-  },
-  {
-    to: '/discover',
-    label: 'Discover',
-  },
-  {
-    to: '/favorites',
-    label: 'Favorites',
-  },
-];
-
 export const SidebarNav = () => {
+  const t = useTranslation();
+
+  const sidebarNavItems: SidebarNavItem[] = [
+    {
+      to: '/',
+      label: t.sidebar.home,
+      end: true,
+    },
+    {
+      to: '/discover',
+      label: t.sidebar.discover,
+    },
+    {
+      to: '/favorites',
+      label: t.sidebar.favorites,
+    },
+  ];
+
   return (
-    <nav className={S.nav} aria-label="Sidebar navigation">
+    <nav className={S.nav} aria-label={t.sidebar.navAriaLabel}>
       <ul className={S.list}>
-        {SIDEBAR_NAV_ITEMS.map((item) => (
+        {sidebarNavItems.map((item) => (
           <li key={item.to} className={S.item}>
             <NavLink to={item.to} end={item.end}>
               {({ isActive }) => (

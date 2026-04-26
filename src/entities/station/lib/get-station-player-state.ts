@@ -1,5 +1,6 @@
 import { PLAYER_STATUSES, type PlayerStatus } from '@features/player';
 import type { RadioStation } from '../model/types';
+import type { Translation } from '@/features/localization';
 
 type GetStationPlayerStateParams = {
   station: RadioStation;
@@ -7,6 +8,7 @@ type GetStationPlayerStateParams = {
   playerStatus: PlayerStatus;
   errorMessage: string | null;
   isReconnectSuggested: boolean;
+  t: Translation;
 };
 
 export type StationPlayerState = {
@@ -24,8 +26,9 @@ const getStatusMessage = (params: {
   playerStatus: PlayerStatus;
   errorMessage: string | null;
   isReconnectSuggested: boolean;
+  t: Translation;
 }): StationPlayerState['statusMessage'] => {
-  const { isCurrentStation, playerStatus, errorMessage, isReconnectSuggested } = params;
+  const { isCurrentStation, playerStatus, errorMessage, isReconnectSuggested, t } = params;
 
   if (!isCurrentStation) {
     return {
@@ -36,28 +39,28 @@ const getStatusMessage = (params: {
 
   if (playerStatus === PLAYER_STATUSES.LOADING) {
     return {
-      text: 'Подключение к станции...',
+      text: t.player.connecting,
       tone: 'info',
     };
   }
 
   if (playerStatus === PLAYER_STATUSES.BUFFERING) {
     return {
-      text: isReconnectSuggested ? 'Поток долго буферизуется. Попробуйте переподключить.' : 'Буферизация потока...',
+      text: isReconnectSuggested ? t.player.longBuffering : t.player.streamBuffering,
       tone: 'info',
     };
   }
 
   if (playerStatus === PLAYER_STATUSES.PAUSED) {
     return {
-      text: 'Пауза',
+      text: t.player.paused,
       tone: 'info',
     };
   }
 
   if (playerStatus === PLAYER_STATUSES.ERROR) {
     return {
-      text: errorMessage ?? 'Ошибка воспроизведения',
+      text: errorMessage ?? t.player.playbackError,
       tone: 'error',
     };
   }
@@ -69,7 +72,7 @@ const getStatusMessage = (params: {
 };
 
 export const getStationPlayerState = (params: GetStationPlayerStateParams): StationPlayerState => {
-  const { station, currentStation, playerStatus, errorMessage, isReconnectSuggested } = params;
+  const { station, currentStation, playerStatus, errorMessage, isReconnectSuggested, t } = params;
 
   const isCurrentStation = currentStation?.stationuuid === station.stationuuid;
   const isButtonBusy = isCurrentStation && playerStatus === PLAYER_STATUSES.LOADING;
@@ -84,6 +87,7 @@ export const getStationPlayerState = (params: GetStationPlayerStateParams): Stat
       playerStatus,
       errorMessage,
       isReconnectSuggested,
+      t,
     }),
   };
 };

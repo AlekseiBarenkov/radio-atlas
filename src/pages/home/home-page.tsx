@@ -3,10 +3,13 @@ import { RecentlyPlayed } from '@widgets/recently-played';
 import { Skeleton, SkeletonCard } from '@shared/ui';
 import S from './home-page.module.css';
 import { Link } from 'react-router-dom';
+import { useTranslation } from '@/features/localization';
 
 const SKELETON_ITEMS = 6;
 
 export const HomePage = () => {
+  const t = useTranslation();
+
   const { stations, isLoading, isError, error } = useTopClickStations({
     limit: 24,
     hideBroken: true,
@@ -35,7 +38,9 @@ export const HomePage = () => {
     return (
       <section className={S.page}>
         <RecentlyPlayed />
-        <div>Ошибка загрузки: {error?.message ?? 'Unknown error'}</div>
+        <div>
+          {t.home.loadingError}: {error?.message ?? t.common.unknownError}
+        </div>
       </section>
     );
   }
@@ -44,7 +49,7 @@ export const HomePage = () => {
     return (
       <section className={S.page}>
         <RecentlyPlayed />
-        <div>Станции не найдены</div>
+        <div>{t.home.stationsNotFound}</div>
       </section>
     );
   }
@@ -52,31 +57,31 @@ export const HomePage = () => {
   return (
     <section className={S.page}>
       <header className={S.hero}>
-        <p className={S.eyebrow}>Radio Atlas</p>
+        <p className={S.eyebrow}>{t.home.eyebrow}</p>
 
         <div className={S.heroContent}>
-          <h1 className={S.heroTitle}>Listen to radio stations around the world</h1>
-          <p className={S.heroDescription}>
-            Discover popular online radio, save favorite stations and quickly return to what you played recently.
-          </p>
+          <h1 className={S.heroTitle}>{t.home.heroTitle}</h1>
+          <p className={S.heroDescription}>{t.home.heroDescription}</p>
         </div>
 
-        <div className={S.heroBadges} aria-label="Radio Atlas features">
-          <span className={S.heroBadge}>Global stations</span>
-          <span className={S.heroBadge}>Favorites</span>
-          <span className={S.heroBadge}>Recently played</span>
+        <div className={S.heroBadges} aria-label={t.home.featuresAriaLabel}>
+          <span className={S.heroBadge}>{t.home.globalStations}</span>
+          <span className={S.heroBadge}>{t.home.favorites}</span>
+          <span className={S.heroBadge}>{t.home.recentlyPlayed}</span>
         </div>
 
         <Link className={S.heroLink} to="/discover">
-          Explore stations
+          {t.home.exploreStations}
         </Link>
       </header>
 
       <RecentlyPlayed />
 
       <header className={S.header}>
-        <h2 className={S.title}>Top clicked stations</h2>
-        <p className={S.description}>Популярные станции из Radio Browser • {stations.length}</p>
+        <h2 className={S.title}>{t.home.topClickedTitle}</h2>
+        <p className={S.description}>
+          {t.home.topClickedDescription} • {stations.length}
+        </p>
       </header>
 
       <div className={S.grid}>

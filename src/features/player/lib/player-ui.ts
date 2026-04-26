@@ -1,45 +1,48 @@
+import type { Translation } from '@features/localization';
 import { PLAYER_STATUSES, type PlayerStatus } from '../model/types';
 
 type GetPlayerPrimaryButtonLabelParams = {
   status: PlayerStatus;
   isReconnectSuggested: boolean;
   isCurrentStation?: boolean;
+  t: Translation;
 };
 
 export const getPlayerPrimaryButtonLabel = (params: GetPlayerPrimaryButtonLabelParams): string => {
-  const { status, isReconnectSuggested, isCurrentStation = true } = params;
+  const { status, isReconnectSuggested, isCurrentStation = true, t } = params;
 
   if (!isCurrentStation) {
-    return 'Play';
+    return t.player.play;
   }
 
   if (status === PLAYER_STATUSES.LOADING) {
-    return 'Loading...';
+    return t.player.loading;
   }
 
   if (status === PLAYER_STATUSES.BUFFERING) {
-    return isReconnectSuggested ? 'Reconnect' : 'Buffering...';
+    return isReconnectSuggested ? t.player.reconnect : t.player.buffering;
   }
 
   if (status === PLAYER_STATUSES.PAUSED) {
-    return 'Resume';
+    return t.player.resume;
   }
 
   if (status === PLAYER_STATUSES.PLAYING) {
-    return 'Pause';
+    return t.player.pause;
   }
 
   if (status === PLAYER_STATUSES.ERROR) {
-    return 'Retry';
+    return t.player.retry;
   }
 
-  return 'Play';
+  return t.player.play;
 };
 
 type GetPlayerStatusMessageParams = {
   status: PlayerStatus;
   isReconnectSuggested: boolean;
   errorMessage: string | null;
+  t: Translation;
 };
 
 type PlayerStatusMessage = {
@@ -48,32 +51,32 @@ type PlayerStatusMessage = {
 };
 
 export const getPlayerStatusMessage = (params: GetPlayerStatusMessageParams): PlayerStatusMessage => {
-  const { status, isReconnectSuggested, errorMessage } = params;
+  const { status, isReconnectSuggested, errorMessage, t } = params;
 
   if (status === PLAYER_STATUSES.LOADING) {
     return {
-      text: 'Подключение к станции...',
+      text: t.player.connecting,
       tone: 'info',
     };
   }
 
   if (status === PLAYER_STATUSES.BUFFERING) {
     return {
-      text: isReconnectSuggested ? 'Поток долго буферизуется. Попробуйте переподключить.' : 'Буферизация потока...',
+      text: isReconnectSuggested ? t.player.longBuffering : t.player.streamBuffering,
       tone: 'info',
     };
   }
 
   if (status === PLAYER_STATUSES.PAUSED) {
     return {
-      text: 'Пауза',
+      text: t.player.paused,
       tone: 'info',
     };
   }
 
   if (status === PLAYER_STATUSES.ERROR) {
     return {
-      text: errorMessage ?? 'Ошибка воспроизведения',
+      text: errorMessage ?? t.player.playbackError,
       tone: 'error',
     };
   }

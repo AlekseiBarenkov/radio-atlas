@@ -12,6 +12,7 @@ import { FavoriteToggle } from '@features/favorites';
 import { getStationPlayerState } from '@entities/station';
 import S from './station-card.module.css';
 import { StationTitle } from './ui/station-title';
+import { useTranslation } from '@/features/localization';
 
 type StationCardProps = {
   station: RadioStation;
@@ -24,8 +25,8 @@ const getStationImage = (station: RadioStation): string | null => {
   return favicon.length > 0 ? favicon : null;
 };
 
-const getStationBitrateLabel = (station: RadioStation): string => {
-  return station.bitrate > 0 ? String(station.bitrate) : 'unknown';
+const getStationBitrateLabel = (station: RadioStation, unknownBitrateText: string): string => {
+  return station.bitrate > 0 ? String(station.bitrate) : unknownBitrateText;
 };
 
 const getCardClassName = (isCurrentStation: boolean, hasError: boolean): string => {
@@ -45,8 +46,10 @@ const getCardClassName = (isCurrentStation: boolean, hasError: boolean): string 
 };
 
 export const StationCard = ({ station, searchQuery = '' }: StationCardProps) => {
+  const t = useTranslation();
+
   const image = getStationImage(station);
-  const bitrateLabel = getStationBitrateLabel(station);
+  const bitrateLabel = getStationBitrateLabel(station, t.common.unknownBitrate);
 
   const { currentStation, playerStatus, errorMessage, isReconnectSuggested } = usePlayerUiState();
   const actions = usePlayerActions();
@@ -57,6 +60,7 @@ export const StationCard = ({ station, searchQuery = '' }: StationCardProps) => 
     playerStatus,
     errorMessage,
     isReconnectSuggested,
+    t,
   });
 
   const hasCurrentStationError = isCurrentStation && playerStatus === PLAYER_STATUSES.ERROR && Boolean(errorMessage);
@@ -93,13 +97,17 @@ export const StationCard = ({ station, searchQuery = '' }: StationCardProps) => 
         </h3>
 
         <div className={S.meta}>
-          <span>{station.country || 'Unknown country'}</span>
-          <span>{station.language || 'Unknown language'}</span>
+          <span>{station.country || t.common.unknownCountry}</span>
+          <span>{station.language || t.common.unknownLanguage}</span>
         </div>
 
         <div className={S.stats}>
-          <span>Clicks: {station.clickcount}</span>
-          <span>Bitrate: {bitrateLabel}</span>
+          <span>
+            {t.common.clicks}: {station.clickcount}
+          </span>
+          <span>
+            {t.common.bitrate}: {bitrateLabel}
+          </span>
         </div>
 
         {statusMessage.tone === 'info' && <div className={S.meta}>{statusMessage.text}</div>}
@@ -111,6 +119,7 @@ export const StationCard = ({ station, searchQuery = '' }: StationCardProps) => 
               status: playerStatus,
               isReconnectSuggested,
               isCurrentStation,
+              t,
             })}
           </button>
 

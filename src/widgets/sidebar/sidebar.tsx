@@ -1,3 +1,4 @@
+import { LanguageSwitcher } from '@/features/localization';
 import S from './sidebar.module.css';
 import { SidebarNav } from './ui/sidebar-nav/sidebar-nav';
 
@@ -12,6 +13,8 @@ export const Sidebar = () => {
       <div className={S.nav}>
         <SidebarNav />
       </div>
+
+      <LanguageSwitcher />
     </section>
   );
 };

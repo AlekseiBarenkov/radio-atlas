@@ -1,0 +1,30 @@
+.switcher {
+  display: flex;
+  gap: 4px;
+  padding: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.button {
+  flex: 1;
+  height: 36px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #374151;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.button:hover {
+  border-color: #111827;
+  color: #111827;
+}
+
+.buttonActive {
+  border-color: #111827;
+  background: #111827;
+  color: #ffffff;
+}
