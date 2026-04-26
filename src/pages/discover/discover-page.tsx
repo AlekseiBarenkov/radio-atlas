@@ -8,7 +8,6 @@ import S from './discover-page.module.css';
 import { getHasActiveDiscoverFilters } from './model/discover-filters';
 import { DiscoverResultsSummary } from './ui/discover-results-summary';
 import { DiscoverInfiniteScrollTrigger } from './ui/discover-infinite-scroll-trigger';
-import { rankSearchResults } from './model/rank-search-results';
 
 const STATIONS_LIMIT = 48;
 const SKELETON_COUNT = 12;
@@ -48,7 +47,7 @@ const DiscoverPageContent = () => {
     gcTime: DISCOVER_STATIONS_GC_TIME,
   });
 
-  const stations = rankSearchResults(stationsQuery.data?.pages.flat() ?? [], search);
+  const stations = stationsQuery.data?.pages.flat() ?? [];
   const { isPending, isError, error } = stationsQuery;
 
   const showEmpty = !isPending && !isError && stations.length === 0;
