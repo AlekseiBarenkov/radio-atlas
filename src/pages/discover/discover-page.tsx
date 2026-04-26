@@ -17,13 +17,14 @@ const DiscoverPageContent = () => {
   const isFilteredMode = search.length > 0 || getHasActiveDiscoverFilters(filters);
 
   const stationsQuery = useInfiniteQuery({
-    queryKey: ['stations', search, filters.country, filters.language, filters.hideBroken, STATIONS_LIMIT],
+    queryKey: ['stations', search, filters.country, filters.language, filters.tag, filters.hideBroken, STATIONS_LIMIT],
     queryFn: ({ pageParam, signal }) =>
       getStations(
         {
           name: search,
           country: filters.country,
           language: filters.language,
+          tag: filters.tag,
           hideBroken: filters.hideBroken,
           limit: STATIONS_LIMIT,
           offset: pageParam,

@@ -65,6 +65,16 @@ export const DiscoverProvider = (props: PropsWithChildren) => {
     [updateFilters],
   );
 
+  const handleTagChange: DiscoverContextValue['onTagChange'] = useCallback(
+    (value) => {
+      updateFilters((currentState) => ({
+        ...currentState,
+        tag: value.trim(),
+      }));
+    },
+    [updateFilters],
+  );
+
   const handleHideBrokenChange: DiscoverContextValue['onHideBrokenChange'] = useCallback(
     (value) => {
       updateFilters((currentState) => ({
@@ -88,6 +98,7 @@ export const DiscoverProvider = (props: PropsWithChildren) => {
         filters,
         onCountryChange: handleCountryChange,
         onLanguageChange: handleLanguageChange,
+        onTagChange: handleTagChange,
         onHideBrokenChange: handleHideBrokenChange,
         onResetFilters: handleResetFilters,
       }}

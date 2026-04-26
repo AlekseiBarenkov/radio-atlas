@@ -8,6 +8,7 @@ export type DiscoverContextValue = {
   filters: DiscoverFiltersState;
   onCountryChange: (value: string) => void;
   onLanguageChange: (value: string) => void;
+  onTagChange: (value: string) => void;
   onHideBrokenChange: (value: boolean) => void;
   onResetFilters: () => void;
 };
