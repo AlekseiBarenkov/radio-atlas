@@ -4,6 +4,7 @@ import { getHasActiveDiscoverFilters } from '../../model/discover-filters';
 import { DiscoverCountryFilter } from '../discover-country-filter';
 import { DiscoverLanguageFilter } from '../discover-language-filter';
 import S from './discover-filters-form.module.css';
+import { DiscoverTagFilter } from '../discover-tag-filter';
 
 export const DiscoverFiltersForm = () => {
   const { filters, onHideBrokenChange, onResetFilters } = useDiscoverContext();
@@ -23,6 +24,8 @@ export const DiscoverFiltersForm = () => {
       <DiscoverCountryFilter key={`country-${resetKey}`} />
 
       <DiscoverLanguageFilter key={`language-${resetKey}`} />
+
+      <DiscoverTagFilter key={`tag-${resetKey}`} />
 
       <label className={S.checkboxLabel}>
         <input

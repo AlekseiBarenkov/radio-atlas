@@ -1,7 +1,7 @@
-import type { StationCountrySuggestion, StationLanguageSuggestion } from '@entities/station';
+import type { StationCountrySuggestion, StationLanguageSuggestion, StationTagSuggestion } from '@entities/station';
 import type { DiscoverFilterOption } from './types';
 
-type StationFilterOption = StationCountrySuggestion | StationLanguageSuggestion;
+type StationFilterOption = StationCountrySuggestion | StationLanguageSuggestion | StationTagSuggestion;
 
 const getStationCountLabel = (stationCount: number): string => {
   return stationCount === 1 ? '1 station' : `${stationCount} stations`;
