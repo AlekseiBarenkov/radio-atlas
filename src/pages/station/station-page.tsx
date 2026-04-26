@@ -8,7 +8,7 @@ import {
   usePlayerActions,
   usePlayerUiState,
 } from '@features/player';
-import { Notice, Skeleton } from '@shared/ui';
+import { Button, Notice, Skeleton } from '@shared/ui';
 import S from './station-page.module.css';
 import { useTranslation } from '@/features/localization';
 
@@ -181,19 +181,14 @@ export const StationPage = () => {
           </header>
 
           <div className={S.actions}>
-            <button
-              className={S.playButton}
-              type="button"
-              onClick={handlePlayClick}
-              disabled={stationPlayerState.isButtonBusy}
-            >
+            <Button onClick={handlePlayClick} disabled={stationPlayerState.isButtonBusy}>
               {getPlayerPrimaryButtonLabel({
                 status: playerStatus,
                 isReconnectSuggested,
                 isCurrentStation: stationPlayerState.isCurrentStation,
                 t,
               })}
-            </button>
+            </Button>
 
             <FavoriteToggle station={station} />
           </div>

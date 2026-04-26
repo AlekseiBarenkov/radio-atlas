@@ -10,6 +10,7 @@ import {
 } from '@features/player';
 import S from './mini-player.module.css';
 import { useTranslation } from '@/features/localization';
+import { Button } from '@/shared/ui';
 
 export const MiniPlayer = () => {
   const t = useTranslation();
@@ -70,23 +71,22 @@ export const MiniPlayer = () => {
       </div>
 
       <div className={S.controls}>
-        {isIdle && lastPlayedStation ? (
-          <button className={S.button} type="button" onClick={handleContinueListening}>
-            {t.miniPlayer.continueListening}
-          </button>
-        ) : (
-          <button className={S.button} type="button" onClick={handleTogglePlay} disabled={isIdle || isLoading}>
-            {getPlayerPrimaryButtonLabel({
-              status: playerStatus,
-              isReconnectSuggested,
-              t,
-            })}
-          </button>
-        )}
+        <Button
+          onClick={isIdle && lastPlayedStation ? handleContinueListening : handleTogglePlay}
+          disabled={(!lastPlayedStation && isIdle) || isLoading}
+        >
+          {isIdle && lastPlayedStation
+            ? t.miniPlayer.continueListening
+            : getPlayerPrimaryButtonLabel({
+                status: playerStatus,
+                isReconnectSuggested,
+                t,
+              })}
+        </Button>
 
-        <button className={S.secondaryButton} type="button" onClick={actions.stop} disabled={isIdle}>
+        <Button variant="secondary" onClick={actions.stop} disabled={isIdle}>
           {t.miniPlayer.stop}
-        </button>
+        </Button>
       </div>
     </div>
   );

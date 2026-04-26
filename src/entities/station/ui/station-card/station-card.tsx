@@ -13,6 +13,7 @@ import { getStationPlayerState } from '@entities/station';
 import S from './station-card.module.css';
 import { StationTitle } from './ui/station-title';
 import { useTranslation } from '@/features/localization';
+import { Button } from '@/shared/ui';
 
 type StationCardProps = {
   station: RadioStation;
@@ -114,14 +115,14 @@ export const StationCard = ({ station, searchQuery = '' }: StationCardProps) => 
         {statusMessage.tone === 'error' && <div className={S.error}>{statusMessage.text}</div>}
 
         <div className={S.actions}>
-          <button className={S.playButton} type="button" onClick={handlePlayClick} disabled={isButtonBusy}>
+          <Button onClick={handlePlayClick} disabled={isButtonBusy}>
             {getPlayerPrimaryButtonLabel({
               status: playerStatus,
               isReconnectSuggested,
               isCurrentStation,
               t,
             })}
-          </button>
+          </Button>
 
           <FavoriteToggle station={station} />
         </div>

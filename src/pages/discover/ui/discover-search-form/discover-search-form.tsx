@@ -3,6 +3,7 @@ import { useDiscoverContext } from '../../model';
 import S from './discover-search-form.module.css';
 import { hasSearchValue } from './lib/has-search-value';
 import { useTranslation } from '@/features/localization';
+import { Button } from '@/shared/ui';
 
 const SEARCH_DEBOUNCE_MS = 400;
 
@@ -74,16 +75,15 @@ export const DiscoverSearchForm = () => {
         />
 
         {hasSearchValue(inputValue) && (
-          <button
-            type="button"
-            className={S.clearButton}
+          <Button
+            variant="secondary"
             onClick={() => {
               setInputValue('');
               onSearchChange('');
             }}
           >
             {t.discover.clearSearch}
-          </button>
+          </Button>
         )}
       </div>
     </form>

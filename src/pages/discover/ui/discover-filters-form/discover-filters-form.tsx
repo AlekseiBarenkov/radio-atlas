@@ -5,6 +5,7 @@ import { DiscoverLanguageFilter } from '../discover-language-filter';
 import S from './discover-filters-form.module.css';
 import { DiscoverTagFilter } from '../discover-tag-filter';
 import { useTranslation } from '@/features/localization';
+import { Button } from '@/shared/ui';
 
 type DiscoverFiltersFormProps = {
   onResetKeyChange: () => void;
@@ -44,9 +45,9 @@ export const DiscoverFiltersForm = (props: DiscoverFiltersFormProps) => {
       </label>
 
       <div className={S.actions}>
-        <button className={S.resetButton} type="button" onClick={handleReset} disabled={isResetDisabled}>
+        <Button variant="secondary" onClick={handleReset} disabled={isResetDisabled}>
           {t.discover.clearFilters}
-        </button>
+        </Button>
       </div>
     </div>
   );

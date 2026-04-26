@@ -2,13 +2,10 @@ import type { RadioStation } from '@entities/station';
 import { useTranslation } from '@features/localization';
 import { useFavorites } from '@features/favorites';
 import S from './favorite-toggle.module.css';
+import { Button } from '@/shared/ui';
 
 type FavoriteToggleProps = {
   station: RadioStation;
-};
-
-const getButtonClassName = (isFavorite: boolean): string => {
-  return isFavorite ? `${S.button} ${S.buttonActive}` : S.button;
 };
 
 export const FavoriteToggle = (props: FavoriteToggleProps) => {
@@ -25,9 +22,8 @@ export const FavoriteToggle = (props: FavoriteToggleProps) => {
   };
 
   return (
-    <button
-      className={getButtonClassName(isStationFavorite)}
-      type="button"
+    <Button
+      variant={isStationFavorite ? 'primary' : 'secondary'}
       onClick={handleClick}
       aria-pressed={isStationFavorite}
       aria-label={isStationFavorite ? t.favorites.remove : t.favorites.add}
@@ -37,6 +33,6 @@ export const FavoriteToggle = (props: FavoriteToggleProps) => {
       </span>
 
       <span className={S.label}>{isStationFavorite ? t.favorites.inFavorites : t.favorites.add}</span>
-    </button>
+    </Button>
   );
 };

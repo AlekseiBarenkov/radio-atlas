@@ -48,24 +48,3 @@
   display: flex;
   gap: 8px;
 }
-
-.button,
-.secondaryButton {
-  min-width: 88px;
-  height: 40px;
-  padding: 0 14px;
-  border-radius: 10px;
-  cursor: pointer;
-}
-
-.button {
-  border: 1px solid #111827;
-  background: #111827;
-  color: #ffffff;
-}
-
-.secondaryButton {
-  border: 1px solid #d1d5db;
-  background: #ffffff;
-  color: #111827;
-}
