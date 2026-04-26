@@ -3,6 +3,7 @@ import type { DiscoverFiltersState } from './types';
 
 const COUNTRY_PARAM_NAME = 'country';
 const LANGUAGE_PARAM_NAME = 'language';
+const TAG_PARAM_NAME = 'tag';
 const HIDE_BROKEN_PARAM_NAME = 'hideBroken';
 
 const FALSE_PARAM_VALUE = 'false';
@@ -19,6 +20,7 @@ export const getDiscoverFiltersFromSearchParams = (searchParams: URLSearchParams
   return {
     country: getNormalizedParamValue(searchParams, COUNTRY_PARAM_NAME),
     language: getNormalizedParamValue(searchParams, LANGUAGE_PARAM_NAME),
+    tag: getNormalizedParamValue(searchParams, TAG_PARAM_NAME),
     hideBroken: getHideBrokenValue(searchParams),
   };
 };
@@ -39,6 +41,12 @@ export const setDiscoverFiltersToSearchParams = (
     nextSearchParams.set(LANGUAGE_PARAM_NAME, filters.language);
   } else {
     nextSearchParams.delete(LANGUAGE_PARAM_NAME);
+  }
+
+  if (filters.tag.length > 0) {
+    nextSearchParams.set(TAG_PARAM_NAME, filters.tag);
+  } else {
+    nextSearchParams.delete(TAG_PARAM_NAME);
   }
 
   if (filters.hideBroken === DEFAULT_DISCOVER_FILTERS.hideBroken) {
