@@ -33,3 +33,18 @@
   flex: 1;
   min-height: 0;
 }
+
+@media (max-width: 768px) {
+  .sidebar {
+    height: auto;
+    min-height: 0;
+  }
+
+  .header {
+    padding: 16px 16px 12px;
+  }
+
+  .subtitle {
+    display: none;
+  }
+}

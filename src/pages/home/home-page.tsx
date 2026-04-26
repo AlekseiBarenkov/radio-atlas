@@ -1,6 +1,6 @@
 import { StationCard, useTopClickStations } from '@entities/station';
 import { RecentlyPlayed } from '@widgets/recently-played';
-import { Skeleton, SkeletonCard } from '@shared/ui';
+import { PageHeader, SkeletonCard } from '@shared/ui';
 import S from './home-page.module.css';
 import { Link } from 'react-router-dom';
 import { useTranslation } from '@/features/localization';
@@ -45,10 +45,7 @@ export const HomePage = () => {
       <section className={S.page}>
         {top}
 
-        <header className={S.header}>
-          <Skeleton width={280} height={38} />
-          <Skeleton width={320} height={20} />
-        </header>
+        <PageHeader title={t.home.topClickedTitle} description={t.home.topClickedDescription} />
 
         <div className={S.grid}>
           {Array.from({ length: SKELETON_ITEMS }).map((_, index) => (
@@ -83,12 +80,7 @@ export const HomePage = () => {
     <section className={S.page}>
       {top}
 
-      <header className={S.header}>
-        <h2 className={S.title}>{t.home.topClickedTitle}</h2>
-        <p className={S.description}>
-          {t.home.topClickedDescription} • {stations.length}
-        </p>
-      </header>
+      <PageHeader title={t.home.topClickedTitle} description={`${t.home.topClickedDescription} • ${stations.length}`} />
 
       <div className={S.grid}>
         {stations.map((station) => (

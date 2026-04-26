@@ -28,3 +28,14 @@
   background: #111827;
   color: #ffffff;
 }
+
+@media (max-width: 768px) {
+  .switcher {
+    padding: 0 16px 12px;
+    border-top: none;
+  }
+
+  .button {
+    max-width: 72px;
+  }
+}

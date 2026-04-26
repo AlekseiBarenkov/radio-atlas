@@ -1,9 +1,8 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { getStations, StationCard } from '@entities/station';
-import { SkeletonCard } from '@shared/ui';
+import { PageHeader, SkeletonCard } from '@shared/ui';
 import { DiscoverProvider, useDiscoverContext } from './model';
 import { DiscoverPageFilters } from './ui/discover-page-filters';
-import { DiscoverPageHeader } from './ui/discover-page-header';
 import S from './discover-page.module.css';
 import { getHasActiveDiscoverFilters } from './model/discover-filters';
 import { DiscoverResultsSummary } from './ui/discover-results-summary';
@@ -60,7 +59,7 @@ const DiscoverPageContent = () => {
 
   return (
     <section className={S.page}>
-      <DiscoverPageHeader />
+      <PageHeader title={t.discover.title} description={t.discover.description} />
 
       <DiscoverPageFilters />
 
