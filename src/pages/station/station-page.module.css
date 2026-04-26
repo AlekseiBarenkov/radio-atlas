@@ -175,6 +175,7 @@
 .tag {
   display: inline-flex;
   align-items: center;
+  text-decoration: none;
   min-height: 32px;
   padding: 0 12px;
   border: 1px solid #e5e7eb;
@@ -183,6 +184,12 @@
   color: #374151;
   font-size: 14px;
   line-height: 1;
+}
+
+.tag:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  color: #111827;
 }
 
 .empty {

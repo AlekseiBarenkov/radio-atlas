@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { getStationPlayerState, hasSimilarStationsSource, useStationById } from '@entities/station';
 import { SimilarStations } from '@widgets/similar-stations';
 import { FavoriteToggle } from '@features/favorites';
@@ -234,9 +234,9 @@ export const StationPage = () => {
         {tags.length > 0 ? (
           <div className={S.tags}>
             {tags.map((tag) => (
-              <span key={tag} className={S.tag}>
+              <Link key={tag} className={S.tag} to={`/discover?tag=${encodeURIComponent(tag)}`}>
                 {tag}
-              </span>
+              </Link>
             ))}
           </div>
         ) : (
