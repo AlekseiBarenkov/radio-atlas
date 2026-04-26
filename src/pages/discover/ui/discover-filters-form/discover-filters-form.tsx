@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useDiscoverContext } from '../../model';
 import { getHasActiveDiscoverFilters } from '../../model/discover-filters';
 import { DiscoverCountryFilter } from '../discover-country-filter';
@@ -6,26 +5,30 @@ import { DiscoverLanguageFilter } from '../discover-language-filter';
 import S from './discover-filters-form.module.css';
 import { DiscoverTagFilter } from '../discover-tag-filter';
 
-export const DiscoverFiltersForm = () => {
-  const { filters, onHideBrokenChange, onResetFilters } = useDiscoverContext();
+type DiscoverFiltersFormProps = {
+  onResetKeyChange: () => void;
+};
 
-  const [resetKey, setResetKey] = useState(0);
+export const DiscoverFiltersForm = (props: DiscoverFiltersFormProps) => {
+  const { onResetKeyChange } = props;
+
+  const { filters, onHideBrokenChange, onResetFilters } = useDiscoverContext();
 
   const hasActiveFilters = getHasActiveDiscoverFilters(filters);
   const isResetDisabled = !hasActiveFilters;
 
   const handleReset = () => {
     onResetFilters();
-    setResetKey((v) => v + 1);
+    onResetKeyChange();
   };
 
   return (
     <div className={S.form}>
-      <DiscoverCountryFilter key={`country-${resetKey}`} />
+      <DiscoverCountryFilter />
 
-      <DiscoverLanguageFilter key={`language-${resetKey}`} />
+      <DiscoverLanguageFilter />
 
-      <DiscoverTagFilter key={`tag-${resetKey}`} />
+      <DiscoverTagFilter />
 
       <label className={S.checkboxLabel}>
         <input

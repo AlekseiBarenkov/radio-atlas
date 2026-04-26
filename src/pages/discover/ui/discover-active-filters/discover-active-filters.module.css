@@ -1,0 +1,32 @@
+.wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #374151;
+  font: inherit;
+  font-size: 14px;
+}
+
+.button {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  font: inherit;
+  cursor: pointer;
+}
+
+.button:hover {
+  color: #111827;
+}
