@@ -2,15 +2,18 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { getStations, StationCard } from '@entities/station';
 import { SkeletonCard } from '@shared/ui';
 import { DiscoverProvider, useDiscoverContext } from './model';
-import { DiscoverLoadMoreButton } from './ui/discover-load-more-button';
 import { DiscoverPageFilters } from './ui/discover-page-filters';
 import { DiscoverPageHeader } from './ui/discover-page-header';
 import S from './discover-page.module.css';
 import { getHasActiveDiscoverFilters } from './model/discover-filters';
 import { DiscoverResultsSummary } from './ui/discover-results-summary';
+import { DiscoverInfiniteScrollTrigger } from './ui/discover-infinite-scroll-trigger';
 
 const STATIONS_LIMIT = 48;
 const SKELETON_COUNT = 12;
+
+const DISCOVER_STATIONS_STALE_TIME = 1000 * 60 * 30;
+const DISCOVER_STATIONS_GC_TIME = 1000 * 60 * 60;
 
 const DiscoverPageContent = () => {
   const { search, filters } = useDiscoverContext();
@@ -40,6 +43,8 @@ const DiscoverPageContent = () => {
 
       return allPages.length * STATIONS_LIMIT;
     },
+    staleTime: DISCOVER_STATIONS_STALE_TIME,
+    gcTime: DISCOVER_STATIONS_GC_TIME,
   });
 
   const stations = stationsQuery.data?.pages.flat() ?? [];
@@ -47,6 +52,8 @@ const DiscoverPageContent = () => {
 
   const showEmpty = !isPending && !isError && stations.length === 0;
   const showList = !showEmpty && !isPending && !isError;
+  const isInfiniteScrollEnabled =
+    Boolean(stationsQuery.hasNextPage) && !stationsQuery.isFetchingNextPage && !stationsQuery.isPending;
 
   return (
     <section className={S.page}>
@@ -76,16 +83,20 @@ const DiscoverPageContent = () => {
             ))}
           </div>
 
-          {stationsQuery.hasNextPage && (
-            <div className={S.loadMore}>
-              <DiscoverLoadMoreButton
-                onClick={() => {
-                  stationsQuery.fetchNextPage();
-                }}
-                disabled={stationsQuery.isFetchingNextPage}
-              />
+          {stationsQuery.isFetchingNextPage && (
+            <div className={S.grid}>
+              {Array.from({ length: SKELETON_COUNT }).map((_, index) => (
+                <SkeletonCard key={`load-more-skeleton-${index}`} />
+              ))}
             </div>
           )}
+
+          <DiscoverInfiniteScrollTrigger
+            isEnabled={isInfiniteScrollEnabled}
+            onLoadMore={() => {
+              stationsQuery.fetchNextPage();
+            }}
+          />
         </>
       )}
     </section>
