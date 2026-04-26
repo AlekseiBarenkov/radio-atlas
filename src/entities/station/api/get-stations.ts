@@ -9,13 +9,14 @@ export type GetStationsParams = {
   hideBroken?: boolean;
   country?: string;
   language?: string;
+  tag?: string;
 };
 
 const DEFAULT_LIMIT = 48;
 const DEFAULT_OFFSET = 0;
 
 export const getStations = async (params: GetStationsParams = {}, signal?: AbortSignal): Promise<RadioStation[]> => {
-  const { name, limit = DEFAULT_LIMIT, offset = DEFAULT_OFFSET, hideBroken = true, country, language } = params;
+  const { name, limit = DEFAULT_LIMIT, offset = DEFAULT_OFFSET, hideBroken = true, country, language, tag } = params;
 
   const searchParams = new URLSearchParams({
     offset: String(offset),
@@ -26,6 +27,7 @@ export const getStations = async (params: GetStationsParams = {}, signal?: Abort
   const normalizedName = name?.trim() ?? '';
   const normalizedCountry = country?.trim() ?? '';
   const normalizedLanguage = language?.trim() ?? '';
+  const normalizedTag = tag?.trim() ?? '';
 
   if (normalizedName.length > 0) {
     searchParams.set('name', normalizedName);
@@ -39,6 +41,10 @@ export const getStations = async (params: GetStationsParams = {}, signal?: Abort
   if (normalizedLanguage.length > 0) {
     searchParams.set('language', normalizedLanguage);
     searchParams.set('languageExact', 'true');
+  }
+
+  if (normalizedTag.length > 0) {
+    searchParams.set('tag', normalizedTag);
   }
 
   return request<RadioStation[]>(`${RADIO_BROWSER_API_BASE_URL}/stations/search?${searchParams.toString()}`, {
