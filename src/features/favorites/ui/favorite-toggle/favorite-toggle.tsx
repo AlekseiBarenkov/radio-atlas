@@ -31,8 +31,6 @@ export const FavoriteToggle = (props: FavoriteToggleProps) => {
       <span className={S.icon} aria-hidden="true">
         {isStationFavorite ? '★' : '☆'}
       </span>
-
-      <span className={S.label}>{isStationFavorite ? t.favorites.inFavorites : t.favorites.add}</span>
     </Button>
   );
 };

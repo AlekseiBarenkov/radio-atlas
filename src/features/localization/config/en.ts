@@ -63,7 +63,6 @@ export const en = {
   favorites: {
     add: 'Add to favorites',
     remove: 'Remove from favorites',
-    inFavorites: 'In favorites',
   },
 
   player: {

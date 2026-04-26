@@ -1,6 +1,7 @@
 .card {
   display: flex;
   gap: 16px;
+  min-width: 0;
   padding: 16px;
   border: 1px solid #e5e7eb;
   border-radius: 16px;
@@ -55,22 +56,27 @@
 }
 
 .content {
-  min-width: 0;
   display: flex;
   flex: 1;
+  min-width: 0;
   flex-direction: column;
   gap: 8px;
 }
 
 .title {
   margin: 0;
+  min-width: 0;
   font-size: 18px;
   line-height: 1.3;
 }
 
 .titleLink {
+  display: block;
+  overflow: hidden;
   color: inherit;
   text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .titleLink:hover {
@@ -82,12 +88,23 @@
 .stats {
   display: flex;
   flex-wrap: wrap;
+  overflow: hidden;
   gap: 8px 12px;
+  min-width: 0;
   color: #6b7280;
   font-size: 14px;
 }
 
+.meta span,
+.stats span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .error {
+  min-width: 0;
   color: #dc2626;
   font-size: 13px;
   line-height: 1.4;
@@ -105,4 +122,33 @@
   border-radius: 4px;
   background: #fef3c7;
   color: inherit;
+}
+
+.actions > * {
+  min-width: 0;
+}
+
+@media (max-width: 480px) {
+  .card {
+    flex-direction: column;
+  }
+
+  .logoWrapper,
+  .logo,
+  .logoFallback {
+    width: 48px;
+    height: 48px;
+  }
+
+  .logoWrapper {
+    flex-basis: 48px;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .actions > * {
+    width: 100%;
+  }
 }

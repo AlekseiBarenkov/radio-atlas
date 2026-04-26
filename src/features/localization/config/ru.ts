@@ -59,7 +59,6 @@ export const ru = {
   favorites: {
     add: 'Добавить в избранное',
     remove: 'Удалить из избранного',
-    inFavorites: 'В избранном',
   },
 
   player: {
