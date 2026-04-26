@@ -9,9 +9,3 @@
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 16px;
 }
-
-.searchStatus {
-  color: #6b7280;
-  font-size: 14px;
-  line-height: 1.5;
-}

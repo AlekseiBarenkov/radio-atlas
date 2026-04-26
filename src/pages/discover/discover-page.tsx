@@ -49,12 +49,11 @@ const DiscoverPageContent = () => {
   });
 
   const stations = stationsQuery.data?.pages.flat() ?? [];
-  const { isPending, isFetching, isFetchingNextPage, isError, error, hasNextPage } = stationsQuery;
+  const { isPending, isFetchingNextPage, isError, error, hasNextPage } = stationsQuery;
 
   const showEmpty = !isPending && !isError && stations.length === 0;
   const showList = !showEmpty && !isPending && !isError;
   const isInfiniteScrollEnabled = Boolean(hasNextPage) && !isFetchingNextPage && !isPending;
-  const isSearching = search.length > 0 && isFetching && !isFetchingNextPage;
 
   return (
     <section className={S.page}>
@@ -63,8 +62,6 @@ const DiscoverPageContent = () => {
       <DiscoverPageFilters />
 
       <DiscoverResultsSummary />
-
-      {isSearching && <div className={S.searchStatus}>Searching...</div>}
 
       {isPending && (
         <div className={S.grid}>
