@@ -33,8 +33,31 @@
   border-color: #111827;
 }
 
+.field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 420px;
+}
+
+.clearButton {
+  flex: 0 0 auto;
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #111827;
+  font: inherit;
+  cursor: pointer;
+}
+
 @media (max-width: 768px) {
   .input {
+    max-width: none;
+  }
+
+  .field {
     max-width: none;
   }
 }

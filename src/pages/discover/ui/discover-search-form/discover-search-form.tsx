@@ -1,6 +1,7 @@
 import { type ChangeEvent, type KeyboardEvent, useRef, useState } from 'react';
 import { useDiscoverContext } from '../../model';
 import S from './discover-search-form.module.css';
+import { hasSearchValue } from './lib/has-search-value';
 
 const SEARCH_DEBOUNCE_MS = 400;
 
@@ -55,18 +56,33 @@ export const DiscoverSearchForm = () => {
         Search stations
       </label>
 
-      <input
-        id="discover-search"
-        name="discover-search"
-        type="search"
-        className={S.input}
-        value={inputValue}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        onKeyDown={handleKeyDown}
-        placeholder="Search by station name"
-        autoComplete="off"
-      />
+      <div className={S.field}>
+        <input
+          id="discover-search"
+          name="discover-search"
+          type="search"
+          className={S.input}
+          value={inputValue}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
+          placeholder="Search by station name"
+          autoComplete="off"
+        />
+
+        {hasSearchValue(inputValue) && (
+          <button
+            type="button"
+            className={S.clearButton}
+            onClick={() => {
+              setInputValue('');
+              onSearchChange('');
+            }}
+          >
+            Clear
+          </button>
+        )}
+      </div>
     </form>
   );
 };
