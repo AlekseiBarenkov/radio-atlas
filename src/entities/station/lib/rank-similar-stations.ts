@@ -6,6 +6,10 @@ export type SimilarStationCandidate = {
   fallbackIndex: number;
 };
 
+type RankedSimilarStationCandidate = SimilarStationCandidate & {
+  rankingScore: number;
+};
+
 type RankSimilarStationsParams = {
   candidates: SimilarStationCandidate[];
   currentStation: RadioStation;
@@ -54,12 +58,28 @@ const getSimilarityScore = (station: RadioStation, currentStation: RadioStation)
   );
 };
 
+const POPULARITY_SCORE_LIMIT = 10;
+
+const getPopularityScore = (station: RadioStation): number => {
+  const clickScore = Math.min(station.clickcount / 1000, POPULARITY_SCORE_LIMIT);
+  const votesScore = Math.min(station.votes / 100, POPULARITY_SCORE_LIMIT);
+
+  return clickScore + votesScore;
+};
+
 export const rankSimilarStations = (params: RankSimilarStationsParams): SimilarStationCandidate[] => {
   const { candidates, currentStation } = params;
 
-  return [...candidates].sort((left, right) => {
-    const leftScore = left.score + getSimilarityScore(left.station, currentStation);
-    const rightScore = right.score + getSimilarityScore(right.station, currentStation);
+  const rankedCandidates: RankedSimilarStationCandidate[] = candidates.map((candidate) => ({
+    ...candidate,
+    rankingScore:
+      candidate.score + getSimilarityScore(candidate.station, currentStation) + getPopularityScore(candidate.station),
+  }));
+
+  return rankedCandidates.sort((left, right) => {
+    const leftScore = left.score + getSimilarityScore(left.station, currentStation) + getPopularityScore(left.station);
+    const rightScore =
+      right.score + getSimilarityScore(right.station, currentStation) + getPopularityScore(right.station);
 
     if (rightScore !== leftScore) {
       return rightScore - leftScore;
