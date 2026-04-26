@@ -10,9 +10,8 @@
   gap: 16px;
 }
 
-.loadMore {
-  margin-top: 32px;
-
-  display: flex;
-  justify-content: center;
+.searchStatus {
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1.5;
 }

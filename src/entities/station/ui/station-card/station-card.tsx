@@ -11,9 +11,11 @@ import type { RadioStation } from '@entities/station/model/types';
 import { FavoriteToggle } from '@features/favorites';
 import { getStationPlayerState } from '@entities/station';
 import S from './station-card.module.css';
+import { StationTitle } from './ui/station-title';
 
 type StationCardProps = {
   station: RadioStation;
+  searchQuery?: string;
 };
 
 const getStationImage = (station: RadioStation): string | null => {
@@ -42,7 +44,7 @@ const getCardClassName = (isCurrentStation: boolean, hasError: boolean): string 
   return S.card;
 };
 
-export const StationCard = ({ station }: StationCardProps) => {
+export const StationCard = ({ station, searchQuery = '' }: StationCardProps) => {
   const image = getStationImage(station);
   const bitrateLabel = getStationBitrateLabel(station);
 
@@ -86,7 +88,7 @@ export const StationCard = ({ station }: StationCardProps) => {
       <div className={S.content}>
         <h3 className={S.title}>
           <Link className={S.titleLink} to={getStationPath(station.stationuuid)}>
-            {station.name}
+            <StationTitle name={station.name} searchQuery={searchQuery} />
           </Link>
         </h3>
 
