@@ -5,6 +5,17 @@
   border: 1px solid #e5e7eb;
   border-radius: 16px;
   background: #ffffff;
+
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    border-color 0.12s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  border-color: #d1d5db;
+  box-shadow: 0 8px 24px rgb(17 24 39 / 8%);
 }
 
 .cardCurrent {
@@ -64,6 +75,7 @@
 
 .titleLink:hover {
   text-decoration: underline;
+  color: #111827;
 }
 
 .meta,
