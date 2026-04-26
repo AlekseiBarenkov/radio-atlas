@@ -24,9 +24,7 @@ export const searchStationTags = async (
 ): Promise<StationTagSuggestion[]> => {
   const normalizedQuery = params.query.trim();
 
-  if (normalizedQuery.length === 0) {
-    return [];
-  }
+  const endpoint = normalizedQuery.length > 0 ? `/tags/${encodeURIComponent(normalizedQuery)}` : '/tags';
 
   const searchParams = new URLSearchParams({
     order: 'stationcount',
@@ -35,12 +33,9 @@ export const searchStationTags = async (
     limit: String(params.limit ?? DEFAULT_LIMIT),
   });
 
-  const tags = await request<RadioBrowserTag[]>(
-    `${RADIO_BROWSER_API_BASE_URL}/tags/${encodeURIComponent(normalizedQuery)}?${searchParams.toString()}`,
-    {
-      signal,
-    },
-  );
+  const tags = await request<RadioBrowserTag[]>(`${RADIO_BROWSER_API_BASE_URL}${endpoint}?${searchParams.toString()}`, {
+    signal,
+  });
 
   return tags
     .map((tag) => ({

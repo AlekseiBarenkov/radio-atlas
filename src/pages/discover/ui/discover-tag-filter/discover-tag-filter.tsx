@@ -10,6 +10,7 @@ import { DiscoverSuggestFilter } from '../discover-suggest-filter';
 export const DiscoverTagFilter = () => {
   const { filters, onTagChange } = useDiscoverContext();
 
+  const [isSuggestionsEnabled, setIsSuggestionsEnabled] = useState(false);
   const [inputValue, setInputValue] = useState(filters.tag);
 
   const debouncedInputValue = useDebouncedValue(inputValue, FILTER_SUGGESTIONS_DEBOUNCE_MS);
@@ -18,6 +19,7 @@ export const DiscoverTagFilter = () => {
   const suggestionsQuery = useSearchStationTags({
     query: suggestionsQueryValue,
     limit: FILTER_SUGGESTIONS_LIMIT,
+    enabled: isSuggestionsEnabled,
   });
 
   return (
@@ -32,8 +34,10 @@ export const DiscoverTagFilter = () => {
       isOptionsLoading={suggestionsQuery.isPending}
       loadingText="Loading tags..."
       emptyText="No matching tags"
+      showSuggestionsOnEmptyInput
       onInputChange={setInputValue}
       onAppliedChange={onTagChange}
+      onInputFocus={() => setIsSuggestionsEnabled(true)}
     />
   );
 };

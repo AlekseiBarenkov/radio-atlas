@@ -17,8 +17,10 @@ type DiscoverSuggestFilterProps = {
   isOptionsLoading: boolean;
   loadingText: string;
   emptyText: string;
+  showSuggestionsOnEmptyInput?: boolean;
   onInputChange: (value: string) => void;
   onAppliedChange: (value: string) => void;
+  onInputFocus?: () => void;
 };
 
 export const DiscoverSuggestFilter = (props: DiscoverSuggestFilterProps) => {
@@ -33,8 +35,10 @@ export const DiscoverSuggestFilter = (props: DiscoverSuggestFilterProps) => {
     isOptionsLoading,
     loadingText,
     emptyText,
+    showSuggestionsOnEmptyInput = false,
     onInputChange,
     onAppliedChange,
+    onInputFocus,
   } = props;
 
   const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
@@ -56,6 +60,7 @@ export const DiscoverSuggestFilter = (props: DiscoverSuggestFilterProps) => {
 
   const handleFocus = () => {
     setIsSuggestionsOpen(true);
+    onInputFocus?.();
   };
 
   const handleBlur = (event: FocusEvent<HTMLDivElement>) => {
@@ -93,6 +98,13 @@ export const DiscoverSuggestFilter = (props: DiscoverSuggestFilterProps) => {
     handleSelect(firstOptionValue);
   };
 
+  const isSuggestionsVisible = shouldShowSuggestions({
+    inputValue,
+    appliedValue,
+    isOpen: isSuggestionsOpen,
+    showOnEmptyInput: showSuggestionsOnEmptyInput,
+  });
+
   return (
     <div className={S.field} onBlur={handleBlur}>
       <label className={S.label} htmlFor={inputId}>
@@ -112,12 +124,12 @@ export const DiscoverSuggestFilter = (props: DiscoverSuggestFilterProps) => {
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
         autoComplete="off"
-        aria-expanded={shouldShowSuggestions(inputValue, appliedValue, isSuggestionsOpen)}
+        aria-expanded={isSuggestionsVisible}
         aria-controls={suggestionsId}
         aria-autocomplete="list"
       />
 
-      {shouldShowSuggestions(inputValue, appliedValue, isSuggestionsOpen) && (
+      {isSuggestionsVisible && (
         <div id={suggestionsId} className={S.suggestions} role="listbox">
           {isOptionsLoading ? (
             <div className={S.statusText}>{loadingText}</div>

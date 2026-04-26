@@ -4,8 +4,25 @@ export type DiscoverSuggestionOption = {
   secondaryLabel?: string;
 };
 
-export const shouldShowSuggestions = (inputValue: string, appliedValue: string, isOpen: boolean): boolean => {
-  return isOpen && inputValue.length > 0 && inputValue !== appliedValue;
+type ShouldShowSuggestionsParams = {
+  inputValue: string;
+  appliedValue: string;
+  isOpen: boolean;
+  showOnEmptyInput?: boolean;
+};
+
+export const shouldShowSuggestions = (params: ShouldShowSuggestionsParams): boolean => {
+  const { inputValue, appliedValue, isOpen, showOnEmptyInput = false } = params;
+
+  if (!isOpen) {
+    return false;
+  }
+
+  if (inputValue.length === 0) {
+    return showOnEmptyInput;
+  }
+
+  return inputValue !== appliedValue;
 };
 
 export const getFirstOptionValue = (options: DiscoverSuggestionOption[]): string | null => {
