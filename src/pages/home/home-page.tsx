@@ -15,47 +15,8 @@ export const HomePage = () => {
     hideBroken: true,
   });
 
-  if (isLoading) {
-    return (
-      <section className={S.page}>
-        <RecentlyPlayed />
-
-        <header className={S.header}>
-          <Skeleton width={280} height={38} />
-          <Skeleton width={320} height={20} />
-        </header>
-
-        <div className={S.grid}>
-          {Array.from({ length: SKELETON_ITEMS }).map((_, index) => (
-            <SkeletonCard key={index} />
-          ))}
-        </div>
-      </section>
-    );
-  }
-
-  if (isError) {
-    return (
-      <section className={S.page}>
-        <RecentlyPlayed />
-        <div>
-          {t.home.loadingError}: {error?.message ?? t.common.unknownError}
-        </div>
-      </section>
-    );
-  }
-
-  if (stations.length === 0) {
-    return (
-      <section className={S.page}>
-        <RecentlyPlayed />
-        <div>{t.home.stationsNotFound}</div>
-      </section>
-    );
-  }
-
-  return (
-    <section className={S.page}>
+  const top = (
+    <>
       <header className={S.hero}>
         <p className={S.eyebrow}>{t.home.eyebrow}</p>
 
@@ -76,6 +37,51 @@ export const HomePage = () => {
       </header>
 
       <RecentlyPlayed />
+    </>
+  );
+
+  if (isLoading) {
+    return (
+      <section className={S.page}>
+        {top}
+
+        <header className={S.header}>
+          <Skeleton width={280} height={38} />
+          <Skeleton width={320} height={20} />
+        </header>
+
+        <div className={S.grid}>
+          {Array.from({ length: SKELETON_ITEMS }).map((_, index) => (
+            <SkeletonCard key={index} />
+          ))}
+        </div>
+      </section>
+    );
+  }
+
+  if (isError) {
+    return (
+      <section className={S.page}>
+        {top}
+        <div>
+          {t.home.loadingError}: {error?.message ?? t.common.unknownError}
+        </div>
+      </section>
+    );
+  }
+
+  if (stations.length === 0) {
+    return (
+      <section className={S.page}>
+        {top}
+        <div>{t.home.stationsNotFound}</div>
+      </section>
+    );
+  }
+
+  return (
+    <section className={S.page}>
+      {top}
 
       <header className={S.header}>
         <h2 className={S.title}>{t.home.topClickedTitle}</h2>
