@@ -7,6 +7,7 @@ import { DiscoverPageFilters } from './ui/discover-page-filters';
 import { DiscoverPageHeader } from './ui/discover-page-header';
 import S from './discover-page.module.css';
 import { getHasActiveDiscoverFilters } from './model/discover-filters';
+import { DiscoverResultsSummary } from './ui/discover-results-summary';
 
 const STATIONS_LIMIT = 48;
 const SKELETON_COUNT = 12;
@@ -52,6 +53,8 @@ const DiscoverPageContent = () => {
       <DiscoverPageHeader />
 
       <DiscoverPageFilters />
+
+      <DiscoverResultsSummary />
 
       {isPending && (
         <div className={S.grid}>

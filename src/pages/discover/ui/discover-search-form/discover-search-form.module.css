@@ -33,6 +33,11 @@
   border-color: #111827;
 }
 
+.input::-webkit-search-decoration,
+.input::-webkit-search-cancel-button {
+  appearance: none;
+}
+
 .field {
   display: flex;
   align-items: center;
