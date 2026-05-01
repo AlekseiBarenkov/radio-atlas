@@ -30,17 +30,17 @@
 }
 
 .subtitle {
-  color: #6b7280;
+  color: var(--color-text-muted);
   font-size: 14px;
 }
 
 .status {
-  color: #2563eb;
+  color: var(--color-info);
   font-size: 13px;
 }
 
 .error {
-  color: #dc2626;
+  color: var(--color-error);
   font-size: 13px;
 }
 

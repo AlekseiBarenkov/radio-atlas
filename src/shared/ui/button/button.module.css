@@ -3,7 +3,10 @@
   height: 36px;
   padding: 0 14px;
   border-radius: 10px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--color-primary);
+
+  background: var(--color-primary);
+  color: var(--color-primary-contrast);
 
   font: inherit;
   font-weight: 600;
@@ -12,14 +15,9 @@
   transition: all 0.15s ease;
 }
 
-.button {
-  background: #111827;
-  color: #ffffff;
-  border-color: #111827;
-}
-
 .button:not(:disabled):hover {
-  background: #1f2937;
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
 }
 
 .button:not(:disabled):active {
@@ -27,13 +25,14 @@
 }
 
 .secondary {
-  background: #ffffff;
-  color: #111827;
+  border-color: var(--color-border-strong);
+  background: var(--color-surface);
+  color: var(--color-text);
 }
 
 .secondary:not(:disabled):hover {
-  background: #f9fafb;
-  border-color: #111827;
+  background: var(--color-surface-muted);
+  border-color: var(--color-primary);
 }
 
 .button:disabled {

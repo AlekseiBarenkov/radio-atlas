@@ -19,7 +19,7 @@
 .label {
   font-size: 14px;
   font-weight: 500;
-  color: #374151;
+  color: var(--color-text-soft);
 }
 
 .input {
@@ -27,21 +27,21 @@
   min-width: 0;
   height: 44px;
   padding: 0 14px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--color-border-strong);
   border-radius: 12px;
-  background: #ffffff;
-  color: #111827;
+  background: var(--color-surface);
+  color: var(--color-text);
   font: inherit;
   box-sizing: border-box;
 }
 
 .input::placeholder {
-  color: #9ca3af;
+  color: var(--color-text-muted);
 }
 
 .input:focus {
   outline: none;
-  border-color: #111827;
+  border-color: var(--color-primary);
 }
 
 .suggestions {
@@ -54,10 +54,10 @@
   flex-direction: column;
   max-height: 280px;
   overflow-y: auto;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--color-border-strong);
   border-radius: 12px;
-  background: #ffffff;
-  box-shadow: 0 8px 24px rgb(17 24 39 / 12%);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-popover);
 }
 
 .suggestionButton {
@@ -68,9 +68,9 @@
   width: 100%;
   padding: 10px 14px;
   border: none;
-  border-bottom: 1px solid #f3f4f6;
-  background: #ffffff;
-  color: #111827;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
   font: inherit;
   text-align: left;
   cursor: pointer;
@@ -81,7 +81,7 @@
 }
 
 .suggestionButton:hover {
-  background: #f9fafb;
+  background: var(--color-bg);
 }
 
 .suggestionPrimary {
@@ -90,13 +90,13 @@
 
 .suggestionSecondary {
   flex: 0 0 auto;
-  color: #6b7280;
+  color: var(--color-text-muted);
   font-size: 13px;
 }
 
 .statusText {
   padding: 10px 14px;
-  color: #6b7280;
+  color: var(--color-text-muted);
   font-size: 13px;
   line-height: 1.4;
 }
@@ -106,7 +106,7 @@
   align-items: center;
   gap: 8px;
   min-height: 44px;
-  color: #111827;
+  color: var(--color-text);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;

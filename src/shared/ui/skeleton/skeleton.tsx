@@ -1,3 +1,5 @@
+import S from './skeleton.module.css';
+
 type SkeletonProps = {
   width?: number | string;
   height?: number | string;
@@ -10,11 +12,11 @@ export const Skeleton = (props: SkeletonProps) => {
   return (
     <div
       aria-hidden="true"
+      className={S.wrapper}
       style={{
         width,
         height,
         borderRadius,
-        backgroundColor: '#e5e7eb',
       }}
     />
   );

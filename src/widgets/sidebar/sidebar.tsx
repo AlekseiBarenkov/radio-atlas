@@ -1,6 +1,7 @@
 import { LanguageSwitcher, useTranslation } from '@/features/localization';
 import S from './sidebar.module.css';
 import { SidebarNav } from './ui/sidebar-nav/sidebar-nav';
+import { ThemeSwitcher } from '@/features/theme';
 
 export const Sidebar = () => {
   const t = useTranslation();
@@ -16,6 +17,7 @@ export const Sidebar = () => {
         <SidebarNav />
       </div>
 
+      <ThemeSwitcher />
       <LanguageSwitcher />
     </section>
   );

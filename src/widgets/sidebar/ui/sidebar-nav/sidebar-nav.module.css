@@ -25,7 +25,7 @@
   min-height: 44px;
   padding: 0 14px;
   border-radius: 12px;
-  color: #374151;
+  color: var(--color-text-soft);
   text-decoration: none;
   font-weight: 500;
   transition:
@@ -34,13 +34,13 @@
 }
 
 .link:not(.linkActive):hover {
-  background: #f3f4f6;
-  color: #111827;
+  background: var(--color-surface-muted);
+  color: var(--color-text);
 }
 
 .linkActive {
-  background: #111827;
-  color: #ffffff;
+  background: var(--color-primary);
+  color: var(--color-primary-contrast);
 }
 
 .marker {

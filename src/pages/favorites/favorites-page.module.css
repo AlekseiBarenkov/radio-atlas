@@ -5,7 +5,7 @@
 }
 
 .count {
-  color: #374151;
+  color: var(--color-text-soft);
   font-size: 14px;
   font-weight: 500;
   line-height: 1.5;

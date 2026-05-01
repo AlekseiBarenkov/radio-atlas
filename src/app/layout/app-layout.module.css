@@ -5,11 +5,6 @@
   min-height: 100vh;
 }
 
-.sidebar {
-  grid-row: 1 / 3;
-  border-right: 1px solid #e5e7eb;
-}
-
 .main {
   width: 100%;
   min-width: 0;
@@ -18,12 +13,17 @@
   padding: 24px;
 }
 
+.sidebar {
+  grid-row: 1 / 3;
+  border-right: 1px solid var(--color-border);
+}
+
 .player {
   position: sticky;
   bottom: 0;
   grid-column: 2;
-  border-top: 1px solid #e5e7eb;
-  background: #ffffff;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
 }
 
 @media (max-width: 768px) {
@@ -35,7 +35,7 @@
   .sidebar {
     grid-row: auto;
     border-right: none;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid var(--color-border);
   }
 
   .player {

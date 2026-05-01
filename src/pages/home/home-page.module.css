@@ -15,14 +15,14 @@
   flex-direction: column;
   gap: 20px;
   padding: 28px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-border);
   border-radius: 24px;
-  background: #ffffff;
+  background: var(--color-surface);
 }
 
 .eyebrow {
   margin: 0;
-  color: #6b7280;
+  color: var(--color-text-muted);
   font-size: 14px;
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -38,14 +38,14 @@
 
 .heroTitle {
   margin: 0;
-  color: #111827;
+  color: var(--color-text);
   font-size: 44px;
   line-height: 1.1;
 }
 
 .heroDescription {
   margin: 0;
-  color: #6b7280;
+  color: var(--color-text-muted);
   font-size: 16px;
   line-height: 1.6;
 }
@@ -61,10 +61,10 @@
   align-items: center;
   min-height: 32px;
   padding: 0 12px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-border);
   border-radius: 999px;
-  background: #f9fafb;
-  color: #374151;
+  background: var(--color-bg);
+  color: var(--color-text-soft);
   font-size: 14px;
   font-weight: 500;
 }
@@ -78,8 +78,8 @@
   padding: 0 18px;
 
   border-radius: 12px;
-  background: #111827;
-  color: #ffffff;
+  background: var(--color-primary);
+  color: var(--color-primary-contrast);
 
   font-size: 15px;
   font-weight: 600;
@@ -91,7 +91,7 @@
 }
 
 .heroLink:hover {
-  background: #1f2937;
+  background: var(--color-primary-hover);
 }
 
 .heroLink:active {

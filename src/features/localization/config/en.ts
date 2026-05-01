@@ -157,6 +157,13 @@ export const en = {
   languageSwitcher: {
     ariaLabel: 'Language switcher',
   },
+
+  themeSwitcher: {
+    ariaLabel: 'Theme switcher',
+    light: 'Light',
+    dark: 'Dark',
+    system: 'System',
+  },
 } as const;
 
 export type Translation = TranslationValue<typeof en>;

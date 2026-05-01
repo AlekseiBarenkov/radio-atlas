@@ -153,4 +153,11 @@ export const ru = {
   languageSwitcher: {
     ariaLabel: 'Переключатель языка',
   },
+
+  themeSwitcher: {
+    ariaLabel: 'Переключатель темы',
+    light: 'Светлая',
+    dark: 'Тёмная',
+    system: 'Система',
+  },
 } as const satisfies Translation;
