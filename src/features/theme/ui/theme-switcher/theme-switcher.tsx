@@ -1,5 +1,6 @@
 import { useTranslation } from '@features/localization';
 import { THEMES, useThemeStore, type Theme } from '@features/theme';
+import { ToggleGroup } from '@/shared/ui';
 import S from './theme-switcher.module.css';
 
 type ThemeOption = {
@@ -29,18 +30,8 @@ export const ThemeSwitcher = () => {
   ];
 
   return (
-    <div className={S.switcher} aria-label={t.themeSwitcher.ariaLabel}>
-      {themeOptions.map((option) => (
-        <button
-          key={option.value}
-          className={`${S.button} ${theme === option.value ? S.buttonActive : ''}`}
-          type="button"
-          onClick={() => setTheme(option.value)}
-          aria-pressed={theme === option.value}
-        >
-          {option.label}
-        </button>
-      ))}
+    <div className={S.switcher}>
+      <ToggleGroup label={t.themeSwitcher.ariaLabel} value={theme} options={themeOptions} onChange={setTheme} />
     </div>
   );
 };

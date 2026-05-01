@@ -11,16 +11,3 @@
   font-weight: 500;
   color: var(--color-text-soft);
 }
-
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-@media (max-width: 768px) {
-  .actions button {
-    flex: 1 1 0;
-    min-width: 0;
-  }
-}

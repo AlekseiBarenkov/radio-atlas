@@ -1,5 +1,6 @@
 import { useTranslation } from '@/features/localization';
 import S from '../../recently-played.module.css';
+import { Button } from '@/shared/ui';
 
 type RecentlyPlayedHeaderProps = {
   isClearVisible: boolean;
@@ -19,9 +20,9 @@ export const RecentlyPlayedHeader = (props: RecentlyPlayedHeaderProps) => {
       </div>
 
       {isClearVisible && (
-        <button className={S.clearButton} type="button" onClick={onClear}>
+        <Button variant="secondary" onClick={onClear}>
           {t.recentlyPlayed.clear}
-        </button>
+        </Button>
       )}
     </header>
   );

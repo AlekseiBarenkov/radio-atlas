@@ -17,16 +17,3 @@
   font: inherit;
   font-size: 14px;
 }
-
-.button {
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: var(--color-text-muted);
-  font: inherit;
-  cursor: pointer;
-}
-
-.button:hover {
-  color: var(--color-text);
-}

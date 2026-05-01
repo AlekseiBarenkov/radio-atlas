@@ -1,0 +1,37 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.button[data-size='s'] {
+  width: 24px;
+  height: 24px;
+}
+
+.button[data-size='m'] {
+  width: 32px;
+  height: 32px;
+}
+
+.button:not(:disabled):hover {
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

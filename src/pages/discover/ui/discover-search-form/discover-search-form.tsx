@@ -3,7 +3,7 @@ import { useDiscoverContext } from '../../model';
 import S from './discover-search-form.module.css';
 import { hasSearchValue } from './lib/has-search-value';
 import { useTranslation } from '@/features/localization';
-import { Button } from '@/shared/ui';
+import { Button, Input } from '@/shared/ui';
 
 const SEARCH_DEBOUNCE_MS = 400;
 
@@ -61,7 +61,7 @@ export const DiscoverSearchForm = () => {
       </label>
 
       <div className={S.field}>
-        <input
+        <Input
           id="discover-search"
           name="discover-search"
           type="search"

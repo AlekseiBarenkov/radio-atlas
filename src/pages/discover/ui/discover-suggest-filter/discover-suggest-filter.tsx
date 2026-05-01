@@ -5,6 +5,7 @@ import {
   type DiscoverSuggestionOption,
 } from '../discover-filters-form/model/helpers';
 import S from '../discover-filters-form/discover-filters-form.module.css';
+import { Input } from '@/shared/ui';
 
 type DiscoverSuggestFilterProps = {
   inputId: string;
@@ -111,13 +112,12 @@ export const DiscoverSuggestFilter = (props: DiscoverSuggestFilterProps) => {
         {label}
       </label>
 
-      <input
+      <Input
         id={inputId}
         name={inputName}
         type="text"
         role="combobox"
         aria-haspopup="listbox"
-        className={S.input}
         value={inputValue}
         onChange={handleChange}
         onFocus={handleFocus}

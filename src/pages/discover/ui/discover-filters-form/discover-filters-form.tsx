@@ -48,7 +48,7 @@ export const DiscoverFiltersForm = (props: DiscoverFiltersFormProps) => {
       </label>
 
       <div className={S.actions}>
-        <Button variant="secondary" onClick={handleReset} disabled={isResetDisabled}>
+        <Button variant="secondary" fullWidth onClick={handleReset} disabled={isResetDisabled}>
           {t.discover.clearFilters}
         </Button>
       </div>

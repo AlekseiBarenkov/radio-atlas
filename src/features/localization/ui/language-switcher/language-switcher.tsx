@@ -1,4 +1,5 @@
 import { LANGUAGES, useLocalizationStore, useTranslation, type Language } from '@features/localization';
+import { ToggleGroup } from '@/shared/ui';
 import S from './language-switcher.module.css';
 
 const LANGUAGE_OPTIONS: Array<{
@@ -22,18 +23,13 @@ export const LanguageSwitcher = () => {
   const t = useTranslation();
 
   return (
-    <div className={S.switcher} aria-label={t.languageSwitcher.ariaLabel}>
-      {LANGUAGE_OPTIONS.map((option) => (
-        <button
-          key={option.value}
-          className={`${S.button} ${language === option.value ? S.buttonActive : ''}`}
-          type="button"
-          onClick={() => setLanguage(option.value)}
-          aria-pressed={language === option.value}
-        >
-          {option.label}
-        </button>
-      ))}
+    <div className={S.switcher}>
+      <ToggleGroup
+        label={t.languageSwitcher.ariaLabel}
+        value={language}
+        options={LANGUAGE_OPTIONS}
+        onChange={setLanguage}
+      />
     </div>
   );
 };
