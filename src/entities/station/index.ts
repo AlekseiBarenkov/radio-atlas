@@ -3,7 +3,7 @@ export type { GetTopClickStationsParams, RadioStation } from './model/types';
 export { useTopClickStations } from './model/use-top-click-stations';
 export { StationCard } from './ui/station-card';
 
-export { getStations } from './api/get-stations';
+export { getStations, type GetStationsParams } from './api/get-stations';
 
 export { searchStationCountries } from './api/search-station-countries';
 export type { SearchStationCountriesParams, StationCountrySuggestion } from './api/search-station-countries';

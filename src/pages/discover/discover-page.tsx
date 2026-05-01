@@ -5,6 +5,7 @@ import { DiscoverProvider, useDiscoverContext } from './model';
 import { DiscoverPageFilters } from './ui/discover-page-filters';
 import S from './discover-page.module.css';
 import { getHasActiveDiscoverFilters } from './model/discover-filters';
+import { mapDiscoverSortToStationsParams } from './model/discover-sort';
 import { DiscoverResultsSummary } from './ui/discover-results-summary';
 import { DiscoverInfiniteScrollTrigger } from './ui/discover-infinite-scroll-trigger';
 import { useTranslation } from '@/features/localization';
@@ -16,14 +17,24 @@ const DISCOVER_STATIONS_STALE_TIME = 1000 * 60 * 30;
 const DISCOVER_STATIONS_GC_TIME = 1000 * 60 * 60;
 
 const DiscoverPageContent = () => {
-  const { search, filters } = useDiscoverContext();
+  const { search, filters, sort } = useDiscoverContext();
 
   const t = useTranslation();
 
   const isFilteredMode = search.length > 0 || getHasActiveDiscoverFilters(filters);
+  const sortParams = mapDiscoverSortToStationsParams(sort);
 
   const stationsQuery = useInfiniteQuery({
-    queryKey: ['stations', search, filters.country, filters.language, filters.tag, filters.hideBroken, STATIONS_LIMIT],
+    queryKey: [
+      'stations',
+      search,
+      filters.country,
+      filters.language,
+      filters.tag,
+      filters.hideBroken,
+      sort,
+      STATIONS_LIMIT,
+    ],
     queryFn: ({ pageParam, signal }) =>
       getStations(
         {
@@ -34,7 +45,8 @@ const DiscoverPageContent = () => {
           hideBroken: filters.hideBroken,
           limit: STATIONS_LIMIT,
           offset: pageParam,
-          order: search.length > 0 ? 'name' : undefined,
+          order: sortParams.order,
+          reverse: sortParams.reverse,
         },
         signal,
       ),

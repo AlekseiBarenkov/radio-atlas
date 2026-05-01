@@ -10,7 +10,7 @@ export type GetStationsParams = {
   country?: string;
   language?: string;
   tag?: string;
-  order?: 'name' | 'clickcount' | 'votes';
+  order?: 'name' | 'clickcount' | 'clicktrend' | 'votes';
   reverse?: boolean;
 };
 

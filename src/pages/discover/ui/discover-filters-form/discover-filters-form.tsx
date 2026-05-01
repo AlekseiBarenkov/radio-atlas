@@ -6,6 +6,7 @@ import S from './discover-filters-form.module.css';
 import { DiscoverTagFilter } from '../discover-tag-filter';
 import { useTranslation } from '@/features/localization';
 import { Button } from '@/shared/ui';
+import { DiscoverSortControl } from '../discover-sort-control';
 
 type DiscoverFiltersFormProps = {
   onResetKeyChange: () => void;
@@ -33,6 +34,8 @@ export const DiscoverFiltersForm = (props: DiscoverFiltersFormProps) => {
       <DiscoverLanguageFilter />
 
       <DiscoverTagFilter />
+
+      <DiscoverSortControl />
 
       <label className={S.checkboxLabel}>
         <input

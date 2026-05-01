@@ -87,6 +87,11 @@ export const ru = {
     language: 'Язык',
     tag: 'Тег',
 
+    sortBy: 'Сортировка',
+    sortPopular: 'Популярные',
+    sortTrending: 'В тренде',
+    sortName: 'А–Я',
+
     searchLabel: 'Поиск станций',
     searchPlaceholder: 'Поиск по названию станции',
     clearSearch: 'Очистить',

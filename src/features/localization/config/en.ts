@@ -91,6 +91,11 @@ export const en = {
     language: 'Language',
     tag: 'Tag',
 
+    sortBy: 'Sort by',
+    sortPopular: 'Popular',
+    sortTrending: 'Trending',
+    sortName: 'A-Z',
+
     searchLabel: 'Search stations',
     searchPlaceholder: 'Search by station name',
     clearSearch: 'Clear',

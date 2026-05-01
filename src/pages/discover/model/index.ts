@@ -1,4 +1,4 @@
-export { DiscoverProvider } from './discover-provider';
-export { useDiscoverContext } from './discover-context';
+export { useDiscoverContext } from './discover-context/discover-context';
+export { DiscoverProvider } from './discover-context/discover-provider';
 
-export type { DiscoverContextValue } from './discover-context';
+export type { DiscoverContextValue } from './discover-context/discover-context';

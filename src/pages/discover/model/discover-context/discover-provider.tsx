@@ -5,7 +5,8 @@ import {
   getDiscoverFiltersFromSearchParams,
   setDiscoverFiltersToSearchParams,
   type DiscoverFiltersState,
-} from './discover-filters';
+} from '../discover-filters';
+import { getDiscoverSortFromSearchParams, setDiscoverSortToSearchParams, type DiscoverSort } from '../discover-sort';
 import { DiscoverContext, type DiscoverContextValue } from './discover-context';
 
 export const DiscoverProvider = (props: PropsWithChildren) => {
@@ -17,6 +18,7 @@ export const DiscoverProvider = (props: PropsWithChildren) => {
   const [filters, setFilters] = useState<DiscoverContextValue['filters']>(() =>
     getDiscoverFiltersFromSearchParams(searchParams),
   );
+  const [sort, setSort] = useState<DiscoverContextValue['sort']>(() => getDiscoverSortFromSearchParams(searchParams));
 
   const updateFilters = useCallback(
     (updater: (currentState: DiscoverContextValue['filters']) => DiscoverContextValue['filters']) => {
@@ -89,6 +91,17 @@ export const DiscoverProvider = (props: PropsWithChildren) => {
     updateFilters(() => DEFAULT_DISCOVER_FILTERS);
   }, [updateFilters]);
 
+  const handleUpdateSort = useCallback(
+    (nextSort: DiscoverSort) => {
+      setSort(nextSort);
+
+      setSearchParams((currentSearchParams) => {
+        return setDiscoverSortToSearchParams(currentSearchParams, nextSort);
+      });
+    },
+    [setSearchParams],
+  );
+
   return (
     <DiscoverContext.Provider
       value={{
@@ -101,6 +114,9 @@ export const DiscoverProvider = (props: PropsWithChildren) => {
         onTagChange: handleTagChange,
         onHideBrokenChange: handleHideBrokenChange,
         onResetFilters: handleResetFilters,
+
+        sort,
+        onSortChange: handleUpdateSort,
       }}
     >
       {children}

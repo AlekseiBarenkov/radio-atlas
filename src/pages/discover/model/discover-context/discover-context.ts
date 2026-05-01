@@ -1,9 +1,13 @@
 import { createContext, useContext } from 'react';
-import type { DiscoverFiltersState } from './discover-filters';
+import type { DiscoverFiltersState } from '../discover-filters';
+import type { DiscoverSort } from '../discover-sort/types';
 
 export type DiscoverContextValue = {
   search: string;
   onSearchChange: (value: string) => void;
+
+  sort: DiscoverSort;
+  onSortChange: (value: DiscoverSort) => void;
 
   filters: DiscoverFiltersState;
   onCountryChange: (value: string) => void;
