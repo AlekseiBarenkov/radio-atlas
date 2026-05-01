@@ -78,7 +78,9 @@ export const en = {
     longBuffering: 'The stream is buffering for too long. Try reconnecting.',
     streamBuffering: 'Buffering stream...',
     paused: 'Paused',
-    playbackError: 'Playback error',
+    playbackError: 'Stream may be unavailable in browser',
+
+    openStream: 'Open stream',
   },
 
   discover: {

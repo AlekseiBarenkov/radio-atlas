@@ -76,7 +76,7 @@ export const getPlayerStatusMessage = (params: GetPlayerStatusMessageParams): Pl
 
   if (status === PLAYER_STATUSES.ERROR) {
     return {
-      text: errorMessage ?? t.player.playbackError,
+      text: errorMessage === 'playback-error' || errorMessage === null ? t.player.playbackError : errorMessage,
       tone: 'error',
     };
   }

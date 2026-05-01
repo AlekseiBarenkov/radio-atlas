@@ -1,4 +1,4 @@
-import type { RadioStation } from '@entities/station';
+import type { RadioStation } from '../model/types';
 
 export const getStationStreamUrl = (station: RadioStation): string | null => {
   const resolvedUrl = station.url_resolved.trim();

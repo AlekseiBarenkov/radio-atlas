@@ -1,7 +1,7 @@
 import { usePlayerStore } from '@features/player/model/player-store';
 import { PLAYER_STATUSES, type PlayerStatus } from '@features/player/model/types';
 import { BUFFERING_RECONNECT_DELAY_MS } from '@shared/config/player';
-import { getStationStreamUrl } from './get-station-stream-url';
+import { getStationStreamUrl } from '@entities/station';
 
 type PlayerRuntime = {
   destroy: () => void;
@@ -37,12 +37,8 @@ const shouldPlayByStatus = (status: PlayerStatus): boolean => {
   );
 };
 
-const getPlaybackErrorMessage = (stationName: string): string => {
-  return `Не удалось воспроизвести станцию "${stationName}". Поток недоступен или не поддерживается браузером.`;
-};
-
-const getMissingStreamUrlMessage = (stationName: string): string => {
-  return `У станции "${stationName}" отсутствует ссылка на поток.`;
+const getPlaybackErrorMessage = (): string => {
+  return 'playback-error';
 };
 
 const resetAudioElement = (audio: HTMLAudioElement) => {
@@ -189,15 +185,15 @@ export const createPlayerRuntime = (): PlayerRuntime => {
     clearReconnectSuggestion();
 
     if (!currentStation) {
-      actions.setError('Ошибка воспроизведения потока.');
+      actions.setError(getPlaybackErrorMessage());
 
       return;
     }
 
-    actions.setError(getPlaybackErrorMessage(currentStation.name));
+    actions.setError(getPlaybackErrorMessage());
   };
 
-  const playCurrentSource = (stationId: string, stationName: string) => {
+  const playCurrentSource = (stationId: string) => {
     const requestId = playbackGuard.current();
 
     audio.play().catch(() => {
@@ -211,7 +207,7 @@ export const createPlayerRuntime = (): PlayerRuntime => {
         return;
       }
 
-      actions.setError(getPlaybackErrorMessage(stationName));
+      actions.setError(getPlaybackErrorMessage());
     });
   };
 
@@ -237,7 +233,7 @@ export const createPlayerRuntime = (): PlayerRuntime => {
 
     if (!streamUrl) {
       resetPlayback();
-      actions.setError(getMissingStreamUrlMessage(currentStation.name));
+      actions.setError(getPlaybackErrorMessage());
 
       return;
     }
@@ -256,7 +252,7 @@ export const createPlayerRuntime = (): PlayerRuntime => {
       return;
     }
 
-    playCurrentSource(currentStation.stationuuid, currentStation.name);
+    playCurrentSource(currentStation.stationuuid);
   };
 
   audio.addEventListener('playing', syncPlaying);

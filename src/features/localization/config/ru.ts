@@ -74,7 +74,9 @@ export const ru = {
     longBuffering: 'Поток долго буферизуется. Попробуйте переподключить.',
     streamBuffering: 'Буферизация потока...',
     paused: 'Пауза',
-    playbackError: 'Ошибка воспроизведения',
+    playbackError: 'Поток может быть недоступен в браузере',
+
+    openStream: 'Открыть поток',
   },
 
   discover: {
