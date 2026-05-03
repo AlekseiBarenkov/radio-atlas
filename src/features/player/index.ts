@@ -5,3 +5,4 @@ export type { PlayerActions, PlayerState, PlayerStatus, PlayerStore } from './mo
 export { getPlayerPrimaryButtonLabel } from './lib/player-ui';
 export { runPlayerPrimaryAction } from './lib/player-primary-action';
 export { PlayerAudioBridge } from './ui/player-audio-bridge/player-audio-bridge';
+export { PlayerToastBridge } from './ui/player-toast-bridge';
