@@ -31,7 +31,7 @@ export const StationLogo = (props: StationLogoProps) => {
   const shouldShowImage = src !== null && !isImageFailed;
 
   return (
-    <div className={S.logo} data-size={size}>
+    <div className={S.logo} data-size={size} data-station-logo>
       {shouldShowImage ? (
         <img
           className={S.image}

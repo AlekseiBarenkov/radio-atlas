@@ -1,38 +1,54 @@
 .player {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
   gap: 16px;
+  min-width: 0;
   min-height: 72px;
   padding: 12px 24px;
 }
 
 .info {
-  flex: 1;
   min-width: 0;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.title {
-  font-weight: 600;
-  font-size: 16px;
-  line-height: 1.2;
+.title,
+.subtitle {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .title a {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
   color: inherit;
+  overflow: hidden;
   text-decoration: none;
-}
-
-.title a:hover {
-  text-decoration: underline;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .subtitle {
   color: var(--color-text-muted);
   font-size: 14px;
+}
+
+.controls {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+}
+
+.title a:hover {
+  text-decoration: underline;
 }
 
 .status {
@@ -45,7 +61,92 @@
   font-size: 13px;
 }
 
-.controls {
-  display: flex;
-  gap: 8px;
+.logoWrapper {
+  position: relative;
+  flex: 0 0 auto;
+  border-radius: 50%;
+}
+
+.logoWrapper > div[data-station-logo='true'] {
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.logoWrapper::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border: 1px solid transparent;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.logoWrapper[data-status='playing'] {
+  animation: miniPlayerLogoSpin 8s linear infinite;
+}
+
+.logoWrapper[data-status='loading'] > div[data-station-logo='true'],
+.logoWrapper[data-status='buffering'] > div[data-station-logo='true'],
+.logoWrapper[data-status='paused'] > div[data-station-logo='true'] {
+  opacity: 0.7;
+}
+
+.logoWrapper[data-status='paused']::before {
+  border-color: var(--color-info);
+  opacity: 0.5;
+}
+
+.logoWrapper[data-status='loading']::before,
+.logoWrapper[data-status='buffering']::before {
+  border-color: var(--color-info);
+  opacity: 0.45;
+  animation: miniPlayerLogoPulse 1.4s ease-in-out infinite;
+}
+
+.logoWrapper[data-status='error']::before {
+  border-color: var(--color-error);
+  opacity: 0.8;
+}
+
+.logoWrapper[data-status='error'] > div[data-station-logo='true'] {
+  opacity: 0.75;
+}
+
+.logoWrapper::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 1;
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--color-border-strong);
+  border-radius: 50%;
+  background: var(--color-surface);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  opacity: 0;
+}
+
+.logoWrapper[data-status='playing']::after {
+  opacity: 1;
+}
+
+@keyframes miniPlayerLogoSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes miniPlayerLogoPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+
+  50% {
+    transform: scale(1.12);
+    opacity: 0.65;
+  }
 }

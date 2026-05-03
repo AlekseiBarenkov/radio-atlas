@@ -49,7 +49,11 @@ export const MiniPlayer = () => {
 
   return (
     <div className={S.player}>
-      {currentStation && <StationLogo station={currentStation} size="mini" />}
+      {currentStation && (
+        <div className={S.logoWrapper} data-status={playerStatus}>
+          <StationLogo station={currentStation} size="mini" />
+        </div>
+      )}
 
       <div className={S.info}>
         <div className={S.title}>
