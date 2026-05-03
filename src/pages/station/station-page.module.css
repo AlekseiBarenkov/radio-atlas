@@ -37,29 +37,6 @@
   height: 120px;
 }
 
-.logo,
-.logoFallback {
-  width: 120px;
-  height: 120px;
-  border-radius: 20px;
-}
-
-.logo {
-  display: block;
-  object-fit: cover;
-  background: var(--color-surface-muted);
-}
-
-.logoFallback {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-surface-muted);
-  color: var(--color-text);
-  font-size: 40px;
-  font-weight: 700;
-}
-
 .heroContent {
   min-width: 0;
   display: flex;
@@ -186,13 +163,6 @@
   .logoWrapper {
     width: 96px;
     height: 96px;
-  }
-
-  .logo,
-  .logoFallback {
-    width: 96px;
-    height: 96px;
-    border-radius: 16px;
   }
 
   .title {

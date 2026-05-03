@@ -6,7 +6,7 @@ import {
   usePlayerUiState,
 } from '@features/player';
 import { Link } from 'react-router-dom';
-import { getStationPath } from '@entities/station';
+import { getStationPath, StationLogo } from '@entities/station';
 import type { RadioStation } from '@entities/station/model/types';
 import { FavoriteToggle } from '@features/favorites';
 import { getStationPlayerState } from '@entities/station';
@@ -18,12 +18,6 @@ import { Button } from '@/shared/ui';
 type StationCardProps = {
   station: RadioStation;
   searchQuery?: string;
-};
-
-const getStationImage = (station: RadioStation): string | null => {
-  const favicon = station.favicon.trim();
-
-  return favicon.length > 0 ? favicon : null;
 };
 
 const getStationBitrateLabel = (station: RadioStation, unknownBitrateText: string): string => {
@@ -49,7 +43,6 @@ const getCardClassName = (isCurrentStation: boolean, hasError: boolean): string 
 export const StationCard = ({ station, searchQuery = '' }: StationCardProps) => {
   const t = useTranslation();
 
-  const image = getStationImage(station);
   const bitrateLabel = getStationBitrateLabel(station, t.common.unknownBitrate);
 
   const { currentStation, playerStatus, errorMessage, isReconnectSuggested } = usePlayerUiState();
@@ -83,11 +76,7 @@ export const StationCard = ({ station, searchQuery = '' }: StationCardProps) => 
   return (
     <article className={getCardClassName(isCurrentStation, hasCurrentStationError)}>
       <div className={S.logoWrapper}>
-        {image ? (
-          <img className={S.logo} src={image} alt={station.name} loading="lazy" />
-        ) : (
-          <div className={S.logoFallback}>{station.name.slice(0, 1).toUpperCase()}</div>
-        )}
+        <StationLogo station={station} size="card" />
       </div>
 
       <div className={S.content}>

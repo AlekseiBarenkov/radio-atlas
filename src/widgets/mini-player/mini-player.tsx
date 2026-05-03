@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { getStationPath } from '@entities/station';
+import { getStationPath, StationLogo } from '@entities/station';
 import { getLastPlayedStation, usePlayerHistory } from '@features/player-history';
 import {
   getPlayerPrimaryButtonLabel,
@@ -49,6 +49,8 @@ export const MiniPlayer = () => {
 
   return (
     <div className={S.player}>
+      {currentStation && <StationLogo station={currentStation} size="mini" />}
+
       <div className={S.info}>
         <div className={S.title}>
           {currentStation && currentStationPath ? (

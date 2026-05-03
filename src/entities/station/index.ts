@@ -2,6 +2,7 @@ export { getTopClickStations } from './api/get-top-click-stations';
 export type { GetTopClickStationsParams, RadioStation } from './model/types';
 export { useTopClickStations } from './model/use-top-click-stations';
 export { StationCard } from './ui/station-card';
+export { StationLogo } from './ui/station-logo';
 
 export { getStations, type GetStationsParams } from './api/get-stations';
 

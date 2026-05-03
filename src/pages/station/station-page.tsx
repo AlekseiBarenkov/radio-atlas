@@ -1,5 +1,5 @@
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { getStationPlayerState, hasSimilarStationsSource, useStationById } from '@entities/station';
+import { getStationPlayerState, hasSimilarStationsSource, StationLogo, useStationById } from '@entities/station';
 import { SimilarStations } from '@widgets/similar-stations';
 import { FavoriteToggle } from '@features/favorites';
 import {
@@ -11,12 +11,6 @@ import {
 import { Button, Notice, Skeleton } from '@shared/ui';
 import S from './station-page.module.css';
 import { useTranslation } from '@/features/localization';
-
-const getStationImage = (favicon: string): string | null => {
-  const normalizedFavicon = favicon.trim();
-
-  return normalizedFavicon.length > 0 ? normalizedFavicon : null;
-};
 
 const getStationBitrateLabel = (bitrate: number, unknownText: string): string => {
   return bitrate > 0 ? `${bitrate} kbps` : unknownText;
@@ -146,7 +140,6 @@ export const StationPage = () => {
     );
   }
 
-  const image = getStationImage(station.favicon);
   const tags = getStationTags(station.tags);
   const isSimilarStationsVisible = hasSimilarStationsSource(station);
 
@@ -158,11 +151,7 @@ export const StationPage = () => {
 
       <div className={S.hero}>
         <div className={S.logoWrapper}>
-          {image ? (
-            <img className={S.logo} src={image} alt={station.name} loading="lazy" />
-          ) : (
-            <div className={S.logoFallback}>{station.name.slice(0, 1).toUpperCase()}</div>
-          )}
+          <StationLogo station={station} size="page" />
         </div>
 
         <div className={S.heroContent}>

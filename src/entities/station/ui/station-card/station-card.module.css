@@ -28,32 +28,7 @@
 }
 
 .logoWrapper {
-  flex: 0 0 56px;
-  width: 56px;
-  height: 56px;
-}
-
-.logo,
-.logoFallback {
-  width: 56px;
-  height: 56px;
-  border-radius: 12px;
-}
-
-.logo {
-  display: block;
-  object-fit: cover;
-  background: var(--color-surface-muted);
-}
-
-.logoFallback {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-surface-muted);
-  color: var(--color-text);
-  font-weight: 700;
-  font-size: 20px;
+  flex: 0 0 auto;
 }
 
 .content {
@@ -133,17 +108,6 @@
 @media (max-width: 480px) {
   .card {
     flex-direction: column;
-  }
-
-  .logoWrapper,
-  .logo,
-  .logoFallback {
-    width: 48px;
-    height: 48px;
-  }
-
-  .logoWrapper {
-    flex-basis: 48px;
   }
 
   .actions {
