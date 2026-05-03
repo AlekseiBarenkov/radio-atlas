@@ -55,6 +55,8 @@ export const ru = {
   favorites: {
     add: 'Добавить в избранное',
     remove: 'Удалить из избранного',
+    addedToast: 'Добавлено в избранное',
+    removedToast: 'Удалено из избранного',
   },
 
   player: {

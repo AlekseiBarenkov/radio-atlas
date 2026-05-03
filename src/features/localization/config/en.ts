@@ -59,6 +59,8 @@ export const en = {
   favorites: {
     add: 'Add to favorites',
     remove: 'Remove from favorites',
+    addedToast: 'Added to favorites',
+    removedToast: 'Removed from favorites',
   },
 
   player: {
