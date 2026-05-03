@@ -1,11 +1,11 @@
-import { type ChangeEvent, type FocusEvent, type KeyboardEvent, useState } from 'react';
+import { type ChangeEvent, type KeyboardEvent, useRef, useState } from 'react';
 import {
   getFirstOptionValue,
   shouldShowSuggestions,
   type DiscoverSuggestionOption,
 } from '../discover-filters-form/model/helpers';
 import S from '../discover-filters-form/discover-filters-form.module.css';
-import { Input } from '@/shared/ui';
+import { Drop, DropList, Input } from '@/shared/ui';
 
 type DiscoverSuggestFilterProps = {
   inputId: string;
@@ -43,6 +43,9 @@ export const DiscoverSuggestFilter = (props: DiscoverSuggestFilterProps) => {
   } = props;
 
   const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
+  const [activeOptionValue, setActiveOptionValue] = useState<string | null>(null);
+
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   const suggestionsId = `${inputId}-suggestions`;
 
@@ -50,6 +53,7 @@ export const DiscoverSuggestFilter = (props: DiscoverSuggestFilterProps) => {
     const nextValue = event.target.value;
 
     setIsSuggestionsOpen(true);
+    setActiveOptionValue(null);
     onInputChange(nextValue);
 
     if (nextValue.length > 0 || appliedValue.length === 0) {
@@ -61,42 +65,62 @@ export const DiscoverSuggestFilter = (props: DiscoverSuggestFilterProps) => {
 
   const handleFocus = () => {
     setIsSuggestionsOpen(true);
+    setActiveOptionValue(null);
     onInputFocus?.();
-  };
-
-  const handleBlur = (event: FocusEvent<HTMLDivElement>) => {
-    if (event.currentTarget.contains(event.relatedTarget as Node | null)) {
-      return;
-    }
-
-    setIsSuggestionsOpen(false);
   };
 
   const handleSelect = (nextValue: string) => {
     onInputChange(nextValue);
     onAppliedChange(nextValue);
     setIsSuggestionsOpen(false);
+    setActiveOptionValue(null);
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Escape') {
       onInputChange(appliedValue);
+      setActiveOptionValue(null);
       setIsSuggestionsOpen(false);
+      inputRef.current?.blur();
       return;
     }
 
-    if (event.key !== 'Enter' || isOptionsLoading) {
+    if (!isSuggestionsVisible || isOptionsLoading || options.length === 0) {
       return;
     }
 
-    const firstOptionValue = getFirstOptionValue(options);
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
 
-    if (!firstOptionValue) {
+      const currentIndex = options.findIndex((option) => option.value === activeOptionValue);
+      const nextIndex = currentIndex === -1 ? 0 : Math.min(currentIndex + 1, options.length - 1);
+
+      setActiveOptionValue(options[nextIndex]?.value ?? null);
+      return;
+    }
+
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+
+      const currentIndex = options.findIndex((option) => option.value === activeOptionValue);
+      const nextIndex = currentIndex === -1 ? options.length - 1 : Math.max(currentIndex - 1, 0);
+
+      setActiveOptionValue(options[nextIndex]?.value ?? null);
+      return;
+    }
+
+    if (event.key !== 'Enter') {
+      return;
+    }
+
+    const selectedValue = activeOptionValue ?? getFirstOptionValue(options);
+
+    if (!selectedValue) {
       return;
     }
 
     event.preventDefault();
-    handleSelect(firstOptionValue);
+    handleSelect(selectedValue);
   };
 
   const isSuggestionsVisible = shouldShowSuggestions({
@@ -107,54 +131,45 @@ export const DiscoverSuggestFilter = (props: DiscoverSuggestFilterProps) => {
   });
 
   return (
-    <div className={S.field} onBlur={handleBlur}>
+    <div className={S.field}>
       <label className={S.label} htmlFor={inputId}>
         {label}
       </label>
 
-      <Input
-        id={inputId}
-        name={inputName}
-        type="text"
-        role="combobox"
-        aria-haspopup="listbox"
-        value={inputValue}
-        onChange={handleChange}
-        onFocus={handleFocus}
-        onKeyDown={handleKeyDown}
-        placeholder={placeholder}
-        autoComplete="off"
-        aria-expanded={isSuggestionsVisible}
-        aria-controls={suggestionsId}
-        aria-autocomplete="list"
-      />
-
-      {isSuggestionsVisible && (
-        <div id={suggestionsId} className={S.suggestions} role="listbox">
-          {isOptionsLoading ? (
-            <div className={S.statusText}>{loadingText}</div>
-          ) : options.length === 0 ? (
-            <div className={S.statusText}>{emptyText}</div>
-          ) : (
-            options.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                role="option"
-                aria-selected={false}
-                className={S.suggestionButton}
-                onMouseDown={(event) => {
-                  event.preventDefault();
-                  handleSelect(option.value);
-                }}
-              >
-                <span className={S.suggestionPrimary}>{option.label}</span>
-                {option.secondaryLabel && <span className={S.suggestionSecondary}>{option.secondaryLabel}</span>}
-              </button>
-            ))
-          )}
-        </div>
-      )}
+      <Drop
+        open={isSuggestionsVisible}
+        onOpenChange={setIsSuggestionsOpen}
+        contentClassName={S.suggestions}
+        trigger={
+          <Input
+            ref={inputRef}
+            id={inputId}
+            name={inputName}
+            type="text"
+            role="combobox"
+            aria-haspopup="listbox"
+            value={inputValue}
+            onChange={handleChange}
+            onFocus={handleFocus}
+            onKeyDown={handleKeyDown}
+            placeholder={placeholder}
+            autoComplete="off"
+            aria-expanded={isSuggestionsVisible}
+            aria-controls={suggestionsId}
+            aria-autocomplete="list"
+          />
+        }
+      >
+        <DropList
+          id={suggestionsId}
+          options={options}
+          isLoading={isOptionsLoading}
+          loadingText={loadingText}
+          emptyText={emptyText}
+          activeValue={activeOptionValue}
+          onSelect={handleSelect}
+        />
+      </Drop>
     </div>
   );
 };

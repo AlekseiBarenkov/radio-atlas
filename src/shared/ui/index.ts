@@ -6,3 +6,7 @@ export { Button } from './button';
 export { Input } from './input';
 export { ToggleGroup } from './toggle-group';
 export { IconButton } from './icon-button';
+export { Drop } from './drop';
+export type { DropPlacement, DropProps } from './drop';
+export { DropList } from './drop-list';
+export type { DropListOption, DropListProps } from './drop-list';

@@ -13,12 +13,6 @@
     border-color 0.12s ease;
 }
 
-.card:hover {
-  transform: translateY(-2px);
-  border-color: var(--color-border-strong);
-  box-shadow: var(--shadow-card);
-}
-
 .cardCurrent {
   border-color: var(--color-primary);
 }
@@ -54,11 +48,6 @@
   text-decoration: none;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.titleLink:hover {
-  text-decoration: underline;
-  color: var(--color-text);
 }
 
 .meta,
@@ -116,5 +105,18 @@
 
   .actions > * {
     width: 100%;
+  }
+}
+
+@media (hover: hover) {
+  .card:hover {
+    transform: translateY(-2px);
+    border-color: var(--color-border-strong);
+    box-shadow: var(--shadow-card);
+  }
+
+  .titleLink:hover {
+    text-decoration: underline;
+    color: var(--color-text);
   }
 }

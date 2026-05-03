@@ -23,53 +23,7 @@
 }
 
 .suggestions {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  right: 0;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
   max-height: 280px;
-  overflow-y: auto;
-  border: 1px solid var(--color-border-strong);
-  border-radius: 12px;
-  background: var(--color-surface);
-  box-shadow: var(--shadow-popover);
-}
-
-.suggestionButton {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  width: 100%;
-  padding: 10px 14px;
-  border: none;
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface);
-  color: var(--color-text);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.suggestionButton:last-child {
-  border-bottom: none;
-}
-
-.suggestionButton:hover {
-  background: var(--color-bg);
-}
-
-.suggestionPrimary {
-  min-width: 0;
-}
-
-.suggestionSecondary {
-  flex: 0 0 auto;
-  color: var(--color-text-muted);
-  font-size: 13px;
 }
 
 .statusText {
@@ -111,5 +65,9 @@
   .checkboxLabel,
   .actions {
     width: 100%;
+  }
+
+  .suggestions {
+    max-height: 240px;
   }
 }
