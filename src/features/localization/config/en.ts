@@ -53,10 +53,6 @@ export const en = {
   },
 
   miniPlayer: {
-    emptyTitle: 'Nothing is playing',
-    chooseStation: 'Choose a radio station',
-    continuePrefix: 'Continue',
-    continueListening: 'Continue listening',
     stop: 'Stop',
   },
 

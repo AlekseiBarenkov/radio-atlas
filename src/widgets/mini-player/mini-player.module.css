@@ -51,16 +51,6 @@
   text-decoration: underline;
 }
 
-.status {
-  color: var(--color-info);
-  font-size: 13px;
-}
-
-.error {
-  color: var(--color-error);
-  font-size: 13px;
-}
-
 .logoWrapper {
   position: relative;
   flex: 0 0 auto;

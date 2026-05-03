@@ -49,10 +49,6 @@ export const ru = {
   },
 
   miniPlayer: {
-    emptyTitle: 'Ничего не играет',
-    chooseStation: 'Выберите радиостанцию',
-    continuePrefix: 'Продолжить',
-    continueListening: 'Продолжить',
     stop: 'Стоп',
   },
 
