@@ -8,7 +8,7 @@ import {
   usePlayerActions,
   usePlayerUiState,
 } from '@features/player';
-import { Button, Notice, Skeleton } from '@shared/ui';
+import { Button, Notice, PageShell, Skeleton } from '@shared/ui';
 import S from './station-page.module.css';
 import { useTranslation } from '@/features/localization';
 
@@ -73,7 +73,7 @@ export const StationPage = () => {
 
   if (stationQuery.isPending) {
     return (
-      <section className={S.page}>
+      <PageShell>
         <button className={S.backLink} type="button" onClick={handleBack}>
           ← {t.stationPage.back}
         </button>
@@ -109,13 +109,13 @@ export const StationPage = () => {
             ))}
           </div>
         </section>
-      </section>
+      </PageShell>
     );
   }
 
   if (stationQuery.isError) {
     return (
-      <section className={S.page}>
+      <PageShell>
         <button className={S.backLink} type="button" onClick={handleBack}>
           ← {t.stationPage.back}
         </button>
@@ -124,19 +124,19 @@ export const StationPage = () => {
           tone="error"
           title={`${t.stationPage.loadingError}: ${stationQuery.error?.message ?? t.common.unknownError}`}
         />
-      </section>
+      </PageShell>
     );
   }
 
   if (!station || !stationPlayerState) {
     return (
-      <section className={S.page}>
+      <PageShell>
         <button className={S.backLink} type="button" onClick={handleBack}>
           ← {t.stationPage.back}
         </button>
 
         <Notice title={t.stationPage.stationNotFound} />
-      </section>
+      </PageShell>
     );
   }
 
@@ -144,7 +144,7 @@ export const StationPage = () => {
   const isSimilarStationsVisible = hasSimilarStationsSource(station);
 
   return (
-    <section className={S.page}>
+    <PageShell>
       <button className={S.backLink} type="button" onClick={handleBack}>
         ← {t.stationPage.back}
       </button>
@@ -237,6 +237,6 @@ export const StationPage = () => {
       </section>
 
       {isSimilarStationsVisible && <SimilarStations station={station} />}
-    </section>
+    </PageShell>
   );
 };

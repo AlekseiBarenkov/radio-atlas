@@ -1,0 +1,13 @@
+.shell {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  min-width: 0;
+  padding-bottom: var(--mini-player-height);
+}
+
+@media (max-width: 768px) {
+  .shell {
+    padding-bottom: calc(var(--mini-player-height) + env(safe-area-inset-bottom));
+  }
+}

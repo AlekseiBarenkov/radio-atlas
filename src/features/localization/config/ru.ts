@@ -39,6 +39,8 @@ export const ru = {
     home: 'Главная',
     discover: 'Поиск',
     favorites: 'Избранное',
+    openMenu: 'Открыть меню',
+    closeMenu: 'Закрыть меню',
   },
 
   recentlyPlayed: {

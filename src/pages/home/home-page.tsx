@@ -1,6 +1,6 @@
 import { StationCard, useTopClickStations } from '@entities/station';
 import { RecentlyPlayed } from '@widgets/recently-played';
-import { Notice, PageHeader, SkeletonCard } from '@shared/ui';
+import { Notice, PageHeader, PageShell, SkeletonCard } from '@shared/ui';
 import S from './home-page.module.css';
 import { Link } from 'react-router-dom';
 import { useTranslation } from '@/features/localization';
@@ -42,7 +42,7 @@ export const HomePage = () => {
 
   if (isLoading) {
     return (
-      <section className={S.page}>
+      <PageShell>
         {top}
 
         <PageHeader title={t.home.topClickedTitle} description={t.home.topClickedDescription} />
@@ -52,32 +52,32 @@ export const HomePage = () => {
             <SkeletonCard key={index} />
           ))}
         </div>
-      </section>
+      </PageShell>
     );
   }
 
   if (isError) {
     return (
-      <section className={S.page}>
+      <PageShell>
         {top}
 
         <Notice tone="error" title={`${t.home.loadingError}: ${error?.message ?? t.common.unknownError}`} />
-      </section>
+      </PageShell>
     );
   }
 
   if (stations.length === 0) {
     return (
-      <section className={S.page}>
+      <PageShell>
         {top}
 
         <Notice title={t.home.stationsNotFound} />
-      </section>
+      </PageShell>
     );
   }
 
   return (
-    <section className={S.page}>
+    <PageShell>
       {top}
 
       <PageHeader title={t.home.topClickedTitle} description={`${t.home.topClickedDescription} • ${stations.length}`} />
@@ -87,6 +87,6 @@ export const HomePage = () => {
           <StationCard key={station.stationuuid} station={station} />
         ))}
       </div>
-    </section>
+    </PageShell>
   );
 };

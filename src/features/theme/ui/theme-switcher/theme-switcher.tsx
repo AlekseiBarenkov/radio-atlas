@@ -1,7 +1,6 @@
 import { useTranslation } from '@features/localization';
 import { THEMES, useThemeStore, type Theme } from '@features/theme';
 import { ToggleGroup } from '@/shared/ui';
-import S from './theme-switcher.module.css';
 
 type ThemeOption = {
   value: Theme;
@@ -29,9 +28,5 @@ export const ThemeSwitcher = () => {
     },
   ];
 
-  return (
-    <div className={S.switcher}>
-      <ToggleGroup label={t.themeSwitcher.ariaLabel} value={theme} options={themeOptions} onChange={setTheme} />
-    </div>
-  );
+  return <ToggleGroup label={t.themeSwitcher.ariaLabel} value={theme} options={themeOptions} onChange={setTheme} />;
 };

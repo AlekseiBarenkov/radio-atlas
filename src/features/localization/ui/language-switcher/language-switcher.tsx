@@ -1,6 +1,5 @@
 import { LANGUAGES, useLocalizationStore, useTranslation, type Language } from '@features/localization';
 import { ToggleGroup } from '@/shared/ui';
-import S from './language-switcher.module.css';
 
 const LANGUAGE_OPTIONS: Array<{
   value: Language;
@@ -23,13 +22,11 @@ export const LanguageSwitcher = () => {
   const t = useTranslation();
 
   return (
-    <div className={S.switcher}>
-      <ToggleGroup
-        label={t.languageSwitcher.ariaLabel}
-        value={language}
-        options={LANGUAGE_OPTIONS}
-        onChange={setLanguage}
-      />
-    </div>
+    <ToggleGroup
+      label={t.languageSwitcher.ariaLabel}
+      value={language}
+      options={LANGUAGE_OPTIONS}
+      onChange={setLanguage}
+    />
   );
 };

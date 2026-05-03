@@ -1,6 +1,6 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { getStations, StationCard } from '@entities/station';
-import { Notice, PageHeader, SkeletonCard } from '@shared/ui';
+import { Notice, PageHeader, PageShell, SkeletonCard } from '@shared/ui';
 import { DiscoverProvider, useDiscoverContext } from './model';
 import { DiscoverPageFilters } from './ui/discover-page-filters';
 import S from './discover-page.module.css';
@@ -70,7 +70,7 @@ const DiscoverPageContent = () => {
   const isInfiniteScrollEnabled = Boolean(hasNextPage) && !isFetchingNextPage && !isPending;
 
   return (
-    <section className={S.page}>
+    <PageShell>
       <PageHeader title={t.discover.title} description={t.discover.description} />
 
       <DiscoverPageFilters />
@@ -115,7 +115,7 @@ const DiscoverPageContent = () => {
           />
         </>
       )}
-    </section>
+    </PageShell>
   );
 };
 

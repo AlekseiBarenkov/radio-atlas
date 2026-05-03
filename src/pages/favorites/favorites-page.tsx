@@ -2,7 +2,7 @@ import { StationCard } from '@entities/station';
 import { useFavorites } from '@features/favorites';
 import S from './favorites-page.module.css';
 import { useTranslation } from '@/features/localization';
-import { Notice, PageHeader } from '@/shared/ui';
+import { Notice, PageHeader, PageShell } from '@/shared/ui';
 
 export const FavoritesPage = () => {
   const t = useTranslation();
@@ -11,7 +11,7 @@ export const FavoritesPage = () => {
   const favoritesCount = favoriteStations.length;
 
   return (
-    <section className={S.page}>
+    <PageShell>
       <PageHeader title={t.favoritesPage.title} description={t.favoritesPage.description}>
         {favoritesCount > 0 && (
           <div className={S.count}>
@@ -29,6 +29,6 @@ export const FavoritesPage = () => {
           ))}
         </div>
       )}
-    </section>
+    </PageShell>
   );
 };

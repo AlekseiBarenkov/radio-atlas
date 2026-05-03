@@ -43,6 +43,8 @@ export const en = {
     home: 'Home',
     discover: 'Discover',
     favorites: 'Favorites',
+    openMenu: 'Open menu',
+    closeMenu: 'Close menu',
   },
 
   recentlyPlayed: {

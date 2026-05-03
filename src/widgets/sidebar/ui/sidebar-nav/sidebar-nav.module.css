@@ -2,13 +2,13 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 24px 16px;
+  padding: 20px 12px;
 }
 
 .list {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -19,18 +19,35 @@
 }
 
 .link {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
   min-height: 44px;
-  padding: 0 14px;
-  border-radius: 12px;
+  padding: 0 14px 0 18px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+
   color: var(--color-text-soft);
   text-decoration: none;
-  font-weight: 500;
+
+  font-weight: 600;
+
   transition:
-    background-color 0.2s ease,
-    color 0.2s ease;
+    background-color 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease,
+    transform 0.16s ease;
+}
+
+.link::before {
+  content: '';
+  position: absolute;
+  left: 8px;
+  width: 3px;
+  height: 18px;
+  border-radius: 999px;
+  background: transparent;
 }
 
 .link:not(.linkActive):hover {
@@ -39,23 +56,26 @@
 }
 
 .linkActive {
+  border-color: var(--color-border);
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+}
+
+.linkActive::before {
   background: var(--color-primary);
-  color: var(--color-primary-contrast);
-}
-
-.marker {
-  flex: 0 0 auto;
-  width: 12px;
-  text-align: center;
-  opacity: 0;
-}
-
-.markerActive {
-  opacity: 1;
 }
 
 .label {
   min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (hover: hover) {
+  .link:not(.linkActive):hover {
+    transform: translateX(2px);
+  }
 }
 
 @media (max-width: 768px) {
@@ -71,6 +91,11 @@
 
   .link {
     min-height: 40px;
+    padding: 0 14px;
     white-space: nowrap;
+  }
+
+  .link::before {
+    display: none;
   }
 }

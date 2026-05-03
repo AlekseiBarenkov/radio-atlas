@@ -1,17 +1,17 @@
-import { useTranslation } from '@features/localization';
 import { NavLink } from 'react-router-dom';
+import { useTranslation } from '@/features/localization';
 import S from './sidebar-nav.module.css';
 
-type SidebarNavItem = {
-  to: string;
-  label: string;
-  end?: boolean;
+type SidebarNavProps = {
+  onNavigate?: () => void;
 };
 
-export const SidebarNav = () => {
+export const SidebarNav = (props: SidebarNavProps) => {
+  const { onNavigate } = props;
+
   const t = useTranslation();
 
-  const sidebarNavItems: SidebarNavItem[] = [
+  const navItems = [
     {
       to: '/',
       label: t.sidebar.home,
@@ -30,18 +30,15 @@ export const SidebarNav = () => {
   return (
     <nav className={S.nav} aria-label={t.sidebar.navAriaLabel}>
       <ul className={S.list}>
-        {sidebarNavItems.map((item) => (
+        {navItems.map((item) => (
           <li key={item.to} className={S.item}>
-            <NavLink to={item.to} end={item.end}>
-              {({ isActive }) => (
-                <span className={`${S.link} ${isActive ? S.linkActive : ''}`}>
-                  <span className={`${S.marker} ${isActive ? S.markerActive : ''}`} aria-hidden="true">
-                    •
-                  </span>
-
-                  <span className={S.label}>{item.label}</span>
-                </span>
-              )}
+            <NavLink
+              to={item.to}
+              end={item.end}
+              className={({ isActive }) => `${S.link} ${isActive ? S.linkActive : ''}`}
+              onClick={onNavigate}
+            >
+              <span className={S.label}>{item.label}</span>
             </NavLink>
           </li>
         ))}
