@@ -163,4 +163,8 @@ export const ru = {
     dark: 'Тёмная',
     system: 'Система',
   },
+
+  toast: {
+    close: 'Закрыть уведомление',
+  },
 } as const satisfies Translation;

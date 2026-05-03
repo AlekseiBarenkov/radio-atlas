@@ -167,6 +167,10 @@ export const en = {
     dark: 'Dark',
     system: 'System',
   },
+
+  toast: {
+    close: 'Close notification',
+  },
 } as const;
 
 export type Translation = TranslationValue<typeof en>;

@@ -1,5 +1,5 @@
 import { createBrowserRouter } from 'react-router-dom';
-import { AppLayout } from '@app/layout/AppLayout';
+import { AppLayout } from '@/app/layout/app-layout';
 import { DiscoverPage } from '@pages/discover/discover-page';
 import { FavoritesPage } from '@pages/favorites/favorites-page';
 import { HomePage } from '@pages/home/home-page';

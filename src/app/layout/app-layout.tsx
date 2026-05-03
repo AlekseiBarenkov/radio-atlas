@@ -3,6 +3,7 @@ import { MiniPlayer } from '@widgets/mini-player/mini-player';
 import { Sidebar } from '@widgets/sidebar/sidebar';
 import S from './app-layout.module.css';
 import { PlayerAudioBridge, usePlayerUiState } from '@/features/player';
+import { ToastProvider } from '@/features/toast';
 
 export const AppLayout = () => {
   const { isIdle } = usePlayerUiState();
@@ -22,6 +23,8 @@ export const AppLayout = () => {
           <MiniPlayer />
         </div>
       )}
+
+      <ToastProvider hasMiniPlayer={!isIdle} />
 
       <PlayerAudioBridge />
     </div>
