@@ -58,6 +58,7 @@ export const createPlayerRuntime = (): PlayerRuntime => {
   let reconnectSuggestionTimeout: number | null = null;
 
   audio.preload = 'none';
+  audio.volume = usePlayerStore.getState().volume;
 
   const setStatusSafe = (status: PlayerStatus) => {
     const { status: currentStatus, actions } = usePlayerStore.getState();
@@ -215,6 +216,10 @@ export const createPlayerRuntime = (): PlayerRuntime => {
     state: ReturnType<typeof usePlayerStore.getState>,
     prevState: ReturnType<typeof usePlayerStore.getState>,
   ) => {
+    if (state.volume !== prevState.volume) {
+      audio.volume = state.volume;
+    }
+
     const { currentStation, status, actions, reconnectAt } = state;
     const prevStation = prevState.currentStation;
     const prevReconnectAt = prevState.reconnectAt;

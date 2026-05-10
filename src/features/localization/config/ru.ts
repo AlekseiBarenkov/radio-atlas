@@ -52,6 +52,7 @@ export const ru = {
 
   miniPlayer: {
     stop: 'Стоп',
+    volume: 'Громкость',
   },
 
   favorites: {

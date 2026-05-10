@@ -56,6 +56,7 @@ export const en = {
 
   miniPlayer: {
     stop: 'Stop',
+    volume: 'Volume',
   },
 
   favorites: {

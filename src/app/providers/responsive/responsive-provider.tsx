@@ -1,34 +1,49 @@
 import { useEffect, useState, type PropsWithChildren } from 'react';
-import { ResponsiveContext } from './responsive-context';
+import { ResponsiveContext, type ResponsiveContextValue } from './responsive-context';
 
 const MOBILE_MEDIA_QUERY = '(max-width: 768px)';
+const TABLET_MEDIA_QUERY = '(min-width: 769px) and (max-width: 1024px)';
 
-const getIsMobile = (): boolean => {
+const getResponsiveState = (): ResponsiveContextValue => {
   if (typeof window === 'undefined') {
-    return false;
+    return {
+      isMobile: false,
+      isTablet: false,
+      isDesktop: true,
+    };
   }
 
-  return window.matchMedia(MOBILE_MEDIA_QUERY).matches;
+  const isMobile = window.matchMedia(MOBILE_MEDIA_QUERY).matches;
+  const isTablet = window.matchMedia(TABLET_MEDIA_QUERY).matches;
+
+  return {
+    isMobile,
+    isTablet,
+    isDesktop: !isMobile && !isTablet,
+  };
 };
 
 export const ResponsiveProvider = (props: PropsWithChildren) => {
   const { children } = props;
 
-  const [isMobile, setIsMobile] = useState(getIsMobile);
+  const [responsiveState, setResponsiveState] = useState(getResponsiveState);
 
   useEffect(() => {
-    const mediaQueryList = window.matchMedia(MOBILE_MEDIA_QUERY);
+    const mobileMediaQueryList = window.matchMedia(MOBILE_MEDIA_QUERY);
+    const tabletMediaQueryList = window.matchMedia(TABLET_MEDIA_QUERY);
 
-    const handleChange = (event: MediaQueryListEvent) => {
-      setIsMobile(event.matches);
+    const handleChange = () => {
+      setResponsiveState(getResponsiveState());
     };
 
-    mediaQueryList.addEventListener('change', handleChange);
+    mobileMediaQueryList.addEventListener('change', handleChange);
+    tabletMediaQueryList.addEventListener('change', handleChange);
 
     return () => {
-      mediaQueryList.removeEventListener('change', handleChange);
+      mobileMediaQueryList.removeEventListener('change', handleChange);
+      tabletMediaQueryList.removeEventListener('change', handleChange);
     };
   }, []);
 
-  return <ResponsiveContext.Provider value={{ isMobile }}>{children}</ResponsiveContext.Provider>;
+  return <ResponsiveContext.Provider value={responsiveState}>{children}</ResponsiveContext.Provider>;
 };

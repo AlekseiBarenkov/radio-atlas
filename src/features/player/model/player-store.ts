@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { addStationToHistory } from '@features/player-history';
 import { PLAYER_STATUSES, type PlayerStore } from './types';
+import { loadPlayerVolume, normalizePlayerVolume, savePlayerVolume } from './player-volume-storage';
 
 export const usePlayerStore = create<PlayerStore>((set, get) => ({
   currentStation: null,
@@ -8,6 +9,7 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
   errorMessage: null,
   reconnectAt: null,
   isReconnectSuggested: false,
+  volume: loadPlayerVolume(),
 
   actions: {
     playStation: (station) => {
@@ -92,6 +94,20 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
     setReconnectSuggested: (value) => {
       set({
         isReconnectSuggested: value,
+      });
+    },
+
+    setVolume: (volume) => {
+      const nextVolume = normalizePlayerVolume(volume);
+
+      if (get().volume === nextVolume) {
+        return;
+      }
+
+      savePlayerVolume(nextVolume);
+
+      set({
+        volume: nextVolume,
       });
     },
   },

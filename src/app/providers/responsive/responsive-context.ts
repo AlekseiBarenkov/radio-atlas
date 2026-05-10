@@ -2,6 +2,8 @@ import { createContext, useContext } from 'react';
 
 export type ResponsiveContextValue = {
   isMobile: boolean;
+  isTablet: boolean;
+  isDesktop: boolean;
 };
 
 export const ResponsiveContext = createContext<ResponsiveContextValue | null>(null);

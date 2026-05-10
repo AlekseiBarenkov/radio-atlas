@@ -37,6 +37,8 @@
   --color-highlight-text: inherit;
 
   --color-skeleton: #e5e7eb;
+
+  --color-mini-player-surface: #f8fafc;
 }
 
 [data-theme='dark'] {
@@ -76,6 +78,8 @@
   --color-highlight-text: #fde68a;
 
   --color-skeleton: #374151;
+
+  --color-mini-player-surface: #172033;
 }
 
 * {
