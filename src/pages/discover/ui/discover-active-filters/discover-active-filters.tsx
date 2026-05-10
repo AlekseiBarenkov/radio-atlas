@@ -1,8 +1,8 @@
-import { DEFAULT_DISCOVER_FILTERS } from '../../model/discover-filters';
-import { useDiscoverContext } from '../../model';
-import S from './discover-active-filters.module.css';
 import { useTranslation } from '@/features/localization';
+import { useDiscoverContext } from '../../model';
+import { DEFAULT_DISCOVER_FILTERS } from '../../model/discover-filters';
 import DiscoverActiveFiltersChip from './discover-active-filters-chip';
+import S from './discover-active-filters.module.css';
 
 type DiscoverActiveFiltersProps = {
   onResetKeyChange: () => void;
@@ -29,7 +29,7 @@ export const DiscoverActiveFilters = (props: DiscoverActiveFiltersProps) => {
     <div className={S.wrapper} aria-label={t.discover.activeFiltersAriaLabel}>
       {filters.country.length > 0 && (
         <DiscoverActiveFiltersChip
-          onCLose={() => {
+          onClose={() => {
             onCountryChange('');
             onResetKeyChange();
           }}
@@ -41,7 +41,7 @@ export const DiscoverActiveFilters = (props: DiscoverActiveFiltersProps) => {
 
       {filters.language.length > 0 && (
         <DiscoverActiveFiltersChip
-          onCLose={() => {
+          onClose={() => {
             onLanguageChange('');
             onResetKeyChange();
           }}
@@ -53,7 +53,7 @@ export const DiscoverActiveFilters = (props: DiscoverActiveFiltersProps) => {
 
       {filters.tag.length > 0 && (
         <DiscoverActiveFiltersChip
-          onCLose={() => {
+          onClose={() => {
             onTagChange('');
             onResetKeyChange();
           }}
@@ -65,7 +65,7 @@ export const DiscoverActiveFilters = (props: DiscoverActiveFiltersProps) => {
 
       {filters.hideBroken !== DEFAULT_DISCOVER_FILTERS.hideBroken && (
         <DiscoverActiveFiltersChip
-          onCLose={() => {
+          onClose={() => {
             onHideBrokenChange(DEFAULT_DISCOVER_FILTERS.hideBroken);
             onResetKeyChange();
           }}
