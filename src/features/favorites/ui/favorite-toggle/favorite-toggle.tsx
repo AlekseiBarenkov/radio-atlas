@@ -4,6 +4,7 @@ import { useFavorites } from '@features/favorites';
 import S from './favorite-toggle.module.css';
 import { Button } from '@/shared/ui';
 import { useToastActions } from '@/features/toast';
+import { Star } from 'lucide-react';
 
 type FavoriteToggleProps = {
   station: RadioStation;
@@ -37,7 +38,7 @@ export const FavoriteToggle = (props: FavoriteToggleProps) => {
       aria-label={isStationFavorite ? t.favorites.remove : t.favorites.add}
     >
       <span className={S.icon} aria-hidden="true">
-        {isStationFavorite ? '★' : '☆'}
+        <Star size={16} fill={isStationFavorite ? 'currentColor' : 'none'} />
       </span>
     </Button>
   );

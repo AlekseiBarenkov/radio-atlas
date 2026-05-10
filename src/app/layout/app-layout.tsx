@@ -8,6 +8,7 @@ import { PlayerAudioBridge, PlayerToastBridge, usePlayerUiState } from '@/featur
 import { ToastProvider } from '@/features/toast';
 import { useTranslation } from '@/features/localization';
 import { useResponsive } from '@/app/providers/responsive';
+import { Menu } from 'lucide-react';
 
 export const AppLayout = () => {
   const { isMobile } = useResponsive();
@@ -26,7 +27,7 @@ export const AppLayout = () => {
             aria-label={t.sidebar.openMenu}
             onClick={() => setIsMobileMenuOpen(true)}
           >
-            ☰
+            <Menu size={22} aria-hidden="true" />
           </button>
 
           <span className={S.mobileTitle}>{t.sidebar.title}</span>

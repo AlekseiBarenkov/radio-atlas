@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Sidebar } from '@widgets/sidebar/sidebar';
 import { useTranslation } from '@/features/localization';
 import S from './mobile-sidebar-drawer.module.css';
+import { X } from 'lucide-react';
 
 type MobileSidebarDrawerProps = {
   isOpen: boolean;
@@ -57,7 +58,7 @@ export const MobileSidebarDrawer = (props: MobileSidebarDrawerProps) => {
           <span>{t.sidebar.title}</span>
 
           <button className={S.close} type="button" aria-label={t.sidebar.closeMenu} onClick={close}>
-            ×
+            <X size={20} aria-hidden="true" />
           </button>
         </div>
 

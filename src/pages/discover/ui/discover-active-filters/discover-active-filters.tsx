@@ -2,7 +2,7 @@ import { DEFAULT_DISCOVER_FILTERS } from '../../model/discover-filters';
 import { useDiscoverContext } from '../../model';
 import S from './discover-active-filters.module.css';
 import { useTranslation } from '@/features/localization';
-import { IconButton } from '@/shared/ui';
+import DiscoverActiveFiltersChip from './discover-active-filters-chip';
 
 type DiscoverActiveFiltersProps = {
   onResetKeyChange: () => void;
@@ -28,73 +28,51 @@ export const DiscoverActiveFilters = (props: DiscoverActiveFiltersProps) => {
   return (
     <div className={S.wrapper} aria-label={t.discover.activeFiltersAriaLabel}>
       {filters.country.length > 0 && (
-        <span className={S.chip}>
-          <span>
-            {t.discover.country}: {filters.country}
-          </span>
-
-          <IconButton
-            onClick={() => {
-              onCountryChange('');
-              onResetKeyChange();
-            }}
-            aria-label={t.discover.removeCountryFilter}
-          >
-            ×
-          </IconButton>
-        </span>
+        <DiscoverActiveFiltersChip
+          onCLose={() => {
+            onCountryChange('');
+            onResetKeyChange();
+          }}
+          ariaLabel={t.discover.removeCountryFilter}
+        >
+          {t.discover.country}: {filters.country}
+        </DiscoverActiveFiltersChip>
       )}
 
       {filters.language.length > 0 && (
-        <span className={S.chip}>
-          <span>
-            {t.discover.language}: {filters.language}
-          </span>
-
-          <IconButton
-            onClick={() => {
-              onLanguageChange('');
-              onResetKeyChange();
-            }}
-            aria-label={t.discover.removeLanguageFilter}
-          >
-            ×
-          </IconButton>
-        </span>
+        <DiscoverActiveFiltersChip
+          onCLose={() => {
+            onLanguageChange('');
+            onResetKeyChange();
+          }}
+          ariaLabel={t.discover.removeLanguageFilter}
+        >
+          {t.discover.language}: {filters.language}
+        </DiscoverActiveFiltersChip>
       )}
 
       {filters.tag.length > 0 && (
-        <span className={S.chip}>
-          <span>
-            {t.discover.tag}: {filters.tag}
-          </span>
-
-          <IconButton
-            onClick={() => {
-              onTagChange('');
-              onResetKeyChange();
-            }}
-            aria-label={t.discover.removeTagFilter}
-          >
-            ×
-          </IconButton>
-        </span>
+        <DiscoverActiveFiltersChip
+          onCLose={() => {
+            onTagChange('');
+            onResetKeyChange();
+          }}
+          ariaLabel={t.discover.removeTagFilter}
+        >
+          {t.discover.tag}: {filters.tag}
+        </DiscoverActiveFiltersChip>
       )}
 
       {filters.hideBroken !== DEFAULT_DISCOVER_FILTERS.hideBroken && (
-        <span className={S.chip}>
-          <span>{t.discover.brokenStationsVisible}</span>
-
-          <IconButton
-            onClick={() => {
-              onHideBrokenChange(DEFAULT_DISCOVER_FILTERS.hideBroken);
-              onResetKeyChange();
-            }}
-            aria-label={t.discover.resetHideBrokenFilter}
-          >
-            ×
-          </IconButton>
-        </span>
+        <DiscoverActiveFiltersChip
+          onCLose={() => {
+            onHideBrokenChange(DEFAULT_DISCOVER_FILTERS.hideBroken);
+            onResetKeyChange();
+          }}
+          ariaLabel={t.discover.resetHideBrokenFilter}
+        >
+          {t.discover.brokenStationsVisible}
+        </DiscoverActiveFiltersChip>
       )}
     </div>
   );
