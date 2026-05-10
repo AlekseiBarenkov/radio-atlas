@@ -10,6 +10,8 @@ export const ru = {
     clicks: 'Клики',
     bitrate: 'Битрейт',
     unknownBitrate: 'неизвестно',
+
+    close: 'Закрыть',
   },
 
   home: {
@@ -171,5 +173,38 @@ export const ru = {
 
   toast: {
     close: 'Закрыть уведомление',
+  },
+
+  proxySettings: {
+    title: 'Прокси',
+    description: 'Управление HTTP stream proxy для заблокированных радиопотоков',
+    navLabel: 'Прокси',
+    addProxy: 'Добавить прокси',
+    updateProxy: 'Сохранить',
+    removeProxy: 'Удалить',
+    empty: 'Прокси пока не добавлены',
+    name: 'Название',
+    host: 'Хост',
+    port: 'Порт',
+    token: 'Ключ',
+    enabled: 'Включен',
+    disabled: 'Отключен',
+    priority: 'Приоритет',
+    successCount: 'Успешно',
+    failureCount: 'Ошибки',
+    newProxyName: 'Новый прокси',
+    hostPlaceholder: 'https://proxy.domain.com',
+    portPlaceholder: '3000',
+    tokenPlaceholder: 'Ключ',
+    validationError: 'Некорректные данные прокси',
+    editProxy: 'Редактировать',
+    enableProxy: 'Включить прокси',
+    disableProxy: 'Отключить прокси',
+    proxyActive: 'Используется прокси',
+    lastSuccessAt: 'Последний успех',
+    lastFailureAt: 'Последняя ошибка',
+    deleteProxyTitle: 'Удалить прокси',
+    deleteProxyDescription: 'Прокси и его статистика будут удалены.',
+    cancel: 'Отмена',
   },
 } as const satisfies Translation;

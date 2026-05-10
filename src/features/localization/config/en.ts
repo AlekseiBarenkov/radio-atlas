@@ -14,6 +14,8 @@ export const en = {
     clicks: 'Clicks',
     bitrate: 'Bitrate',
     unknownBitrate: 'unknown',
+
+    close: 'Close',
   },
 
   home: {
@@ -175,6 +177,39 @@ export const en = {
 
   toast: {
     close: 'Close notification',
+  },
+
+  proxySettings: {
+    title: 'Proxy settings',
+    description: 'Manage HTTP stream proxies for blocked radio streams',
+    navLabel: 'Proxies',
+    addProxy: 'Add proxy',
+    updateProxy: 'Save',
+    removeProxy: 'Remove',
+    empty: 'No proxies added yet',
+    name: 'Name',
+    host: 'Host',
+    port: 'Port',
+    token: 'Token',
+    enabled: 'Enabled',
+    disabled: 'Disabled',
+    priority: 'Priority',
+    successCount: 'Success',
+    failureCount: 'Failure',
+    newProxyName: 'New proxy',
+    hostPlaceholder: 'https://proxy.domain.com',
+    portPlaceholder: '3000',
+    tokenPlaceholder: 'Token',
+    validationError: 'Check proxy name, host, port and token',
+    editProxy: 'Edit',
+    enableProxy: 'Enable proxy',
+    disableProxy: 'Disable proxy',
+    proxyActive: 'Proxy is used',
+    lastSuccessAt: 'Last success',
+    lastFailureAt: 'Last failure',
+    deleteProxyTitle: 'Remove proxy',
+    deleteProxyDescription: 'This proxy and its statistics will be removed.',
+    cancel: 'Cancel',
   },
 } as const;
 

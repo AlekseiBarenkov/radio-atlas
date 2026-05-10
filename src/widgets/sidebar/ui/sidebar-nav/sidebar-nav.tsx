@@ -25,6 +25,10 @@ export const SidebarNav = (props: SidebarNavProps) => {
       to: '/favorites',
       label: t.sidebar.favorites,
     },
+    {
+      to: '/proxies',
+      label: t.proxySettings.navLabel,
+    },
   ];
 
   return (

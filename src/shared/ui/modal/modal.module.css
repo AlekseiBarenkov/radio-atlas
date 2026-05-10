@@ -1,0 +1,163 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+
+  display: grid;
+  place-items: center;
+
+  padding: 24px;
+
+  background: rgb(17 24 39 / 48%);
+  opacity: 0;
+  pointer-events: none;
+
+  transition: opacity 0.18s ease;
+}
+
+.backdrop[data-state='open'] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.backdrop[data-view='drawer'] {
+  place-items: end center;
+  padding: 24px 0 0;
+}
+
+.modal {
+  width: min(var(--modal-width, 560px), 100%);
+  max-height: min(720px, calc(100vh - 48px));
+
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-popover);
+  overflow: hidden;
+}
+
+.modal[data-view='drawer'] {
+  width: 100%;
+  max-height: calc(100vh - 24px);
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.header,
+.footer {
+  min-width: 0;
+  padding: 16px;
+
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.header {
+  justify-content: space-between;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.headerContent {
+  min-width: 0;
+}
+
+.content {
+  min-width: 0;
+  overflow: auto;
+  padding: 16px;
+}
+
+.footer {
+  justify-content: flex-end;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface-muted);
+}
+
+.modal[data-state='open'][data-view='dialog'] {
+  animation: modalDialogEnter 0.18s ease-out both;
+}
+
+.modal[data-state='closed'][data-view='dialog'] {
+  animation: modalDialogExit 0.18s ease-in both;
+}
+
+.modal[data-state='open'][data-view='drawer'] {
+  animation: modalDrawerEnter 0.2s ease-out both;
+}
+
+.modal[data-state='closed'][data-view='drawer'] {
+  animation: modalDrawerExit 0.18s ease-in both;
+}
+
+@keyframes modalDialogEnter {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes modalDialogExit {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+
+@keyframes modalDrawerEnter {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes modalDrawerExit {
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(100%);
+  }
+}
+
+@media (max-width: 1024px) {
+  .backdrop {
+    place-items: end center;
+    padding: 16px 0 0;
+  }
+
+  .modal {
+    width: 100%;
+    max-height: calc(100vh - 16px);
+    border-right: 0;
+    border-left: 0;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+
+  .footer {
+    flex-wrap: wrap;
+  }
+
+  .footer > * {
+    flex: 1 1 160px;
+  }
+}

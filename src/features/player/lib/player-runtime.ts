@@ -1,35 +1,12 @@
+import { getStationStreamUrl } from '@entities/station';
 import { usePlayerStore } from '@features/player/model/player-store';
 import { PLAYER_STATUSES, type PlayerStatus } from '@features/player/model/types';
+import type { PlaybackFailReason } from '@features/player-proxy';
 import { BUFFERING_RECONNECT_DELAY_MS } from '@shared/config/player';
-import { getStationStreamUrl } from '@entities/station';
-
-type PlayerRuntime = {
-  destroy: () => void;
-};
-
-type PlaybackGuard = {
-  next: () => number;
-  current: () => number;
-  isActual: (requestId: number) => boolean;
-};
-
-const createPlaybackGuard = (): PlaybackGuard => {
-  let activeRequestId = 0;
-
-  return {
-    next: () => {
-      activeRequestId += 1;
-
-      return activeRequestId;
-    },
-    current: () => {
-      return activeRequestId;
-    },
-    isActual: (requestId) => {
-      return requestId === activeRequestId;
-    },
-  };
-};
+import { createPlayerAudioController } from './player-audio-controller';
+import { createPlaybackGuard } from './player-playback-guard';
+import { createPlayerProxyFallbackController } from './player-proxy-fallback-controller';
+import type { PlayerRuntime } from './player-runtime-types';
 
 const shouldPlayByStatus = (status: PlayerStatus): boolean => {
   return (
@@ -41,24 +18,13 @@ const getPlaybackErrorMessage = (): string => {
   return 'playback-error';
 };
 
-const resetAudioElement = (audio: HTMLAudioElement) => {
-  audio.pause();
-  audio.removeAttribute('src');
-  audio.load();
-};
-
-const setAudioSource = (audio: HTMLAudioElement, streamUrl: string) => {
-  audio.src = streamUrl;
-};
-
 export const createPlayerRuntime = (): PlayerRuntime => {
-  const audio = new Audio();
+  const audioController = createPlayerAudioController({
+    volume: usePlayerStore.getState().volume,
+  });
   const playbackGuard = createPlaybackGuard();
 
   let reconnectSuggestionTimeout: number | null = null;
-
-  audio.preload = 'none';
-  audio.volume = usePlayerStore.getState().volume;
 
   const setStatusSafe = (status: PlayerStatus) => {
     const { status: currentStatus, actions } = usePlayerStore.getState();
@@ -94,19 +60,74 @@ export const createPlayerRuntime = (): PlayerRuntime => {
     resetReconnectSuggestionState();
   };
 
+  const fallbackController = createPlayerProxyFallbackController({
+    getRequestId: playbackGuard.current,
+    isActualRequest: playbackGuard.isActual,
+    onStartupTimeout: () => {
+      handlePlaybackFailure('startup-failed');
+    },
+  });
+
   const resetPlayback = () => {
     playbackGuard.next();
     clearReconnectSuggestion();
-    resetAudioElement(audio);
+    fallbackController.reset();
+    audioController.reset();
   };
 
   const replaceAudioSource = (streamUrl: string) => {
-    resetPlayback();
-    setAudioSource(audio, streamUrl);
+    playbackGuard.next();
+    clearReconnectSuggestion();
+    audioController.reset();
+    audioController.setSource(streamUrl);
+    fallbackController.scheduleStartupTimeout();
+  };
+
+  const playCurrentSource = (stationId: string) => {
+    const requestId = playbackGuard.current();
+
+    audioController.play().catch(() => {
+      const { currentStation } = usePlayerStore.getState();
+
+      if (!playbackGuard.isActual(requestId)) {
+        return;
+      }
+
+      if (!currentStation || currentStation.stationuuid !== stationId) {
+        return;
+      }
+
+      handlePlaybackFailure('startup-failed');
+    });
+  };
+
+  const handlePlaybackFailure = (reason: PlaybackFailReason) => {
+    const { currentStation, actions } = usePlayerStore.getState();
+
+    clearReconnectSuggestion();
+
+    if (!currentStation) {
+      actions.setError(getPlaybackErrorMessage());
+
+      return;
+    }
+
+    const result = fallbackController.handleFailure(reason);
+
+    if (result.type === 'error') {
+      actions.setError(getPlaybackErrorMessage());
+
+      return;
+    }
+
+    replaceAudioSource(result.streamUrl);
+    setStatusSafe(PLAYER_STATUSES.LOADING);
+    playCurrentSource(currentStation.stationuuid);
   };
 
   const syncPlaying = () => {
     clearReconnectSuggestion();
+    fallbackController.markPlaying();
     setStatusSafe(PLAYER_STATUSES.PLAYING);
   };
 
@@ -181,35 +202,7 @@ export const createPlayerRuntime = (): PlayerRuntime => {
   };
 
   const syncError = () => {
-    const { currentStation, actions } = usePlayerStore.getState();
-
-    clearReconnectSuggestion();
-
-    if (!currentStation) {
-      actions.setError(getPlaybackErrorMessage());
-
-      return;
-    }
-
-    actions.setError(getPlaybackErrorMessage());
-  };
-
-  const playCurrentSource = (stationId: string) => {
-    const requestId = playbackGuard.current();
-
-    audio.play().catch(() => {
-      const { currentStation, actions } = usePlayerStore.getState();
-
-      if (!playbackGuard.isActual(requestId)) {
-        return;
-      }
-
-      if (!currentStation || currentStation.stationuuid !== stationId) {
-        return;
-      }
-
-      actions.setError(getPlaybackErrorMessage());
-    });
+    handlePlaybackFailure(fallbackController.getFailReason());
   };
 
   const handleStoreChange = (
@@ -217,7 +210,7 @@ export const createPlayerRuntime = (): PlayerRuntime => {
     prevState: ReturnType<typeof usePlayerStore.getState>,
   ) => {
     if (state.volume !== prevState.volume) {
-      audio.volume = state.volume;
+      audioController.setVolume(state.volume);
     }
 
     const { currentStation, status, actions, reconnectAt } = state;
@@ -244,11 +237,20 @@ export const createPlayerRuntime = (): PlayerRuntime => {
     }
 
     if (isStationChanged || shouldReconnectCurrentStation) {
-      replaceAudioSource(streamUrl);
+      const sourceUrl = fallbackController.start(streamUrl);
+
+      if (!sourceUrl) {
+        resetPlayback();
+        actions.setError(getPlaybackErrorMessage());
+
+        return;
+      }
+
+      replaceAudioSource(sourceUrl);
     }
 
     if (status === PLAYER_STATUSES.PAUSED) {
-      audio.pause();
+      audioController.pause();
 
       return;
     }
@@ -260,11 +262,11 @@ export const createPlayerRuntime = (): PlayerRuntime => {
     playCurrentSource(currentStation.stationuuid);
   };
 
-  audio.addEventListener('playing', syncPlaying);
-  audio.addEventListener('pause', syncPaused);
-  audio.addEventListener('waiting', syncBuffering);
-  audio.addEventListener('loadstart', syncLoading);
-  audio.addEventListener('error', syncError);
+  audioController.audio.addEventListener('playing', syncPlaying);
+  audioController.audio.addEventListener('pause', syncPaused);
+  audioController.audio.addEventListener('waiting', syncBuffering);
+  audioController.audio.addEventListener('loadstart', syncLoading);
+  audioController.audio.addEventListener('error', syncError);
 
   const unsubscribe = usePlayerStore.subscribe(handleStoreChange);
 
@@ -273,11 +275,12 @@ export const createPlayerRuntime = (): PlayerRuntime => {
       resetPlayback();
       unsubscribe();
 
-      audio.removeEventListener('playing', syncPlaying);
-      audio.removeEventListener('pause', syncPaused);
-      audio.removeEventListener('waiting', syncBuffering);
-      audio.removeEventListener('loadstart', syncLoading);
-      audio.removeEventListener('error', syncError);
+      audioController.audio.removeEventListener('playing', syncPlaying);
+      audioController.audio.removeEventListener('pause', syncPaused);
+      audioController.audio.removeEventListener('waiting', syncBuffering);
+      audioController.audio.removeEventListener('loadstart', syncLoading);
+      audioController.audio.removeEventListener('error', syncError);
+      audioController.destroy();
     },
   };
 };

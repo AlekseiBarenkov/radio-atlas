@@ -4,6 +4,7 @@ import { DiscoverPage } from '@pages/discover/discover-page';
 import { FavoritesPage } from '@pages/favorites/favorites-page';
 import { HomePage } from '@pages/home/home-page';
 import { StationPage } from '@pages/station/station-page';
+import { ProxiesPage } from '@pages/proxies/proxies-page';
 
 export const router = createBrowserRouter([
   {
@@ -25,6 +26,10 @@ export const router = createBrowserRouter([
       {
         path: 'station/:stationId',
         element: <StationPage />,
+      },
+      {
+        path: 'proxies',
+        element: <ProxiesPage />,
       },
     ],
   },
