@@ -41,8 +41,6 @@
 
 @media (max-width: 768px) {
   .sidebar {
-    height: auto;
-    min-height: 0;
     border: none;
     border-radius: 0;
     box-shadow: none;
@@ -57,7 +55,7 @@
   }
 
   .nav {
-    flex: 0 0 auto;
+    /* flex: 0 0 auto; */
     overflow-y: visible;
   }
 }

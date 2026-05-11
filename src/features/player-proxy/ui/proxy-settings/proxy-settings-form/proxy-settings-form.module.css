@@ -34,3 +34,8 @@
   color: var(--color-error);
   font-size: 14px;
 }
+
+.requiredMark {
+  margin-left: 4px;
+  color: var(--color-error);
+}

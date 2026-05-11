@@ -1,4 +1,4 @@
-import { IconButton } from '@/shared/ui';
+import { Badge, IconButton } from '@/shared/ui';
 import { X } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
 import S from './discover-active-filters.module.css';
@@ -12,13 +12,13 @@ const DiscoverActiveFiltersChip = (props: DiscoverActiveFiltersChipProps) => {
   const { children, onClose, ariaLabel } = props;
 
   return (
-    <span className={S.chip}>
+    <Badge className={S.chip}>
       <span className={S.label}>{children}</span>
 
       <IconButton onClick={onClose} aria-label={ariaLabel}>
         <X size={14} aria-hidden="true" />
       </IconButton>
-    </span>
+    </Badge>
   );
 };
 

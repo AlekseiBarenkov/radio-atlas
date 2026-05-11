@@ -24,3 +24,11 @@
 .input[type='search']::-webkit-search-cancel-button {
   appearance: none;
 }
+
+.input[aria-invalid='true'] {
+  border-color: var(--color-error);
+}
+
+.input[aria-invalid='true']:focus {
+  border-color: var(--color-error);
+}

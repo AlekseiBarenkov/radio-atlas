@@ -1,12 +1,14 @@
 import { getStationStreamUrl } from '@entities/station';
 import { usePlayerStore } from '@features/player/model/player-store';
 import { PLAYER_STATUSES, type PlayerStatus } from '@features/player/model/types';
-import type { PlaybackFailReason } from '@features/player-proxy';
-import { BUFFERING_RECONNECT_DELAY_MS } from '@shared/config/player';
+import { BUFFERING_AUTO_RECONNECT_DELAY_MS, STARTUP_AUTO_RECONNECT_DELAY_MS } from '@shared/config/player';
 import { createPlayerAudioController } from './player-audio-controller';
+import { createPlayerDelayedReconnectController } from './player-delayed-reconnect-controller';
 import { createPlaybackGuard } from './player-playback-guard';
 import { createPlayerProxyFallbackController } from './player-proxy-fallback-controller';
 import type { PlayerRuntime } from './player-runtime-types';
+
+const STARTUP_AUTO_RECONNECT_LIMIT = 1;
 
 const shouldPlayByStatus = (status: PlayerStatus): boolean => {
   return (
@@ -19,12 +21,67 @@ const getPlaybackErrorMessage = (): string => {
 };
 
 export const createPlayerRuntime = (): PlayerRuntime => {
+  const playbackGuard = createPlaybackGuard();
+
   const audioController = createPlayerAudioController({
     volume: usePlayerStore.getState().volume,
   });
-  const playbackGuard = createPlaybackGuard();
 
-  let reconnectSuggestionTimeout: number | null = null;
+  const fallbackController = createPlayerProxyFallbackController();
+
+  let startupReconnectCount = 0;
+
+  const startSourcePlayback = (sourceUrl: string, stationId: string) => {
+    replaceAudioSource(sourceUrl);
+    setStatusSafe(PLAYER_STATUSES.LOADING);
+    playCurrentSource(stationId);
+  };
+
+  function restartActiveSource() {
+    const { currentStation } = usePlayerStore.getState();
+
+    clearReconnectControllers();
+
+    if (!currentStation) {
+      return;
+    }
+
+    const sourceUrl = fallbackController.getActiveSourceUrl();
+
+    if (!sourceUrl) {
+      return;
+    }
+
+    startSourcePlayback(sourceUrl, currentStation.stationuuid);
+  }
+
+  function reconnectCurrentSourceAfterStartup() {
+    if (startupReconnectCount >= STARTUP_AUTO_RECONNECT_LIMIT) {
+      return;
+    }
+
+    startupReconnectCount += 1;
+    restartActiveSource();
+  }
+
+  const bufferingReconnectController = createPlayerDelayedReconnectController({
+    delayMs: BUFFERING_AUTO_RECONNECT_DELAY_MS,
+    getRequestId: playbackGuard.current,
+    isActualRequest: playbackGuard.isActual,
+    onReconnect: restartActiveSource,
+  });
+
+  const startupReconnectController = createPlayerDelayedReconnectController({
+    delayMs: STARTUP_AUTO_RECONNECT_DELAY_MS,
+    getRequestId: playbackGuard.current,
+    isActualRequest: playbackGuard.isActual,
+    onReconnect: reconnectCurrentSourceAfterStartup,
+  });
+
+  const clearReconnectControllers = () => {
+    bufferingReconnectController.clear();
+    startupReconnectController.clear();
+  };
 
   const setStatusSafe = (status: PlayerStatus) => {
     const { status: currentStatus, actions } = usePlayerStore.getState();
@@ -36,51 +93,20 @@ export const createPlayerRuntime = (): PlayerRuntime => {
     actions.setStatus(status);
   };
 
-  const clearReconnectSuggestionTimeout = () => {
-    if (reconnectSuggestionTimeout === null) {
-      return;
-    }
-
-    window.clearTimeout(reconnectSuggestionTimeout);
-    reconnectSuggestionTimeout = null;
-  };
-
-  const resetReconnectSuggestionState = () => {
-    const { isReconnectSuggested, actions } = usePlayerStore.getState();
-
-    if (!isReconnectSuggested) {
-      return;
-    }
-
-    actions.setReconnectSuggested(false);
-  };
-
-  const clearReconnectSuggestion = () => {
-    clearReconnectSuggestionTimeout();
-    resetReconnectSuggestionState();
-  };
-
-  const fallbackController = createPlayerProxyFallbackController({
-    getRequestId: playbackGuard.current,
-    isActualRequest: playbackGuard.isActual,
-    onStartupTimeout: () => {
-      handlePlaybackFailure('startup-failed');
-    },
-  });
-
   const resetPlayback = () => {
     playbackGuard.next();
-    clearReconnectSuggestion();
+    startupReconnectCount = 0;
+    clearReconnectControllers();
     fallbackController.reset();
     audioController.reset();
   };
 
   const replaceAudioSource = (streamUrl: string) => {
     playbackGuard.next();
-    clearReconnectSuggestion();
+    clearReconnectControllers();
     audioController.reset();
     audioController.setSource(streamUrl);
-    fallbackController.scheduleStartupTimeout();
+    startupReconnectController.schedule();
   };
 
   const playCurrentSource = (stationId: string) => {
@@ -97,14 +123,14 @@ export const createPlayerRuntime = (): PlayerRuntime => {
         return;
       }
 
-      handlePlaybackFailure('startup-failed');
+      handlePlaybackFailure();
     });
   };
 
-  const handlePlaybackFailure = (reason: PlaybackFailReason) => {
+  const handlePlaybackFailure = () => {
     const { currentStation, actions } = usePlayerStore.getState();
 
-    clearReconnectSuggestion();
+    clearReconnectControllers();
 
     if (!currentStation) {
       actions.setError(getPlaybackErrorMessage());
@@ -112,21 +138,20 @@ export const createPlayerRuntime = (): PlayerRuntime => {
       return;
     }
 
-    const result = fallbackController.handleFailure(reason);
+    const sourceUrl = fallbackController.handleFailure();
 
-    if (result.type === 'error') {
+    if (!sourceUrl) {
       actions.setError(getPlaybackErrorMessage());
 
       return;
     }
 
-    replaceAudioSource(result.streamUrl);
-    setStatusSafe(PLAYER_STATUSES.LOADING);
-    playCurrentSource(currentStation.stationuuid);
+    startSourcePlayback(sourceUrl, currentStation.stationuuid);
   };
 
   const syncPlaying = () => {
-    clearReconnectSuggestion();
+    startupReconnectCount = 0;
+    clearReconnectControllers();
     fallbackController.markPlaying();
     setStatusSafe(PLAYER_STATUSES.PLAYING);
   };
@@ -142,41 +167,8 @@ export const createPlayerRuntime = (): PlayerRuntime => {
       return;
     }
 
-    clearReconnectSuggestion();
+    clearReconnectControllers();
     setStatusSafe(PLAYER_STATUSES.PAUSED);
-  };
-
-  const scheduleReconnectSuggestion = () => {
-    if (reconnectSuggestionTimeout !== null) {
-      return;
-    }
-
-    const requestId = playbackGuard.current();
-
-    reconnectSuggestionTimeout = window.setTimeout(() => {
-      reconnectSuggestionTimeout = null;
-
-      if (!playbackGuard.isActual(requestId)) {
-        return;
-      }
-
-      const {
-        currentStation: activeStation,
-        status,
-        isReconnectSuggested,
-        actions: latestActions,
-      } = usePlayerStore.getState();
-
-      if (!activeStation) {
-        return;
-      }
-
-      if (status !== PLAYER_STATUSES.BUFFERING || isReconnectSuggested) {
-        return;
-      }
-
-      latestActions.setReconnectSuggested(true);
-    }, BUFFERING_RECONNECT_DELAY_MS);
   };
 
   const syncBuffering = () => {
@@ -187,7 +179,7 @@ export const createPlayerRuntime = (): PlayerRuntime => {
     }
 
     setStatusSafe(PLAYER_STATUSES.BUFFERING);
-    scheduleReconnectSuggestion();
+    bufferingReconnectController.schedule();
   };
 
   const syncLoading = () => {
@@ -197,12 +189,11 @@ export const createPlayerRuntime = (): PlayerRuntime => {
       return;
     }
 
-    clearReconnectSuggestion();
     setStatusSafe(PLAYER_STATUSES.LOADING);
   };
 
   const syncError = () => {
-    handlePlaybackFailure(fallbackController.getFailReason());
+    handlePlaybackFailure();
   };
 
   const handleStoreChange = (
@@ -234,6 +225,10 @@ export const createPlayerRuntime = (): PlayerRuntime => {
       actions.setError(getPlaybackErrorMessage());
 
       return;
+    }
+
+    if (isStationChanged) {
+      startupReconnectCount = 0;
     }
 
     if (isStationChanged || shouldReconnectCurrentStation) {

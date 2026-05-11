@@ -16,7 +16,6 @@ export type PlayerState = {
   status: PlayerStatus;
   errorMessage: string | null;
   reconnectAt: number | null;
-  isReconnectSuggested: boolean;
   volume: number;
 };
 
@@ -28,7 +27,6 @@ export type PlayerActions = {
   stop: () => void;
   setStatus: (status: PlayerStatus) => void;
   setError: (message: string | null) => void;
-  setReconnectSuggested: (value: boolean) => void;
   setVolume: (volume: number) => void;
 };
 

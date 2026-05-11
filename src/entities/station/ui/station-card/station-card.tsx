@@ -45,7 +45,7 @@ export const StationCard = ({ station, searchQuery = '' }: StationCardProps) => 
 
   const bitrateLabel = getStationBitrateLabel(station, t.common.unknownBitrate);
 
-  const { currentStation, playerStatus, errorMessage, isReconnectSuggested } = usePlayerUiState();
+  const { currentStation, playerStatus, errorMessage } = usePlayerUiState();
   const actions = usePlayerActions();
 
   const { isCurrentStation, isButtonBusy, statusMessage } = getStationPlayerState({
@@ -53,7 +53,6 @@ export const StationCard = ({ station, searchQuery = '' }: StationCardProps) => 
     currentStation,
     playerStatus,
     errorMessage,
-    isReconnectSuggested,
     t,
   });
 
@@ -66,7 +65,6 @@ export const StationCard = ({ station, searchQuery = '' }: StationCardProps) => 
 
     runPlayerPrimaryAction({
       status: playerStatus,
-      isReconnectSuggested,
       currentStation,
       targetStation: station,
       actions,
@@ -107,7 +105,6 @@ export const StationCard = ({ station, searchQuery = '' }: StationCardProps) => 
           <Button onClick={handlePlayClick} disabled={isButtonBusy}>
             {getPlayerPrimaryButtonLabel({
               status: playerStatus,
-              isReconnectSuggested,
               isCurrentStation,
               t,
             })}

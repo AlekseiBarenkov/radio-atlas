@@ -6,9 +6,12 @@ export const buildProxyStreamUrl = (proxy: UserProxy, streamUrl: string): string
   const baseUrl = `${host}${port}/proxy`;
 
   const params = new URLSearchParams({
-    token: proxy.token,
     url: streamUrl,
   });
+
+  if (proxy.token.trim().length > 0) {
+    params.set('token', proxy.token);
+  }
 
   return `${baseUrl}?${params.toString()}`;
 };

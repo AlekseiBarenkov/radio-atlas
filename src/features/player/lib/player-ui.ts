@@ -3,13 +3,12 @@ import { PLAYER_STATUSES, type PlayerStatus } from '../model/types';
 
 type GetPlayerPrimaryButtonLabelParams = {
   status: PlayerStatus;
-  isReconnectSuggested: boolean;
   isCurrentStation?: boolean;
   t: Translation;
 };
 
 export const getPlayerPrimaryButtonLabel = (params: GetPlayerPrimaryButtonLabelParams): string => {
-  const { status, isReconnectSuggested, isCurrentStation = true, t } = params;
+  const { status, isCurrentStation = true, t } = params;
 
   if (!isCurrentStation) {
     return t.player.play;
@@ -20,7 +19,7 @@ export const getPlayerPrimaryButtonLabel = (params: GetPlayerPrimaryButtonLabelP
   }
 
   if (status === PLAYER_STATUSES.BUFFERING) {
-    return isReconnectSuggested ? t.player.reconnect : t.player.buffering;
+    return t.player.buffering;
   }
 
   if (status === PLAYER_STATUSES.PAUSED) {

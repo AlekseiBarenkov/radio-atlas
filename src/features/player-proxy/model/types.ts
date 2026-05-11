@@ -5,11 +5,7 @@ export type UserProxy = {
   port: number | null;
   token: string;
   enabled: boolean;
-  priority: number;
-  successCount: number;
-  failureCount: number;
-  lastSuccessAt: string | null;
-  lastFailureAt: string | null;
+  availability?: boolean;
 };
 
 export type UserProxyInput = {
@@ -20,8 +16,6 @@ export type UserProxyInput = {
   enabled: boolean;
 };
 
-export type PlaybackFailReason = 'startup-failed' | 'runtime-interruption';
-
 export type PlayerProxyState = {
   proxies: UserProxy[];
   activeProxyId: string | null;
@@ -31,10 +25,10 @@ export type PlayerProxyActions = {
   addProxy: (input: UserProxyInput) => void;
   updateProxy: (proxyId: string, input: UserProxyInput) => void;
   removeProxy: (proxyId: string) => void;
-  markProxySuccess: (proxyId: string) => void;
-  markProxyFailure: (proxyId: string) => void;
   toggleProxyEnabled: (proxyId: string) => void;
   setActiveProxyId: (proxyId: string | null) => void;
+  setProxyAvailability: (proxyId: string, availability?: boolean) => void;
+  checkProxy: (proxyId: string) => Promise<void>;
 };
 
 export type PlayerProxyStore = PlayerProxyState & {

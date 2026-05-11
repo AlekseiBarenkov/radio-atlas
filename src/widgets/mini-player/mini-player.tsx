@@ -18,7 +18,7 @@ import { usePlayerProxyStore } from '@/features/player-proxy';
 export const MiniPlayer = () => {
   const t = useTranslation();
 
-  const { currentStation, playerStatus, isReconnectSuggested, isLoading, volume } = usePlayerUiState();
+  const { currentStation, playerStatus, isLoading, volume } = usePlayerUiState();
   const { isDesktop } = useResponsive();
 
   const actions = usePlayerActions();
@@ -40,7 +40,6 @@ export const MiniPlayer = () => {
   const handleTogglePlay = () => {
     runPlayerPrimaryAction({
       status: playerStatus,
-      isReconnectSuggested,
       currentStation,
       actions,
     });
@@ -48,7 +47,6 @@ export const MiniPlayer = () => {
 
   const primaryButtonLabel = getPlayerPrimaryButtonLabel({
     status: playerStatus,
-    isReconnectSuggested,
     t,
   });
 
@@ -61,7 +59,7 @@ export const MiniPlayer = () => {
       return <LoaderCircle className={S.spinIcon} size={18} aria-hidden="true" />;
     }
 
-    if (playerStatus === PLAYER_STATUSES.ERROR || isReconnectSuggested) {
+    if (playerStatus === PLAYER_STATUSES.ERROR) {
       return <RotateCw size={18} aria-hidden="true" />;
     }
 

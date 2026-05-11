@@ -1,13 +1,19 @@
 import { useResponsive } from '@/app/providers/responsive';
 import { useTranslation } from '@/features/localization';
 import { Button, Modal, Notice } from '@/shared/ui';
-import { useState } from 'react';
-import { normalizeUserProxyInput } from '../../lib/normalize-user-proxy-input';
+import { useMemo, useState } from 'react';
 import { usePlayerProxyStore } from '../../model/player-proxy-store';
 import type { UserProxy } from '../../model/types';
-import { ProxySettingsForm, type ProxySettingsFormValue } from './proxy-settings-form';
+import { ProxySettingsForm } from './proxy-settings-form';
 import S from './proxy-settings.module.css';
 import { ProxySettingsItem } from './proxy-settings-item';
+import { sortUserProxies } from '../../lib/sort-user-proxies';
+import {
+  validateUserProxyInput,
+  type UserProxyInputFieldErrors,
+  type UserProxyInputFormValue,
+} from '../../lib/validate-user-proxy-input';
+import { TOAST_TONES, useToastActions } from '@/features/toast';
 
 type ProxyPanelState =
   | {
@@ -26,14 +32,14 @@ type DeleteProxyState = {
   proxy: UserProxy;
 };
 
-const createEmptyFormState = (name: string): ProxySettingsFormValue => ({
+const createEmptyFormState = (name: string): UserProxyInputFormValue => ({
   name,
   host: '',
   port: '',
   token: '',
 });
 
-const mapProxyToFormState = (proxy: UserProxy): ProxySettingsFormValue => ({
+const mapProxyToFormState = (proxy: UserProxy): UserProxyInputFormValue => ({
   name: proxy.name,
   host: proxy.host,
   port: proxy.port === null ? '' : String(proxy.port),
@@ -42,26 +48,29 @@ const mapProxyToFormState = (proxy: UserProxy): ProxySettingsFormValue => ({
 
 export const ProxySettings = () => {
   const t = useTranslation();
+  const { showToast } = useToastActions();
   const { isDesktop } = useResponsive();
 
-  const proxies = usePlayerProxyStore((state) => state.proxies);
+  const storedProxies = usePlayerProxyStore((state) => state.proxies);
+  const proxies = useMemo(() => sortUserProxies(storedProxies), [storedProxies]);
+
   const actions = usePlayerProxyStore((state) => state.actions);
 
   const [panelState, setPanelState] = useState<ProxyPanelState | null>(null);
-  const [formValue, setFormValue] = useState<ProxySettingsFormValue>(() =>
+  const [formValue, setFormValue] = useState<UserProxyInputFormValue>(() =>
     createEmptyFormState(t.proxySettings.newProxyName),
   );
-  const [formError, setFormError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<UserProxyInputFieldErrors>({});
   const [deleteProxyState, setDeleteProxyState] = useState<DeleteProxyState | null>(null);
 
   const closePanel = () => {
     setPanelState((prev) => (prev === null ? null : { ...prev, open: false }));
-    setFormError(null);
+    setFieldErrors({});
   };
 
   const openCreatePanel = () => {
     setFormValue(createEmptyFormState(t.proxySettings.newProxyName));
-    setFormError(null);
+    setFieldErrors({});
     setPanelState({
       open: true,
       mode: 'create',
@@ -71,7 +80,7 @@ export const ProxySettings = () => {
 
   const openEditPanel = (proxy: UserProxy) => {
     setFormValue(mapProxyToFormState(proxy));
-    setFormError(null);
+    setFieldErrors({});
     setPanelState({
       open: true,
       mode: 'edit',
@@ -94,21 +103,24 @@ export const ProxySettings = () => {
 
     const currentProxy = getCurrentProxy();
 
-    const normalizedProxy = normalizeUserProxyInput({
-      ...formValue,
-      enabled: currentProxy?.enabled ?? true,
-    });
+    const validation = validateUserProxyInput(formValue, currentProxy?.enabled ?? true, t);
 
-    if (!normalizedProxy.isValid) {
-      setFormError(t.proxySettings.validationError);
+    if (!validation.isValid) {
+      setFieldErrors(validation.errors);
+
+      showToast({
+        tone: TOAST_TONES.ERROR,
+        title: t.proxySettings.validationError,
+        description: Object.values(validation.errors).join('\n'),
+      });
 
       return;
     }
 
     if (panelState.mode === 'create') {
-      actions.addProxy(normalizedProxy.input);
+      actions.addProxy(validation.input);
     } else {
-      actions.updateProxy(panelState.proxyId, normalizedProxy.input);
+      actions.updateProxy(panelState.proxyId, validation.input);
     }
 
     closePanel();
@@ -146,6 +158,7 @@ export const ProxySettings = () => {
               onToggleEnabled={() => actions.toggleProxyEnabled(proxy.id)}
               onEdit={() => openEditPanel(proxy)}
               onRemove={() => setDeleteProxyState({ open: true, proxy })}
+              onCheck={() => actions.checkProxy(proxy.id)}
             />
           ))}
         </div>
@@ -171,7 +184,14 @@ export const ProxySettings = () => {
           </>
         }
       >
-        <ProxySettingsForm value={formValue} errorMessage={formError} onChange={setFormValue} />
+        <ProxySettingsForm
+          value={formValue}
+          fieldErrors={fieldErrors}
+          onChange={(nextValue) => {
+            setFormValue(nextValue);
+            setFieldErrors({});
+          }}
+        />
       </Modal>
 
       <Modal

@@ -32,7 +32,7 @@ export const StationPage = () => {
   const normalizedStationId = stationId?.trim() ?? '';
   const stationQuery = useStationById(normalizedStationId);
 
-  const { currentStation, playerStatus, errorMessage, isReconnectSuggested } = usePlayerUiState();
+  const { currentStation, playerStatus, errorMessage } = usePlayerUiState();
   const actions = usePlayerActions();
 
   const station = stationQuery.data;
@@ -43,7 +43,6 @@ export const StationPage = () => {
         currentStation,
         playerStatus,
         errorMessage,
-        isReconnectSuggested,
         t,
       })
     : null;
@@ -64,7 +63,6 @@ export const StationPage = () => {
 
     runPlayerPrimaryAction({
       status: playerStatus,
-      isReconnectSuggested,
       currentStation,
       targetStation: station,
       actions,
@@ -173,7 +171,6 @@ export const StationPage = () => {
             <Button onClick={handlePlayClick} disabled={stationPlayerState.isButtonBusy}>
               {getPlayerPrimaryButtonLabel({
                 status: playerStatus,
-                isReconnectSuggested,
                 isCurrentStation: stationPlayerState.isCurrentStation,
                 t,
               })}

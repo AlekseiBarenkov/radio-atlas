@@ -1,37 +1,49 @@
 import { Input } from '@/shared/ui';
 import { useTranslation } from '@/features/localization';
 import S from './proxy-settings-form.module.css';
-
-export type ProxySettingsFormValue = {
-  name: string;
-  host: string;
-  port: string;
-  token: string;
-};
+import type { UserProxyInputFieldErrors, UserProxyInputFormValue } from '../../../lib/validate-user-proxy-input';
 
 type ProxySettingsFormProps = {
-  value: ProxySettingsFormValue;
-  errorMessage: string | null;
-  onChange: (value: ProxySettingsFormValue) => void;
+  value: UserProxyInputFormValue;
+  fieldErrors: UserProxyInputFieldErrors;
+  onChange: (value: UserProxyInputFormValue) => void;
 };
 
+const RequiredMark = () => (
+  <span className={S.requiredMark} aria-hidden="true">
+    *
+  </span>
+);
+
 export const ProxySettingsForm = (props: ProxySettingsFormProps) => {
-  const { value, errorMessage, onChange } = props;
+  const { value, fieldErrors, onChange } = props;
 
   const t = useTranslation();
 
   return (
     <div className={S.form}>
-      {errorMessage && <div className={S.error}>{errorMessage}</div>}
-
       <label className={S.field}>
-        <span>{t.proxySettings.name}</span>
-        <Input value={value.name} onChange={(event) => onChange({ ...value, name: event.target.value })} />
+        <span>
+          {t.proxySettings.name}
+          <RequiredMark />
+        </span>
+        <Input
+          invalid={Boolean(fieldErrors.name)}
+          required
+          value={value.name}
+          onChange={(event) => onChange({ ...value, name: event.target.value })}
+        />
       </label>
 
       <label className={S.field}>
-        <span>{t.proxySettings.host}</span>
+        <span>
+          {t.proxySettings.host}
+          <RequiredMark />
+        </span>
+
         <Input
+          required
+          invalid={Boolean(fieldErrors.host)}
           value={value.host}
           placeholder={t.proxySettings.hostPlaceholder}
           onChange={(event) => onChange({ ...value, host: event.target.value })}
@@ -41,6 +53,7 @@ export const ProxySettingsForm = (props: ProxySettingsFormProps) => {
       <label className={S.field}>
         <span>{t.proxySettings.port}</span>
         <Input
+          invalid={Boolean(fieldErrors.port)}
           value={value.port}
           placeholder={t.proxySettings.portPlaceholder}
           inputMode="numeric"

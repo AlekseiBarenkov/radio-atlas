@@ -5,7 +5,6 @@ type PlayerUiState = {
   currentStation: ReturnType<typeof usePlayerStore.getState>['currentStation'];
   playerStatus: ReturnType<typeof usePlayerStore.getState>['status'];
   errorMessage: ReturnType<typeof usePlayerStore.getState>['errorMessage'];
-  isReconnectSuggested: boolean;
   volume: number;
 
   isIdle: boolean;
@@ -20,7 +19,6 @@ export const usePlayerUiState = (): PlayerUiState => {
   const currentStation = usePlayerStore((state) => state.currentStation);
   const playerStatus = usePlayerStore((state) => state.status);
   const errorMessage = usePlayerStore((state) => state.errorMessage);
-  const isReconnectSuggested = usePlayerStore((state) => state.isReconnectSuggested);
   const volume = usePlayerStore((state) => state.volume);
 
   const isIdle = currentStation === null;
@@ -34,7 +32,6 @@ export const usePlayerUiState = (): PlayerUiState => {
     currentStation,
     playerStatus,
     errorMessage,
-    isReconnectSuggested,
     volume,
 
     isIdle,

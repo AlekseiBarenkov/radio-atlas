@@ -3,14 +3,13 @@ import { PLAYER_STATUSES, type PlayerActions, type PlayerStatus } from '../model
 
 type RunPlayerPrimaryActionParams = {
   status: PlayerStatus;
-  isReconnectSuggested: boolean;
   currentStation: RadioStation | null;
   targetStation?: RadioStation;
   actions: Pick<PlayerActions, 'playStation' | 'pause' | 'resume' | 'restartCurrentStation'>;
 };
 
 export const runPlayerPrimaryAction = (params: RunPlayerPrimaryActionParams) => {
-  const { status, isReconnectSuggested, currentStation, targetStation, actions } = params;
+  const { status, currentStation, targetStation, actions } = params;
 
   if (!currentStation && !targetStation) {
     return;
@@ -44,10 +43,6 @@ export const runPlayerPrimaryAction = (params: RunPlayerPrimaryActionParams) => 
   }
 
   if (status === PLAYER_STATUSES.BUFFERING) {
-    if (isReconnectSuggested) {
-      actions.restartCurrentStation();
-    }
-
     return;
   }
 

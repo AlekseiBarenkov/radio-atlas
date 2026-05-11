@@ -8,7 +8,6 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
   status: PLAYER_STATUSES.IDLE,
   errorMessage: null,
   reconnectAt: null,
-  isReconnectSuggested: false,
   volume: loadPlayerVolume(),
 
   actions: {
@@ -20,7 +19,6 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
         status: PLAYER_STATUSES.LOADING,
         errorMessage: null,
         reconnectAt: null,
-        isReconnectSuggested: false,
       });
     },
 
@@ -33,7 +31,6 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
 
       set({
         status: PLAYER_STATUSES.PAUSED,
-        isReconnectSuggested: false,
       });
     },
 
@@ -47,7 +44,6 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
       set({
         status: PLAYER_STATUSES.LOADING,
         errorMessage: null,
-        isReconnectSuggested: false,
       });
     },
 
@@ -62,7 +58,6 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
         status: PLAYER_STATUSES.LOADING,
         errorMessage: null,
         reconnectAt: Date.now(),
-        isReconnectSuggested: false,
       });
     },
 
@@ -72,28 +67,15 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
         status: PLAYER_STATUSES.IDLE,
         errorMessage: null,
         reconnectAt: null,
-        isReconnectSuggested: false,
       });
     },
 
-    setStatus: (status) => {
-      set({
-        status,
-        isReconnectSuggested: status === PLAYER_STATUSES.BUFFERING ? get().isReconnectSuggested : false,
-      });
-    },
+    setStatus: (status) => set({ status }),
 
     setError: (message) => {
       set({
         errorMessage: message,
         status: PLAYER_STATUSES.ERROR,
-        isReconnectSuggested: false,
-      });
-    },
-
-    setReconnectSuggested: (value) => {
-      set({
-        isReconnectSuggested: value,
       });
     },
 

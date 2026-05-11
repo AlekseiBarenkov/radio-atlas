@@ -1,40 +1,32 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { MAX_PROXY_PRIORITY, MIN_PROXY_PRIORITY, PLAYER_PROXY_STORAGE_KEY } from './constants';
-import type { PlayerProxyStore, UserProxy, UserProxyInput } from './types';
-
-const clampProxyPriority = (priority: number): number => {
-  return Math.min(MAX_PROXY_PRIORITY, Math.max(MIN_PROXY_PRIORITY, priority));
-};
-
-const createUserProxy = (input: UserProxyInput): UserProxy => {
-  return {
-    ...input,
-    id: crypto.randomUUID(),
-    priority: MIN_PROXY_PRIORITY,
-    successCount: 0,
-    failureCount: 0,
-    lastSuccessAt: null,
-    lastFailureAt: null,
-  };
-};
+import { PLAYER_PROXY_STORAGE_KEY } from './constants';
+import type { PlayerProxyStore } from './types';
+import { checkUserProxy } from '../lib/check-user-proxy';
 
 export const usePlayerProxyStore = create<PlayerProxyStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       proxies: [],
       activeProxyId: null,
 
       actions: {
         addProxy: (input) => {
+          const next = {
+            ...input,
+            id: crypto.randomUUID(),
+          };
+
           set((state) => ({
-            proxies: [...state.proxies, createUserProxy(input)],
+            proxies: [...state.proxies, next],
           }));
         },
 
         updateProxy: (proxyId, input) => {
           set((state) => ({
-            proxies: state.proxies.map((proxy) => (proxy.id === proxyId ? { ...proxy, ...input } : proxy)),
+            proxies: state.proxies.map((proxy) =>
+              proxy.id === proxyId ? { ...proxy, ...input, availability: undefined } : proxy,
+            ),
           }));
         },
 
@@ -45,35 +37,6 @@ export const usePlayerProxyStore = create<PlayerProxyStore>()(
           }));
         },
 
-        markProxySuccess: (proxyId) => {
-          set((state) => ({
-            proxies: state.proxies.map((proxy) =>
-              proxy.id === proxyId
-                ? {
-                    ...proxy,
-                    priority: clampProxyPriority(proxy.priority + 1),
-                    successCount: proxy.successCount + 1,
-                    lastSuccessAt: new Date().toISOString(),
-                  }
-                : proxy,
-            ),
-          }));
-        },
-
-        markProxyFailure: (proxyId) => {
-          set((state) => ({
-            proxies: state.proxies.map((proxy) =>
-              proxy.id === proxyId
-                ? {
-                    ...proxy,
-                    priority: clampProxyPriority(proxy.priority - 1),
-                    failureCount: proxy.failureCount + 1,
-                    lastFailureAt: new Date().toISOString(),
-                  }
-                : proxy,
-            ),
-          }));
-        },
         toggleProxyEnabled: (proxyId) => {
           set((state) => ({
             proxies: state.proxies.map((proxy) =>
@@ -85,6 +48,24 @@ export const usePlayerProxyStore = create<PlayerProxyStore>()(
           set({
             activeProxyId: proxyId,
           });
+        },
+
+        setProxyAvailability: (proxyId, availability) => {
+          set((state) => ({
+            proxies: state.proxies.map((proxy) => (proxy.id === proxyId ? { ...proxy, availability } : proxy)),
+          }));
+        },
+
+        checkProxy: async (proxyId) => {
+          const proxy = get().proxies.find((item) => item.id === proxyId);
+
+          if (!proxy) {
+            return;
+          }
+
+          const isAvailable = await checkUserProxy(proxy);
+
+          get().actions.setProxyAvailability(proxyId, isAvailable);
         },
       },
     }),

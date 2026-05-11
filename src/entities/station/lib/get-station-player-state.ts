@@ -7,7 +7,6 @@ type GetStationPlayerStateParams = {
   currentStation: RadioStation | null;
   playerStatus: PlayerStatus;
   errorMessage: string | null;
-  isReconnectSuggested: boolean;
   t: Translation;
 };
 
@@ -25,10 +24,9 @@ const getStatusMessage = (params: {
   isCurrentStation: boolean;
   playerStatus: PlayerStatus;
   errorMessage: string | null;
-  isReconnectSuggested: boolean;
   t: Translation;
 }): StationPlayerState['statusMessage'] => {
-  const { isCurrentStation, playerStatus, errorMessage, isReconnectSuggested, t } = params;
+  const { isCurrentStation, playerStatus, errorMessage, t } = params;
 
   if (!isCurrentStation) {
     return {
@@ -46,7 +44,7 @@ const getStatusMessage = (params: {
 
   if (playerStatus === PLAYER_STATUSES.BUFFERING) {
     return {
-      text: isReconnectSuggested ? t.player.longBuffering : t.player.streamBuffering,
+      text: t.player.streamBuffering,
       tone: 'info',
     };
   }
@@ -72,7 +70,7 @@ const getStatusMessage = (params: {
 };
 
 export const getStationPlayerState = (params: GetStationPlayerStateParams): StationPlayerState => {
-  const { station, currentStation, playerStatus, errorMessage, isReconnectSuggested, t } = params;
+  const { station, currentStation, playerStatus, errorMessage, t } = params;
 
   const isCurrentStation = currentStation?.stationuuid === station.stationuuid;
   const isButtonBusy = isCurrentStation && playerStatus === PLAYER_STATUSES.LOADING;
@@ -86,7 +84,6 @@ export const getStationPlayerState = (params: GetStationPlayerStateParams): Stat
       isCurrentStation,
       playerStatus,
       errorMessage,
-      isReconnectSuggested,
       t,
     }),
   };

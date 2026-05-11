@@ -1,24 +1,17 @@
 import { useResponsive } from '@/app/providers/responsive';
-import { useLocalizationStore, useTranslation, type Language } from '@/features/localization';
+import { useTranslation } from '@/features/localization';
 import type { UserProxy } from '@/features/player-proxy/model/types';
-import { IconButton } from '@/shared/ui';
-import { Pencil, Power, PowerOff, Trash2 } from 'lucide-react';
+import { Badge, IconButton } from '@/shared/ui';
+import { Pencil, Power, PowerOff, RotateCw, Trash2 } from 'lucide-react';
 import S from './proxy-settings-item.module.css';
+import { useState } from 'react';
 
 type ActionsProps = {
   enabled: UserProxy['enabled'];
   onToggleEnabled: () => void;
   onRemove: () => void;
   onEdit: () => void;
-};
-
-const formatProxyDate = (value: string | null, language: Language): string | null => {
-  if (value === null) {
-    return null;
-  }
-  const locale = language === 'ru' ? 'ru-RU' : 'en-US';
-
-  return new Date(value).toLocaleString(locale);
+  onCheck: () => Promise<void>;
 };
 
 const Actions = (props: ActionsProps) => {
@@ -56,13 +49,16 @@ type ProxySettingsItemProps = Omit<ActionsProps, 'enabled'> & {
 export const ProxySettingsItem = (props: ProxySettingsItemProps) => {
   const { proxy, ...actionsProps } = props;
 
+  const [isChecking, setChecking] = useState(false);
+
   const { isMobile } = useResponsive();
 
   const t = useTranslation();
-  const language = useLocalizationStore((state) => state.language);
 
-  const lastSuccessAt = formatProxyDate(proxy.lastSuccessAt, language);
-  const lastFailureAt = formatProxyDate(proxy.lastFailureAt, language);
+  const checkProxyHandler = () => {
+    setChecking(true);
+    actionsProps.onCheck().finally(() => setChecking(false));
+  };
 
   return (
     <section className={S.item}>
@@ -71,7 +67,6 @@ export const ProxySettingsItem = (props: ProxySettingsItemProps) => {
           <div className={S.titleGroup}>
             <h2 className={S.title}>{proxy.name}</h2>
           </div>
-
           {!isMobile && <Actions enabled={proxy.enabled} {...actionsProps} />}
         </div>
 
@@ -81,28 +76,16 @@ export const ProxySettingsItem = (props: ProxySettingsItemProps) => {
         </div>
       </div>
 
-      <div className={S.meta}>
-        <span>
-          {t.proxySettings.priority}: {proxy.priority}
-        </span>
-        <span>
-          {t.proxySettings.successCount}: {proxy.successCount}
-        </span>
-        <span>
-          {t.proxySettings.failureCount}: {proxy.failureCount}
-        </span>
+      <div className={S.statusRow}>
+        {proxy.availability === true && <Badge tone="success">{t.proxySettings.proxyAvailable}</Badge>}
 
-        {lastSuccessAt && (
-          <span>
-            {t.proxySettings.lastSuccessAt}: {lastSuccessAt}
-          </span>
-        )}
+        {proxy.availability === false && <Badge tone="danger">{t.proxySettings.proxyUnavailable}</Badge>}
 
-        {lastFailureAt && (
-          <span>
-            {t.proxySettings.lastFailureAt}: {lastFailureAt}
-          </span>
-        )}
+        {proxy.availability === undefined && <Badge>{t.proxySettings.proxyUnchecked}</Badge>}
+
+        <IconButton size="s" disabled={isChecking} aria-label={t.proxySettings.checkProxy} onClick={checkProxyHandler}>
+          <RotateCw size={14} className={S.spinIcon} aria-hidden="true" data-spin={isChecking} />
+        </IconButton>
       </div>
 
       {isMobile && <Actions enabled={proxy.enabled} {...actionsProps} />}

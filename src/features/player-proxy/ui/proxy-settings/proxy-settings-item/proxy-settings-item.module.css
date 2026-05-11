@@ -48,6 +48,17 @@
   line-height: 32px;
 }
 
+.statusRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.spinIcon[data-spin='true'] {
+  animation: miniPlayerIconSpin 1s linear infinite;
+}
+
 .iconActions {
   display: flex;
   gap: 6px;
@@ -82,16 +93,10 @@
   font-size: 14px;
 }
 
-.meta {
-  min-width: 0;
-
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: center;
-
-  color: var(--color-text-muted);
-  font-size: 14px;
+@keyframes miniPlayerIconSpin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 768px) {

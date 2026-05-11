@@ -13,3 +13,4 @@ export type { DropListOption, DropListProps } from './drop-list';
 export { PageShell } from './page-shell';
 export { Modal } from './modal';
 export type { ModalView } from './modal';
+export { Badge } from './badge';
