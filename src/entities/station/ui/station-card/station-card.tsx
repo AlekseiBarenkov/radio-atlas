@@ -1,6 +1,7 @@
 import {
   getPlayerPrimaryButtonLabel,
   PLAYER_STATUSES,
+  PlayerPrimaryIconButton,
   runPlayerPrimaryAction,
   usePlayerActions,
   usePlayerUiState,
@@ -13,7 +14,6 @@ import { getStationPlayerState } from '@entities/station';
 import S from './station-card.module.css';
 import { StationTitle } from './ui/station-title';
 import { useTranslation } from '@/features/localization';
-import { Button } from '@/shared/ui';
 
 type StationCardProps = {
   station: RadioStation;
@@ -48,12 +48,10 @@ export const StationCard = ({ station, searchQuery = '' }: StationCardProps) => 
   const { currentStation, playerStatus, errorMessage } = usePlayerUiState();
   const actions = usePlayerActions();
 
-  const { isCurrentStation, isButtonBusy, statusMessage } = getStationPlayerState({
+  const { isCurrentStation, isButtonBusy } = getStationPlayerState({
     station,
     currentStation,
     playerStatus,
-    errorMessage,
-    t,
   });
 
   const hasCurrentStationError = isCurrentStation && playerStatus === PLAYER_STATUSES.ERROR && Boolean(errorMessage);
@@ -98,17 +96,18 @@ export const StationCard = ({ station, searchQuery = '' }: StationCardProps) => 
           </span>
         </div>
 
-        {statusMessage.tone === 'info' && <div className={S.meta}>{statusMessage.text}</div>}
-        {statusMessage.tone === 'error' && <div className={S.error}>{statusMessage.text}</div>}
-
         <div className={S.actions}>
-          <Button onClick={handlePlayClick} disabled={isButtonBusy}>
-            {getPlayerPrimaryButtonLabel({
+          <PlayerPrimaryIconButton
+            status={playerStatus}
+            label={getPlayerPrimaryButtonLabel({
               status: playerStatus,
               isCurrentStation,
               t,
             })}
-          </Button>
+            isCurrentStation={isCurrentStation}
+            disabled={isButtonBusy}
+            onClick={handlePlayClick}
+          />
 
           <FavoriteToggle station={station} />
         </div>

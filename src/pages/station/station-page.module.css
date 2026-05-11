@@ -58,18 +58,6 @@
   line-height: 1.5;
 }
 
-.status {
-  color: var(--color-info);
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-.error {
-  color: var(--color-error);
-  font-size: 14px;
-  line-height: 1.5;
-}
-
 .actions {
   display: flex;
   flex-wrap: wrap;

@@ -69,13 +69,6 @@
   white-space: nowrap;
 }
 
-.error {
-  min-width: 0;
-  color: var(--color-error);
-  font-size: 13px;
-  line-height: 1.4;
-}
-
 .actions {
   margin-top: 4px;
   display: flex;
@@ -97,14 +90,6 @@
 @media (max-width: 480px) {
   .card {
     flex-direction: column;
-  }
-
-  .actions {
-    flex-direction: column;
-  }
-
-  .actions > * {
-    width: 100%;
   }
 }
 

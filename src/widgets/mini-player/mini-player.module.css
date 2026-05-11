@@ -142,18 +142,16 @@
   text-align: right;
 }
 
-.spinIcon {
-  animation: miniPlayerIconSpin 1s linear infinite;
-}
-
 .logoWrapper {
   position: relative;
   flex: 0 0 auto;
   border-radius: 50%;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .logoWrapper > div[data-station-logo='true'] {
+  position: relative;
+  z-index: 1;
   border-radius: 50%;
   overflow: hidden;
 }
@@ -216,12 +214,6 @@
 
 .logoWrapper[data-status='playing']::after {
   opacity: 1;
-}
-
-@keyframes miniPlayerIconSpin {
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 @keyframes miniPlayerLogoSpin {

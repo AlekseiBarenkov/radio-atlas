@@ -1,0 +1,9 @@
+.spinIcon {
+  animation: playerPrimaryIconSpin 1s linear infinite;
+}
+
+@keyframes playerPrimaryIconSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}

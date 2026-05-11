@@ -32,7 +32,7 @@ export const StationPage = () => {
   const normalizedStationId = stationId?.trim() ?? '';
   const stationQuery = useStationById(normalizedStationId);
 
-  const { currentStation, playerStatus, errorMessage } = usePlayerUiState();
+  const { currentStation, playerStatus } = usePlayerUiState();
   const actions = usePlayerActions();
 
   const station = stationQuery.data;
@@ -42,8 +42,6 @@ export const StationPage = () => {
         station,
         currentStation,
         playerStatus,
-        errorMessage,
-        t,
       })
     : null;
 
@@ -158,13 +156,6 @@ export const StationPage = () => {
             <p className={S.subtitle}>
               {station.country || t.common.unknownCountry} • {station.language || t.common.unknownLanguage}
             </p>
-
-            {stationPlayerState.statusMessage.tone === 'info' && (
-              <div className={S.status}>{stationPlayerState.statusMessage.text}</div>
-            )}
-            {stationPlayerState.statusMessage.tone === 'error' && (
-              <div className={S.error}>{stationPlayerState.statusMessage.text}</div>
-            )}
           </header>
 
           <div className={S.actions}>

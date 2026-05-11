@@ -1,14 +1,12 @@
 import { getStationStreamUrl } from '@entities/station';
 import { usePlayerStore } from '@features/player/model/player-store';
 import { PLAYER_STATUSES, type PlayerStatus } from '@features/player/model/types';
-import { BUFFERING_AUTO_RECONNECT_DELAY_MS, STARTUP_AUTO_RECONNECT_DELAY_MS } from '@shared/config/player';
+import { BUFFERING_AUTO_RECONNECT_DELAY_MS } from '@shared/config/player';
 import { createPlayerAudioController } from './player-audio-controller';
 import { createPlayerDelayedReconnectController } from './player-delayed-reconnect-controller';
 import { createPlaybackGuard } from './player-playback-guard';
 import { createPlayerProxyFallbackController } from './player-proxy-fallback-controller';
 import type { PlayerRuntime } from './player-runtime-types';
-
-const STARTUP_AUTO_RECONNECT_LIMIT = 1;
 
 const shouldPlayByStatus = (status: PlayerStatus): boolean => {
   return (
@@ -29,7 +27,7 @@ export const createPlayerRuntime = (): PlayerRuntime => {
 
   const fallbackController = createPlayerProxyFallbackController();
 
-  let startupReconnectCount = 0;
+  let hasActiveSourcePlayed = false;
 
   const startSourcePlayback = (sourceUrl: string, stationId: string) => {
     replaceAudioSource(sourceUrl);
@@ -39,8 +37,7 @@ export const createPlayerRuntime = (): PlayerRuntime => {
 
   function restartActiveSource() {
     const { currentStation } = usePlayerStore.getState();
-
-    clearReconnectControllers();
+    bufferingReconnectController.clear();
 
     if (!currentStation) {
       return;
@@ -55,33 +52,12 @@ export const createPlayerRuntime = (): PlayerRuntime => {
     startSourcePlayback(sourceUrl, currentStation.stationuuid);
   }
 
-  function reconnectCurrentSourceAfterStartup() {
-    if (startupReconnectCount >= STARTUP_AUTO_RECONNECT_LIMIT) {
-      return;
-    }
-
-    startupReconnectCount += 1;
-    restartActiveSource();
-  }
-
   const bufferingReconnectController = createPlayerDelayedReconnectController({
     delayMs: BUFFERING_AUTO_RECONNECT_DELAY_MS,
     getRequestId: playbackGuard.current,
     isActualRequest: playbackGuard.isActual,
     onReconnect: restartActiveSource,
   });
-
-  const startupReconnectController = createPlayerDelayedReconnectController({
-    delayMs: STARTUP_AUTO_RECONNECT_DELAY_MS,
-    getRequestId: playbackGuard.current,
-    isActualRequest: playbackGuard.isActual,
-    onReconnect: reconnectCurrentSourceAfterStartup,
-  });
-
-  const clearReconnectControllers = () => {
-    bufferingReconnectController.clear();
-    startupReconnectController.clear();
-  };
 
   const setStatusSafe = (status: PlayerStatus) => {
     const { status: currentStatus, actions } = usePlayerStore.getState();
@@ -95,18 +71,18 @@ export const createPlayerRuntime = (): PlayerRuntime => {
 
   const resetPlayback = () => {
     playbackGuard.next();
-    startupReconnectCount = 0;
-    clearReconnectControllers();
+    hasActiveSourcePlayed = false;
+    bufferingReconnectController.clear();
     fallbackController.reset();
     audioController.reset();
   };
 
   const replaceAudioSource = (streamUrl: string) => {
     playbackGuard.next();
-    clearReconnectControllers();
+    hasActiveSourcePlayed = false;
+    bufferingReconnectController.clear();
     audioController.reset();
     audioController.setSource(streamUrl);
-    startupReconnectController.schedule();
   };
 
   const playCurrentSource = (stationId: string) => {
@@ -130,7 +106,7 @@ export const createPlayerRuntime = (): PlayerRuntime => {
   const handlePlaybackFailure = () => {
     const { currentStation, actions } = usePlayerStore.getState();
 
-    clearReconnectControllers();
+    bufferingReconnectController.clear();
 
     if (!currentStation) {
       actions.setError(getPlaybackErrorMessage());
@@ -150,8 +126,8 @@ export const createPlayerRuntime = (): PlayerRuntime => {
   };
 
   const syncPlaying = () => {
-    startupReconnectCount = 0;
-    clearReconnectControllers();
+    hasActiveSourcePlayed = true;
+    bufferingReconnectController.clear();
     fallbackController.markPlaying();
     setStatusSafe(PLAYER_STATUSES.PLAYING);
   };
@@ -167,7 +143,7 @@ export const createPlayerRuntime = (): PlayerRuntime => {
       return;
     }
 
-    clearReconnectControllers();
+    bufferingReconnectController.clear();
     setStatusSafe(PLAYER_STATUSES.PAUSED);
   };
 
@@ -179,7 +155,10 @@ export const createPlayerRuntime = (): PlayerRuntime => {
     }
 
     setStatusSafe(PLAYER_STATUSES.BUFFERING);
-    bufferingReconnectController.schedule();
+
+    if (hasActiveSourcePlayed) {
+      bufferingReconnectController.schedule();
+    }
   };
 
   const syncLoading = () => {
@@ -227,10 +206,6 @@ export const createPlayerRuntime = (): PlayerRuntime => {
       return;
     }
 
-    if (isStationChanged) {
-      startupReconnectCount = 0;
-    }
-
     if (isStationChanged || shouldReconnectCurrentStation) {
       const sourceUrl = fallbackController.start(streamUrl);
 
@@ -241,7 +216,7 @@ export const createPlayerRuntime = (): PlayerRuntime => {
         return;
       }
 
-      replaceAudioSource(sourceUrl);
+      startSourcePlayback(sourceUrl, currentStation.stationuuid);
     }
 
     if (status === PLAYER_STATUSES.PAUSED) {

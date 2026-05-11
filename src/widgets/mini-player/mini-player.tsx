@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { getStationPath, StationLogo } from '@entities/station';
 import {
   getPlayerPrimaryButtonLabel,
-  PLAYER_STATUSES,
+  PlayerPrimaryIconButton,
   runPlayerPrimaryAction,
   usePlayerActions,
   usePlayerUiState,
@@ -10,7 +10,7 @@ import {
 import S from './mini-player.module.css';
 import { useTranslation } from '@/features/localization';
 import { IconButton } from '@/shared/ui';
-import { LoaderCircle, Pause, Play, RotateCw, Square, Waypoints } from 'lucide-react';
+import { Square, Waypoints } from 'lucide-react';
 import { useResponsive } from '@/app/providers/responsive';
 import { MiniPlayerVolume } from './mini-player-volume';
 import { usePlayerProxyStore } from '@/features/player-proxy';
@@ -50,22 +50,6 @@ export const MiniPlayer = () => {
     t,
   });
 
-  const renderPrimaryIcon = () => {
-    if (playerStatus === PLAYER_STATUSES.PLAYING) {
-      return <Pause size={18} aria-hidden="true" />;
-    }
-
-    if (playerStatus === PLAYER_STATUSES.LOADING || playerStatus === PLAYER_STATUSES.BUFFERING) {
-      return <LoaderCircle className={S.spinIcon} size={18} aria-hidden="true" />;
-    }
-
-    if (playerStatus === PLAYER_STATUSES.ERROR) {
-      return <RotateCw size={18} aria-hidden="true" />;
-    }
-
-    return <Play size={18} aria-hidden="true" />;
-  };
-
   return (
     <div className={S.player}>
       <div className={S.logoWrapper} data-status={playerStatus}>
@@ -96,9 +80,12 @@ export const MiniPlayer = () => {
       </div>
 
       <div className={S.controls}>
-        <IconButton size="m" onClick={handleTogglePlay} disabled={isLoading} aria-label={primaryButtonLabel}>
-          {renderPrimaryIcon()}
-        </IconButton>
+        <PlayerPrimaryIconButton
+          status={playerStatus}
+          label={primaryButtonLabel}
+          disabled={isLoading}
+          onClick={handleTogglePlay}
+        />
 
         <IconButton size="m" onClick={actions.stop} aria-label={t.miniPlayer.stop}>
           <Square size={17} aria-hidden="true" />

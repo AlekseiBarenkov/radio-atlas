@@ -1,10 +1,10 @@
 import type { RadioStation } from '@entities/station';
 import { useTranslation } from '@features/localization';
 import { useFavorites } from '@features/favorites';
-import S from './favorite-toggle.module.css';
-import { Button } from '@/shared/ui';
+import { IconButton } from '@/shared/ui';
 import { useToastActions } from '@/features/toast';
 import { Star } from 'lucide-react';
+import S from './favorite-toggle.module.css';
 
 type FavoriteToggleProps = {
   station: RadioStation;
@@ -31,15 +31,14 @@ export const FavoriteToggle = (props: FavoriteToggleProps) => {
   };
 
   return (
-    <Button
-      variant={isStationFavorite ? 'primary' : 'secondary'}
+    <IconButton
+      size="m"
+      className={isStationFavorite ? S.active : ''}
       onClick={handleClick}
       aria-pressed={isStationFavorite}
       aria-label={isStationFavorite ? t.favorites.remove : t.favorites.add}
     >
-      <span className={S.icon} aria-hidden="true">
-        <Star size={16} fill={isStationFavorite ? 'currentColor' : 'none'} />
-      </span>
-    </Button>
+      <Star size={17} fill={isStationFavorite ? 'currentColor' : 'none'} aria-hidden="true" />
+    </IconButton>
   );
 };

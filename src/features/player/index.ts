@@ -6,3 +6,4 @@ export { getPlayerPrimaryButtonLabel } from './lib/player-ui';
 export { runPlayerPrimaryAction } from './lib/player-primary-action';
 export { PlayerAudioBridge } from './ui/player-audio-bridge/player-audio-bridge';
 export { PlayerToastBridge } from './ui/player-toast-bridge';
+export { PlayerPrimaryIconButton } from './ui/player-primary-icon-button';
