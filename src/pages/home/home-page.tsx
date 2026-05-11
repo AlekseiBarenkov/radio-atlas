@@ -1,6 +1,6 @@
 import { StationCard, useTopClickStations } from '@entities/station';
 import { RecentlyPlayed } from '@widgets/recently-played';
-import { Notice, PageHeader, PageShell, SkeletonCard } from '@shared/ui';
+import { Badge, Notice, PageHeader, PageShell, SkeletonCard } from '@shared/ui';
 import S from './home-page.module.css';
 import { Link } from 'react-router-dom';
 import { useTranslation } from '@/features/localization';
@@ -26,9 +26,9 @@ export const HomePage = () => {
         </div>
 
         <div className={S.heroBadges} aria-label={t.home.featuresAriaLabel}>
-          <span className={S.heroBadge}>{t.home.globalStations}</span>
-          <span className={S.heroBadge}>{t.home.favorites}</span>
-          <span className={S.heroBadge}>{t.home.recentlyPlayed}</span>
+          <Badge className={S.heroBadge}>{t.home.globalStations}</Badge>
+          <Badge className={S.heroBadge}>{t.home.favorites}</Badge>
+          <Badge className={S.heroBadge}>{t.home.recentlyPlayed}</Badge>
         </div>
 
         <Link className={S.heroLink} to="/discover">
