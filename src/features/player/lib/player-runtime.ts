@@ -7,11 +7,10 @@ import { createPlayerDelayedReconnectController } from './player-delayed-reconne
 import { createPlaybackGuard } from './player-playback-guard';
 import { createPlayerProxyFallbackController } from './player-proxy-fallback-controller';
 import type { PlayerRuntime } from './player-runtime-types';
+import { createPlayerMediaSessionController } from './player-media-session-controller';
 
 const shouldPlayByStatus = (status: PlayerStatus): boolean => {
-  return (
-    status === PLAYER_STATUSES.LOADING || status === PLAYER_STATUSES.BUFFERING || status === PLAYER_STATUSES.PLAYING
-  );
+  return status === PLAYER_STATUSES.LOADING;
 };
 
 const getPlaybackErrorMessage = (): string => {
@@ -26,6 +25,18 @@ export const createPlayerRuntime = (): PlayerRuntime => {
   });
 
   const fallbackController = createPlayerProxyFallbackController();
+
+  const mediaSessionController = createPlayerMediaSessionController({
+    onPlay: () => {
+      usePlayerStore.getState().actions.resume();
+    },
+    onPause: () => {
+      usePlayerStore.getState().actions.pause();
+    },
+    onStop: () => {
+      usePlayerStore.getState().actions.stop();
+    },
+  });
 
   let hasActiveSourcePlayed = false;
 
@@ -75,6 +86,7 @@ export const createPlayerRuntime = (): PlayerRuntime => {
     bufferingReconnectController.clear();
     fallbackController.reset();
     audioController.reset();
+    mediaSessionController.reset();
   };
 
   const replaceAudioSource = (streamUrl: string) => {
@@ -130,6 +142,8 @@ export const createPlayerRuntime = (): PlayerRuntime => {
     bufferingReconnectController.clear();
     fallbackController.markPlaying();
     setStatusSafe(PLAYER_STATUSES.PLAYING);
+    mediaSessionController.setPlaybackState('playing');
+    mediaSessionController.setActionState('playing');
   };
 
   const syncPaused = () => {
@@ -145,6 +159,8 @@ export const createPlayerRuntime = (): PlayerRuntime => {
 
     bufferingReconnectController.clear();
     setStatusSafe(PLAYER_STATUSES.PAUSED);
+    mediaSessionController.setPlaybackState('paused');
+    mediaSessionController.setActionState('paused');
   };
 
   const syncBuffering = () => {
@@ -188,6 +204,10 @@ export const createPlayerRuntime = (): PlayerRuntime => {
     const prevReconnectAt = prevState.reconnectAt;
 
     const isStationChanged = currentStation?.stationuuid !== prevStation?.stationuuid;
+    if (currentStation && isStationChanged) {
+      mediaSessionController.setMetadata(currentStation);
+    }
+
     const shouldReconnectCurrentStation =
       Boolean(currentStation) && reconnectAt !== null && reconnectAt !== prevReconnectAt;
 
@@ -250,6 +270,7 @@ export const createPlayerRuntime = (): PlayerRuntime => {
       audioController.audio.removeEventListener('waiting', syncBuffering);
       audioController.audio.removeEventListener('loadstart', syncLoading);
       audioController.audio.removeEventListener('error', syncError);
+      mediaSessionController.destroy();
       audioController.destroy();
     },
   };
