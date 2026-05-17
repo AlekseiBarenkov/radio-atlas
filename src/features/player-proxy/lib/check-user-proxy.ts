@@ -1,4 +1,4 @@
-import { PROXY_HEALTH_CHECK_STREAM_URL } from '@shared/config/player';
+import { PROXY_HEALTH_CHECK_URL } from '@shared/config/player';
 import { buildProxyStreamUrl } from './build-proxy-stream-url';
 import type { UserProxy } from '../model/types';
 
@@ -6,9 +6,10 @@ const PROXY_CHECK_TIMEOUT_MS = 8_000;
 
 export const checkUserProxy = (proxy: UserProxy): Promise<boolean> => {
   return new Promise((resolve) => {
-    const proxyStreamUrl = buildProxyStreamUrl(proxy, PROXY_HEALTH_CHECK_STREAM_URL);
-    const audio = new Audio(proxyStreamUrl);
+    const proxyUrl = buildProxyStreamUrl(proxy, PROXY_HEALTH_CHECK_URL);
+    const image = new Image();
     let timeout: number | null = null;
+    let finished = false;
 
     const cleanup = () => {
       if (timeout !== null) {
@@ -16,36 +17,33 @@ export const checkUserProxy = (proxy: UserProxy): Promise<boolean> => {
         timeout = null;
       }
 
-      audio.removeEventListener('canplay', handleSuccess);
-      audio.removeEventListener('loadedmetadata', handleSuccess);
-      audio.removeEventListener('error', handleError);
-      audio.pause();
-      audio.removeAttribute('src');
-      audio.load();
+      image.onload = null;
+      image.onerror = null;
+      image.src = '';
     };
 
     const finish = (value: boolean) => {
+      if (finished) {
+        return;
+      }
+
+      finished = true;
       cleanup();
       resolve(value);
     };
 
-    const handleSuccess = () => {
+    image.onload = () => {
       finish(true);
     };
 
-    const handleError = () => {
+    image.onerror = () => {
       finish(false);
     };
-
-    audio.addEventListener('canplay', handleSuccess);
-    audio.addEventListener('loadedmetadata', handleSuccess);
-    audio.addEventListener('error', handleError);
 
     timeout = window.setTimeout(() => {
       finish(false);
     }, PROXY_CHECK_TIMEOUT_MS);
 
-    audio.preload = 'metadata';
-    audio.load();
+    image.src = proxyUrl;
   });
 };
