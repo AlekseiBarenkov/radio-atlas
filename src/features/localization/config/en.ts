@@ -199,6 +199,7 @@ export const en = {
     nameRequired: 'Enter proxy name',
     hostRequired: 'Enter proxy host',
     hostInvalid: 'Host must start with http:// or https://',
+    hostMixedContent: 'HTTP proxy cannot be used from HTTPS app. Use HTTPS proxy or configure HTTPS reverse proxy.',
     portInvalid: 'Port must be a number from 1 to 65535',
     editProxy: 'Edit',
     enableProxy: 'Enable proxy',

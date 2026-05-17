@@ -195,6 +195,8 @@ export const ru = {
     nameRequired: 'Введите название прокси',
     hostRequired: 'Введите хост прокси',
     hostInvalid: 'Хост должен начинаться с http:// или https://',
+    hostMixedContent:
+      'HTTP-прокси нельзя использовать из HTTPS-приложения. Используйте HTTPS-прокси или настройте HTTPS reverse proxy.',
     portInvalid: 'Порт должен быть числом от 1 до 65535',
     editProxy: 'Редактировать',
     enableProxy: 'Включить прокси',

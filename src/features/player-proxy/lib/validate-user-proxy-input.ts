@@ -25,6 +25,10 @@ const isValidProxyHost = (host: string): boolean => {
   return host.startsWith('http://') || host.startsWith('https://');
 };
 
+const isMixedContentProxyHost = (host: string): boolean => {
+  return window.location.protocol === 'https:' && host.startsWith('http://');
+};
+
 const normalizeProxyHost = (host: string): string => {
   return host.trim().replace(/\/+$/, '');
 };
@@ -65,6 +69,8 @@ export const validateUserProxyInput = (
     errors.host = t.proxySettings.hostRequired;
   } else if (!isValidProxyHost(host)) {
     errors.host = t.proxySettings.hostInvalid;
+  } else if (isMixedContentProxyHost(host)) {
+    errors.host = t.proxySettings.hostMixedContent;
   }
 
   if (value.port.trim().length > 0 && port === null) {
