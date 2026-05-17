@@ -31,3 +31,5 @@ Thumbs.db
 *.md
 *.py
 *.bat
+
+server.js
