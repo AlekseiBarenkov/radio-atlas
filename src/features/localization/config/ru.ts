@@ -146,6 +146,8 @@ export const ru = {
   stationPage: {
     back: 'Назад',
     metadata: 'Информация о станции',
+    nowPlaying: 'Сейчас играет',
+    recentlyPlayedTracks: 'Недавние треки',
     country: 'Страна',
     language: 'Язык',
     bitrate: 'Битрейт',

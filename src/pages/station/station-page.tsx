@@ -11,6 +11,7 @@ import {
 import { Button, Notice, PageShell, Skeleton } from '@shared/ui';
 import S from './station-page.module.css';
 import { useTranslation } from '@/features/localization';
+import { useStationMetadata } from '@/features/station-metadata';
 
 const getStationBitrateLabel = (bitrate: number, unknownText: string): string => {
   return bitrate > 0 ? `${bitrate} kbps` : unknownText;
@@ -21,6 +22,25 @@ const getStationTags = (tags: string): string[] => {
     .split(',')
     .map((tag) => tag.trim())
     .filter((tag, index, array) => tag.length > 0 && array.indexOf(tag) === index);
+};
+
+const getTrackPlayedAtLabel = (playedAt: string): string => {
+  const date = new Date(playedAt);
+
+  if (!Number.isNaN(date.getTime())) {
+    return new Intl.DateTimeFormat(undefined, {
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(date);
+  }
+
+  const timeMatch = playedAt.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+
+  if (timeMatch) {
+    return `${timeMatch[1].padStart(2, '0')}:${timeMatch[2]}`;
+  }
+
+  return playedAt;
 };
 
 export const StationPage = () => {
@@ -36,6 +56,9 @@ export const StationPage = () => {
   const actions = usePlayerActions();
 
   const station = stationQuery.data;
+  const stationMetadataQuery = useStationMetadata({
+    station: station ?? null,
+  });
 
   const stationPlayerState = station
     ? getStationPlayerState({
@@ -139,6 +162,12 @@ export const StationPage = () => {
   const tags = getStationTags(station.tags);
   const isSimilarStationsVisible = hasSimilarStationsSource(station);
 
+  const stationMetadata = stationMetadataQuery.data?.metadata ?? null;
+  const nowPlaying = stationMetadata?.nowPlaying ?? null;
+  const trackHistory = stationMetadata?.history ?? [];
+  const isStationMetadataVisible = Boolean(nowPlaying) || trackHistory.length > 0;
+  const isStationMetadataLoading = stationMetadataQuery.isPending;
+
   return (
     <PageShell>
       <button className={S.backLink} type="button" onClick={handleBack}>
@@ -171,6 +200,57 @@ export const StationPage = () => {
           </div>
         </div>
       </div>
+
+      {isStationMetadataLoading && (
+        <section className={S.metaSection}>
+          <article className={S.nowPlayingCard}>
+            <p className={S.metaLabel}>{t.stationPage.nowPlaying}</p>
+            <Skeleton width="55%" height={28} borderRadius={12} />
+            <div className={S.skeletonSpacer} />
+            <Skeleton width="32%" height={18} borderRadius={10} />
+          </article>
+
+          <div className={S.trackHistory}>
+            <h2 className={S.metaTitle}>{t.stationPage.recentlyPlayedTracks}</h2>
+
+            <div className={S.trackList} aria-hidden="true">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <div key={index} className={S.trackItem}>
+                  <Skeleton width="70%" height={18} borderRadius={10} />
+                  <Skeleton width={56} height={16} borderRadius={8} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {!isStationMetadataLoading && isStationMetadataVisible && (
+        <section className={S.metaSection}>
+          {nowPlaying && (
+            <article className={S.nowPlayingCard}>
+              <p className={S.metaLabel}>{t.stationPage.nowPlaying}</p>
+              <p className={S.nowPlayingTitle}>{nowPlaying.title}</p>
+              {nowPlaying.artist && <p className={S.nowPlayingArtist}>{nowPlaying.artist}</p>}
+            </article>
+          )}
+
+          {trackHistory.length > 0 && (
+            <div className={S.trackHistory}>
+              <h2 className={S.metaTitle}>{t.stationPage.recentlyPlayedTracks}</h2>
+
+              <ol className={S.trackList}>
+                {trackHistory.slice(0, 6).map((track) => (
+                  <li key={`${track.playedAt ?? 'unknown'}-${track.title}`} className={S.trackItem}>
+                    <span className={S.trackTitle}>{track.title}</span>
+                    {track.playedAt && <span className={S.trackTime}>{getTrackPlayedAtLabel(track.playedAt)}</span>}
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
+        </section>
+      )}
 
       <section className={S.metaSection}>
         <h2 className={S.metaTitle}>{t.stationPage.metadata}</h2>

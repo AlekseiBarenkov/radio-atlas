@@ -150,6 +150,8 @@ export const en = {
   stationPage: {
     back: 'Back',
     metadata: 'Station metadata',
+    nowPlaying: 'Now playing',
+    recentlyPlayedTracks: 'Recently played tracks',
     country: 'Country',
     language: 'Language',
     bitrate: 'Bitrate',
