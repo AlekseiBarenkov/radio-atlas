@@ -5,6 +5,7 @@ import { FavoritesPage } from '@pages/favorites/favorites-page';
 import { HomePage } from '@pages/home/home-page';
 import { StationPage } from '@pages/station/station-page';
 import { ProxiesPage } from '@pages/proxies/proxies-page';
+import { SettingsPage } from '@/pages/settings/settings-page';
 
 export const router = createBrowserRouter([
   {
@@ -30,6 +31,10 @@ export const router = createBrowserRouter([
       {
         path: 'proxies',
         element: <ProxiesPage />,
+      },
+      {
+        path: 'settings',
+        element: <SettingsPage />,
       },
     ],
   },

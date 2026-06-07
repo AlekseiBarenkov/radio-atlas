@@ -29,6 +29,10 @@ export const SidebarNav = (props: SidebarNavProps) => {
       to: '/proxies',
       label: t.proxySettings.navLabel,
     },
+    {
+      to: '/settings',
+      label: t.settings.navLabel,
+    },
   ];
 
   return (

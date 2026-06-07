@@ -9,6 +9,7 @@ import { ToastProvider } from '@/features/toast';
 import { useTranslation } from '@/features/localization';
 import { useResponsive } from '@/app/providers/responsive';
 import { Menu } from 'lucide-react';
+import { CloudSyncBridge } from '@/features/cloud-sync';
 
 export const AppLayout = () => {
   const { isMobile } = useResponsive();
@@ -56,6 +57,7 @@ export const AppLayout = () => {
 
       <PlayerToastBridge />
       <PlayerAudioBridge />
+      <CloudSyncBridge />
     </div>
   );
 };
