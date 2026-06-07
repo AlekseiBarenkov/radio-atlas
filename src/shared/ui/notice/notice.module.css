@@ -7,8 +7,14 @@
   line-height: 1.5;
 }
 
-.noticeError {
+.notice[data-tone='error'] {
   border-color: var(--color-error-border);
   background: var(--color-error-bg);
   color: var(--color-error);
+}
+
+.notice[data-tone='info'] {
+  border-color: color-mix(in srgb, var(--color-info) 35%, var(--color-border));
+  background: color-mix(in srgb, var(--color-info) 8%, var(--color-surface));
+  color: var(--color-text-muted);
 }

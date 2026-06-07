@@ -44,6 +44,13 @@ export const SyncSettingsSection = () => {
 
     return state.providerAutoSyncState[state.activeProvider] ?? false;
   });
+  const isProviderConnected = useCloudSyncStore((state) => {
+    if (state.activeProvider === null) {
+      return false;
+    }
+
+    return (state.providerConnectionState[state.activeProvider]?.connectedAt ?? null) !== null;
+  });
   const lastSyncedAt = useCloudSyncStore((state) => {
     if (state.activeProvider === null) {
       return null;
@@ -69,7 +76,9 @@ export const SyncSettingsSection = () => {
 
   const isProviderSelected = activeProvider !== null;
   const hasSuccessfulSync = lastSyncedAt !== null;
-  const primarySyncLabel = hasSuccessfulSync ? t.syncSettings.syncNow : t.syncSettings.connectAndSync;
+  const canUseCloudActions = isProviderConnected;
+  const canUseAutoSync = isProviderConnected && hasSuccessfulSync;
+  const shouldShowAutoSync = isProviderConnected;
 
   const statusLabelByStatus: Record<CloudSyncStatus, string> = {
     [CLOUD_SYNC_STATUSES.IDLE]: t.syncSettings.idle,
@@ -80,10 +89,13 @@ export const SyncSettingsSection = () => {
   };
 
   const statusLabel =
-    status === CLOUD_SYNC_STATUSES.IDLE && isProviderSelected
-      ? t.syncSettings.readyToConnect
-      : status === CLOUD_SYNC_STATUSES.SYNCED && hasSuccessfulSync
-        ? t.syncSettings.connected
+    isProviderConnected &&
+    status !== CLOUD_SYNC_STATUSES.SYNCING &&
+    status !== CLOUD_SYNC_STATUSES.FAILED &&
+    status !== CLOUD_SYNC_STATUSES.CONFLICT
+      ? t.syncSettings.connected
+      : status === CLOUD_SYNC_STATUSES.IDLE && isProviderSelected
+        ? t.syncSettings.readyToConnect
         : statusLabelByStatus[status];
 
   const statusToneByStatus: Record<CloudSyncStatus, BadgeTone> = {
@@ -113,18 +125,17 @@ export const SyncSettingsSection = () => {
     actions.setActiveProvider(provider === 'none' ? null : provider);
   };
 
+  const connectProvider = () => {
+    actions.connectProvider();
+  };
+
   const confirmRestore = () => {
     actions.restoreFromBackup();
     setRestoreConfirmOpen(false);
   };
 
-  const runPrimarySync = () => {
-    if (hasSuccessfulSync) {
-      actions.syncNow();
-      return;
-    }
-
-    actions.reconcileOnStart();
+  const syncNow = () => {
+    actions.syncNow();
   };
 
   return (
@@ -150,15 +161,22 @@ export const SyncSettingsSection = () => {
 
         {isProviderSelected && (
           <>
-            <label className={S.checkboxRow}>
-              <input
-                type="checkbox"
-                checked={autoSyncEnabled}
-                onChange={(event) => actions.setAutoSyncEnabled(event.target.checked)}
-              />
+            {shouldShowAutoSync && (
+              <>
+                <label className={S.checkboxRow}>
+                  <input
+                    type="checkbox"
+                    checked={autoSyncEnabled}
+                    disabled={!canUseAutoSync}
+                    onChange={(event) => actions.setAutoSyncEnabled(event.target.checked)}
+                  />
 
-              <span>{t.syncSettings.automaticSync}</span>
-            </label>
+                  <span>{t.syncSettings.automaticSync}</span>
+                </label>
+
+                {!canUseAutoSync && <Notice title={t.syncSettings.autoSyncDisabledUntilFirstSync} tone="info" />}
+              </>
+            )}
 
             <div className={S.metaRow}>
               <span className={S.label}>{t.syncSettings.status}</span>
@@ -188,18 +206,26 @@ export const SyncSettingsSection = () => {
 
             {status !== CLOUD_SYNC_STATUSES.CONFLICT && (
               <div className={S.actions}>
-                <Button onClick={runPrimarySync} disabled={status === CLOUD_SYNC_STATUSES.SYNCING}>
-                  {primarySyncLabel}
-                </Button>
-
-                {hasSuccessfulSync && (
-                  <Button
-                    variant="secondary"
-                    onClick={() => setRestoreConfirmOpen(true)}
-                    disabled={status === CLOUD_SYNC_STATUSES.SYNCING}
-                  >
-                    {t.syncSettings.restoreBackup}
+                {!canUseCloudActions && (
+                  <Button onClick={connectProvider} disabled={status === CLOUD_SYNC_STATUSES.SYNCING}>
+                    {t.syncSettings.connect}
                   </Button>
+                )}
+
+                {canUseCloudActions && (
+                  <>
+                    <Button onClick={syncNow} disabled={status === CLOUD_SYNC_STATUSES.SYNCING}>
+                      {t.syncSettings.syncNow}
+                    </Button>
+
+                    <Button
+                      variant="secondary"
+                      onClick={() => setRestoreConfirmOpen(true)}
+                      disabled={status === CLOUD_SYNC_STATUSES.SYNCING}
+                    >
+                      {t.syncSettings.restoreBackup}
+                    </Button>
+                  </>
                 )}
               </div>
             )}

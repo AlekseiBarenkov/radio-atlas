@@ -23,13 +23,19 @@ type CloudProviderOperationState = {
   operationId: string | null;
 };
 
+type CloudProviderConnectionState = {
+  connectedAt: string | null;
+};
+
 type ProviderSyncState = Partial<Record<CloudProvider, CloudProviderSyncState>>;
 type ProviderOperationState = Partial<Record<CloudProvider, CloudProviderOperationState>>;
+type ProviderConnectionState = Partial<Record<CloudProvider, CloudProviderConnectionState>>;
 type ProviderAutoSyncState = Partial<Record<CloudProvider, boolean>>;
 
 type CloudSyncState = {
   activeProvider: CloudProvider | null;
   providerAutoSyncState: ProviderAutoSyncState;
+  providerConnectionState: ProviderConnectionState;
   localUpdatedAt: string | null;
   providerSyncState: ProviderSyncState;
   providerOperationState: ProviderOperationState;
@@ -38,6 +44,7 @@ type CloudSyncState = {
 type CloudSyncActions = {
   setActiveProvider: (provider: CloudProvider | null) => void;
   setAutoSyncEnabled: (enabled: boolean) => void;
+  connectProvider: () => Promise<void>;
   syncNow: () => Promise<void>;
   syncInBackground: () => Promise<void>;
   restoreFromBackup: () => Promise<void>;
@@ -92,6 +99,15 @@ const setProviderOperationPoint = (
   [provider]: operationPoint,
 });
 
+const setProviderConnectionPoint = (
+  providerConnectionState: ProviderConnectionState,
+  provider: CloudProvider,
+  connectionPoint: CloudProviderConnectionState,
+): ProviderConnectionState => ({
+  ...providerConnectionState,
+  [provider]: connectionPoint,
+});
+
 const isProviderSyncing = (providerOperationState: ProviderOperationState, provider: CloudProvider): boolean => {
   return getProviderOperationPoint(providerOperationState, provider).status === CLOUD_SYNC_STATUSES.SYNCING;
 };
@@ -109,6 +125,7 @@ export const useCloudSyncStore = create<CloudSyncStore>()(
     (set, get) => ({
       activeProvider: null,
       providerAutoSyncState: {},
+      providerConnectionState: {},
       localUpdatedAt: null,
       providerSyncState: {},
       providerOperationState: {},
@@ -145,6 +162,61 @@ export const useCloudSyncStore = create<CloudSyncStore>()(
               [activeProvider]: enabled,
             },
           }));
+        },
+
+        connectProvider: async () => {
+          const activeProvider = get().activeProvider;
+
+          if (activeProvider === null || isProviderSyncing(get().providerOperationState, activeProvider)) {
+            return;
+          }
+
+          const operationId = crypto.randomUUID();
+
+          set((state) => ({
+            providerOperationState: setProviderOperationPoint(state.providerOperationState, activeProvider, {
+              status: CLOUD_SYNC_STATUSES.SYNCING,
+              errorCode: null,
+              operationId,
+            }),
+          }));
+
+          try {
+            const provider = getCloudSyncProvider(activeProvider);
+
+            await provider.connect();
+
+            set((state) => {
+              if (!isCurrentOperation(state.providerOperationState, activeProvider, operationId)) {
+                return {};
+              }
+
+              return {
+                providerConnectionState: setProviderConnectionPoint(state.providerConnectionState, activeProvider, {
+                  connectedAt: new Date().toISOString(),
+                }),
+                providerOperationState: setProviderOperationPoint(state.providerOperationState, activeProvider, {
+                  status: CLOUD_SYNC_STATUSES.SYNCED,
+                  errorCode: null,
+                  operationId: null,
+                }),
+              };
+            });
+          } catch (error) {
+            set((state) => {
+              if (!isCurrentOperation(state.providerOperationState, activeProvider, operationId)) {
+                return {};
+              }
+
+              return {
+                providerOperationState: setProviderOperationPoint(state.providerOperationState, activeProvider, {
+                  status: CLOUD_SYNC_STATUSES.FAILED,
+                  errorCode: getCloudSyncErrorCode(error, CLOUD_SYNC_ERROR_CODES.SYNC_FAILED),
+                  operationId: null,
+                }),
+              };
+            });
+          }
         },
 
         syncNow: async () => {
@@ -416,6 +488,7 @@ export const useCloudSyncStore = create<CloudSyncStore>()(
       partialize: (state) => ({
         activeProvider: state.activeProvider,
         providerAutoSyncState: state.providerAutoSyncState,
+        providerConnectionState: state.providerConnectionState,
         localUpdatedAt: state.localUpdatedAt,
         providerSyncState: state.providerSyncState,
       }),

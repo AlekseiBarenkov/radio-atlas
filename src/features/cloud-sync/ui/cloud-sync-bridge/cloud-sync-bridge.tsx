@@ -4,6 +4,21 @@ import { useCloudSyncStore } from '../../model/cloud-sync-store';
 
 export const CloudSyncBridge = () => {
   const activeProvider = useCloudSyncStore((state) => state.activeProvider);
+  const isProviderConnected = useCloudSyncStore((state) => {
+    if (state.activeProvider === null) {
+      return false;
+    }
+
+    return (state.providerConnectionState[state.activeProvider]?.connectedAt ?? null) !== null;
+  });
+
+  const hasSuccessfulSync = useCloudSyncStore((state) => {
+    if (state.activeProvider === null) {
+      return false;
+    }
+
+    return (state.providerSyncState[state.activeProvider]?.lastSyncedAt ?? null) !== null;
+  });
   const autoSyncEnabled = useCloudSyncStore((state) => {
     if (state.activeProvider === null) {
       return false;
@@ -20,7 +35,12 @@ export const CloudSyncBridge = () => {
 
       const state = useCloudSyncStore.getState();
 
-      if (state.activeProvider !== null && (state.providerAutoSyncState[state.activeProvider] ?? false)) {
+      if (
+        state.activeProvider !== null &&
+        (state.providerConnectionState[state.activeProvider]?.connectedAt ?? null) !== null &&
+        (state.providerSyncState[state.activeProvider]?.lastSyncedAt ?? null) !== null &&
+        (state.providerAutoSyncState[state.activeProvider] ?? false)
+      ) {
         state.actions.syncInBackground();
       }
     });
@@ -31,12 +51,12 @@ export const CloudSyncBridge = () => {
   }, [markLocalUpdated]);
 
   useEffect(() => {
-    if (activeProvider === null || !autoSyncEnabled) {
+    if (activeProvider === null || !isProviderConnected || !hasSuccessfulSync || !autoSyncEnabled) {
       return;
     }
 
     reconcileOnStart();
-  }, [activeProvider, autoSyncEnabled, reconcileOnStart]);
+  }, [activeProvider, autoSyncEnabled, hasSuccessfulSync, isProviderConnected, reconcileOnStart]);
 
   return null;
 };

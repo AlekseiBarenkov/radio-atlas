@@ -32,6 +32,9 @@ const runWithFreshTokenOnAuthError = async <TResult>(operation: (accessToken: st
 };
 
 export const googleDriveCloudSyncProvider: CloudSyncProviderAdapter = {
+  connect: async () => {
+    await getAccessToken();
+  },
   load: async () => {
     return runWithFreshTokenOnAuthError(async (accessToken) => {
       const syncFile = await findGoogleDriveSyncFile(accessToken);
