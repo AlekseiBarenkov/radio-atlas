@@ -1,6 +1,6 @@
-import type { SyncData } from '../lib/sync-data';
+import type { SyncData, SyncRemoteBackup, SyncSaveResult } from '../lib/sync-data';
 
 export type CloudSyncProviderAdapter = {
-  load: () => Promise<SyncData | null>;
-  save: (syncData: SyncData) => Promise<void>;
+  load: () => Promise<SyncRemoteBackup | null>;
+  save: (syncData: SyncData) => Promise<SyncSaveResult>;
 };

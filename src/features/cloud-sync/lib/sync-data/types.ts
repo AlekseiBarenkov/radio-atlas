@@ -12,3 +12,12 @@ export type SyncData = {
     proxies: SyncProxy[];
   };
 };
+
+export type SyncRemoteBackup = {
+  syncData: SyncData;
+  remoteRevision: string | null;
+};
+
+export type SyncSaveResult = {
+  remoteRevision: string | null;
+};

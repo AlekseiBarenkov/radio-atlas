@@ -7,10 +7,15 @@ export type GoogleTokenClient = {
   requestAccessToken: () => void;
 };
 
+export type GoogleTokenClientError = {
+  type: string;
+};
+
 export type GoogleTokenClientConfig = {
   client_id: string;
   scope: string;
   callback: (response: GoogleTokenResponse) => void;
+  error_callback?: (error: GoogleTokenClientError) => void;
 };
 
 export type GoogleAccountsOAuth2 = {

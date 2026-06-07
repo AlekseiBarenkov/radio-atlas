@@ -250,6 +250,8 @@ export const en = {
     confirmRestore: 'Restore',
     googleClientIdMissing: 'Google Client ID is not configured',
     googleAuthFailed: 'Google authorization failed',
+    yandexClientIdMissing: 'Yandex Client ID is not configured',
+    yandexAuthFailed: 'Yandex authorization failed',
     connectAndSync: 'Connect and sync',
     readyToConnect: 'Ready to connect',
     connected: 'Connected',

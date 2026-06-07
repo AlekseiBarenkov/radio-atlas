@@ -6,6 +6,7 @@ import { CLOUD_SYNC_ERROR_CODES } from '../../model/types';
 const GOOGLE_DRIVE_APP_DATA_SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
 const GOOGLE_ACCESS_TOKEN_TTL_MS = 50 * 60 * 1000;
 const GOOGLE_ACCESS_TOKEN_STORAGE_KEY = 'radio-atlas:google-drive-token';
+const GOOGLE_OAUTH_TIMEOUT_MS = 2 * 60 * 1000;
 
 type StoredGoogleAccessToken = {
   accessToken: string;
@@ -111,23 +112,40 @@ export const requestGoogleDriveAccessToken = async (): Promise<string> => {
   }
 
   return new Promise((resolve, reject) => {
+    let timeoutId: number | null = null;
+
+    const cleanup = () => {
+      if (timeoutId !== null) {
+        window.clearTimeout(timeoutId);
+      }
+    };
+
+    const rejectAuth = () => {
+      cleanup();
+      reject(new CloudSyncError(CLOUD_SYNC_ERROR_CODES.GOOGLE_AUTH_FAILED));
+    };
+
+    timeoutId = window.setTimeout(rejectAuth, GOOGLE_OAUTH_TIMEOUT_MS);
+
     const tokenClient = googleIdentity.accounts.oauth2.initTokenClient({
       client_id: clientId,
       scope: GOOGLE_DRIVE_APP_DATA_SCOPE,
       callback: (response: GoogleTokenResponse) => {
         if (response.error) {
-          reject(new CloudSyncError(CLOUD_SYNC_ERROR_CODES.GOOGLE_AUTH_FAILED));
+          rejectAuth();
           return;
         }
 
         if (!response.access_token) {
-          reject(new CloudSyncError(CLOUD_SYNC_ERROR_CODES.GOOGLE_AUTH_FAILED));
+          rejectAuth();
           return;
         }
 
+        cleanup();
         setCachedAccessToken(response.access_token);
         resolve(response.access_token);
       },
+      error_callback: rejectAuth,
     });
 
     tokenClient.requestAccessToken();

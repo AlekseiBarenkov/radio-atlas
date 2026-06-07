@@ -28,15 +28,41 @@ export const SyncSettingsSection = () => {
       value: CLOUD_PROVIDERS.GOOGLE_DRIVE,
       label: 'Google Drive',
     },
+    {
+      value: CLOUD_PROVIDERS.YANDEX_DISK,
+      label: 'Yandex Disk',
+    },
   ];
 
   const [isRestoreConfirmOpen, setRestoreConfirmOpen] = useState(false);
 
   const activeProvider = useCloudSyncStore((state) => state.activeProvider);
-  const autoSyncEnabled = useCloudSyncStore((state) => state.autoSyncEnabled);
-  const lastSyncedAt = useCloudSyncStore((state) => state.lastSyncedAt);
-  const status = useCloudSyncStore((state) => state.status);
-  const errorCode = useCloudSyncStore((state) => state.errorCode);
+  const autoSyncEnabled = useCloudSyncStore((state) => {
+    if (state.activeProvider === null) {
+      return false;
+    }
+
+    return state.providerAutoSyncState[state.activeProvider] ?? false;
+  });
+  const lastSyncedAt = useCloudSyncStore((state) => {
+    if (state.activeProvider === null) {
+      return null;
+    }
+
+    return state.providerSyncState[state.activeProvider]?.lastSyncedAt ?? null;
+  });
+  const providerOperationState = useCloudSyncStore((state) => {
+    if (state.activeProvider === null) {
+      return null;
+    }
+
+    return state.providerOperationState[state.activeProvider] ?? null;
+  });
+
+  const status =
+    providerOperationState?.status ?? (lastSyncedAt === null ? CLOUD_SYNC_STATUSES.IDLE : CLOUD_SYNC_STATUSES.SYNCED);
+
+  const errorCode = providerOperationState?.errorCode ?? null;
   const actions = useCloudSyncStore((state) => state.actions);
 
   const selectedProvider: ProviderOption = activeProvider ?? 'none';
@@ -76,6 +102,8 @@ export const SyncSettingsSection = () => {
     [CLOUD_SYNC_ERROR_CODES.BACKUP_NOT_FOUND]: t.syncSettings.backupNotFound,
     [CLOUD_SYNC_ERROR_CODES.GOOGLE_CLIENT_ID_MISSING]: t.syncSettings.googleClientIdMissing,
     [CLOUD_SYNC_ERROR_CODES.GOOGLE_AUTH_FAILED]: t.syncSettings.googleAuthFailed,
+    [CLOUD_SYNC_ERROR_CODES.YANDEX_CLIENT_ID_MISSING]: t.syncSettings.yandexClientIdMissing,
+    [CLOUD_SYNC_ERROR_CODES.YANDEX_AUTH_FAILED]: t.syncSettings.yandexAuthFailed,
   };
 
   const formattedLastSyncedAt =

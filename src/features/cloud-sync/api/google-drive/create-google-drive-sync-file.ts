@@ -22,7 +22,7 @@ export const createGoogleDriveSyncFile = async (accessToken: string, syncData: S
 
   return googleDriveRequest<GoogleDriveFile>(
     accessToken,
-    `${GOOGLE_DRIVE_UPLOAD_API_BASE_URL}/files?uploadType=multipart&fields=id,name`,
+    `${GOOGLE_DRIVE_UPLOAD_API_BASE_URL}/files?uploadType=multipart&fields=id,name,md5Checksum`,
     {
       method: 'POST',
       body: formData,

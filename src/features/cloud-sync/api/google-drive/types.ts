@@ -5,6 +5,7 @@ export const GOOGLE_DRIVE_UPLOAD_API_BASE_URL = 'https://www.googleapis.com/uplo
 export type GoogleDriveFile = {
   id: string;
   name: string;
+  md5Checksum?: string;
 };
 
 export type GoogleDriveFilesListResponse = {

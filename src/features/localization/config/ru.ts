@@ -246,6 +246,8 @@ export const ru = {
     confirmRestore: 'Восстановить',
     googleClientIdMissing: 'Google Client ID не настроен',
     googleAuthFailed: 'Не удалось авторизоваться в Google',
+    yandexClientIdMissing: 'Yandex Client ID не настроен',
+    yandexAuthFailed: 'Не удалось авторизоваться в Yandex',
     connectAndSync: 'Подключить и синхронизировать',
     readyToConnect: 'Готово к подключению',
     connected: 'Подключено',

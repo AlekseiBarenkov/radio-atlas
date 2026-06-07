@@ -4,7 +4,13 @@ import { useCloudSyncStore } from '../../model/cloud-sync-store';
 
 export const CloudSyncBridge = () => {
   const activeProvider = useCloudSyncStore((state) => state.activeProvider);
-  const autoSyncEnabled = useCloudSyncStore((state) => state.autoSyncEnabled);
+  const autoSyncEnabled = useCloudSyncStore((state) => {
+    if (state.activeProvider === null) {
+      return false;
+    }
+
+    return state.providerAutoSyncState[state.activeProvider] ?? false;
+  });
   const reconcileOnStart = useCloudSyncStore((state) => state.actions.reconcileOnStart);
   const markLocalUpdated = useCloudSyncStore((state) => state.actions.markLocalUpdated);
 
@@ -14,7 +20,7 @@ export const CloudSyncBridge = () => {
 
       const state = useCloudSyncStore.getState();
 
-      if (state.activeProvider !== null && state.autoSyncEnabled) {
+      if (state.activeProvider !== null && (state.providerAutoSyncState[state.activeProvider] ?? false)) {
         state.actions.syncInBackground();
       }
     });

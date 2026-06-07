@@ -40,20 +40,27 @@ export const googleDriveCloudSyncProvider: CloudSyncProviderAdapter = {
         return null;
       }
 
-      return loadGoogleDriveSyncData(accessToken, syncFile.id);
+      return loadGoogleDriveSyncData(accessToken, syncFile);
     });
   },
 
   save: async (syncData: SyncData) => {
-    await runWithFreshTokenOnAuthError(async (accessToken) => {
+    return runWithFreshTokenOnAuthError(async (accessToken) => {
       const syncFile = await findGoogleDriveSyncFile(accessToken);
 
       if (syncFile === null) {
-        await createGoogleDriveSyncFile(accessToken, syncData);
-        return;
+        const createdFile = await createGoogleDriveSyncFile(accessToken, syncData);
+
+        return {
+          remoteRevision: createdFile.md5Checksum ?? null,
+        };
       }
 
-      await updateGoogleDriveSyncFile(accessToken, syncFile.id, syncData);
+      const updatedFile = await updateGoogleDriveSyncFile(accessToken, syncFile.id, syncData);
+
+      return {
+        remoteRevision: updatedFile.md5Checksum ?? null,
+      };
     });
   },
 };

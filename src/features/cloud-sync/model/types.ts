@@ -8,6 +8,7 @@ export const CLOUD_SYNC_STATUSES = {
 
 export const CLOUD_PROVIDERS = {
   GOOGLE_DRIVE: 'google-drive',
+  YANDEX_DISK: 'yandex-disk',
 } as const;
 
 export type CloudSyncStatus = (typeof CLOUD_SYNC_STATUSES)[keyof typeof CLOUD_SYNC_STATUSES];
@@ -20,6 +21,8 @@ export const CLOUD_SYNC_ERROR_CODES = {
   BACKUP_NOT_FOUND: 'backup-not-found',
   GOOGLE_CLIENT_ID_MISSING: 'google-client-id-missing',
   GOOGLE_AUTH_FAILED: 'google-auth-failed',
+  YANDEX_CLIENT_ID_MISSING: 'yandex-client-id-missing',
+  YANDEX_AUTH_FAILED: 'yandex-auth-failed',
 } as const;
 
 export type CloudSyncErrorCode = (typeof CLOUD_SYNC_ERROR_CODES)[keyof typeof CLOUD_SYNC_ERROR_CODES];

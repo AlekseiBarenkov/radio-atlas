@@ -9,7 +9,7 @@ import {
 export const findGoogleDriveSyncFile = async (accessToken: string): Promise<GoogleDriveFile | null> => {
   const searchParams = new URLSearchParams({
     spaces: 'appDataFolder',
-    fields: 'files(id,name)',
+    fields: 'files(id,name,md5Checksum)',
     q: `name = '${GOOGLE_DRIVE_SYNC_FILE_NAME}' and trashed = false`,
   });
 
