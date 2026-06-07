@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { RadioStation } from '@entities/station';
 import { loadFavoriteStations, saveFavoriteStations } from './favorites-storage';
+import { notifySyncDataChanged } from '@/shared/lib/sync-data-events';
 
 type FavoritesState = {
   favoriteStations: RadioStation[];
@@ -8,6 +9,7 @@ type FavoritesState = {
 
 type FavoritesActions = {
   addFavorite: (station: RadioStation) => void;
+  setFavoriteStations: (stations: RadioStation[]) => void;
   removeFavorite: (stationId: string) => void;
   toggleFavorite: (station: RadioStation) => void;
   isFavorite: (stationId: string) => boolean;
@@ -38,6 +40,16 @@ export const useFavoritesStore = create<FavoritesStore>((set, get) => ({
       set({
         favoriteStations: nextFavoriteStations,
       });
+
+      notifySyncDataChanged();
+    },
+
+    setFavoriteStations: (stations) => {
+      saveFavoriteStations(stations);
+
+      set({
+        favoriteStations: stations,
+      });
     },
 
     removeFavorite: (stationId) => {
@@ -49,6 +61,8 @@ export const useFavoritesStore = create<FavoritesStore>((set, get) => ({
       set({
         favoriteStations: nextFavoriteStations,
       });
+
+      notifySyncDataChanged();
     },
 
     toggleFavorite: (station) => {
@@ -68,6 +82,8 @@ export const useFavoritesStore = create<FavoritesStore>((set, get) => ({
           favoriteStations: nextFavoriteStations,
         });
 
+        notifySyncDataChanged();
+
         return;
       }
 
@@ -78,6 +94,8 @@ export const useFavoritesStore = create<FavoritesStore>((set, get) => ({
       set({
         favoriteStations: nextFavoriteStations,
       });
+
+      notifySyncDataChanged();
     },
 
     isFavorite: (stationId) => {

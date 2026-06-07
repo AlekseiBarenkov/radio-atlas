@@ -25,5 +25,11 @@ export { getSimilarStations } from './api/get-similar-stations';
 export { getSimilarStationsQueryKey } from './api/get-similar-stations-query-key';
 export { useSimilarStations } from './hooks/use-similar-stations';
 
-export { getStationPath, getStationPlayerState, getStationStreamUrl, hasSimilarStationsSource } from './lib';
+export {
+  getStationPath,
+  getStationPlayerState,
+  getStationStreamUrl,
+  hasSimilarStationsSource,
+  isRadioStation,
+} from './lib';
 export type { StationPlayerState } from './lib';

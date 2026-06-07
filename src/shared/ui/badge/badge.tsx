@@ -1,7 +1,7 @@
 import type { PropsWithChildren } from 'react';
 import S from './badge.module.css';
 
-type BadgeTone = 'neutral' | 'info' | 'success' | 'warning' | 'danger';
+export type BadgeTone = 'neutral' | 'info' | 'success' | 'warning' | 'danger';
 
 type BadgeProps = PropsWithChildren<{
   tone?: BadgeTone;

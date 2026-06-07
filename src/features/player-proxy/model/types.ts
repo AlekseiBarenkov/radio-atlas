@@ -23,6 +23,7 @@ export type PlayerProxyState = {
 
 export type PlayerProxyActions = {
   addProxy: (input: UserProxyInput) => void;
+  setProxies: (proxies: UserProxy[]) => void;
   updateProxy: (proxyId: string, input: UserProxyInput) => void;
   removeProxy: (proxyId: string) => void;
   toggleProxyEnabled: (proxyId: string) => void;
