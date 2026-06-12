@@ -62,6 +62,7 @@ export const parseShoutcastPlayedHtml = (input: StationMetadataAdapterInput): St
           title: parsedTitle.title,
           rawTitle: parsedTitle.rawTitle,
           updatedAt: history[0].playedAt,
+          timing: null,
         }
       : null,
     history,

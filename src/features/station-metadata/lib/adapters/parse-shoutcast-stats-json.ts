@@ -46,6 +46,7 @@ export const parseShoutcastStatsJson = (input: StationMetadataAdapterInput): Sta
           title: parsedTitle.title,
           rawTitle: parsedTitle.rawTitle,
           updatedAt: null,
+          timing: null,
         }
       : null,
     history: [],

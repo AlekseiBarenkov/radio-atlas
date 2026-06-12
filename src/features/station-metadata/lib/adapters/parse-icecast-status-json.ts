@@ -134,6 +134,7 @@ export const parseIcecastStatusJson = (input: StationMetadataAdapterInput): Stat
           title: parsedTitle.title,
           rawTitle: parsedTitle.rawTitle,
           updatedAt: getString(source.metadata_updated),
+          timing: null,
         }
       : null,
     history: getHistory(source),

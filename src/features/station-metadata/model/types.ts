@@ -1,8 +1,16 @@
+export type StationNowPlayingTiming = {
+  durationMs: number | null;
+  elapsedMs: number | null;
+  remainingMs: number | null;
+  nextStartedAt: string | null;
+};
+
 export type StationNowPlaying = {
   title: string;
   artist: string | null;
   rawTitle: string;
   updatedAt: string | null;
+  timing: StationNowPlayingTiming | null;
 };
 
 export type StationTrackHistoryItem = {

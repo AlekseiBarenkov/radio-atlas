@@ -16,13 +16,36 @@ import {
   setStationMetadataRouteCache,
 } from '../model/station-metadata-route-cache';
 
+const hasAdaptiveTiming = (result: StationMetadataResult): boolean => {
+  return result.nowPlaying?.timing?.remainingMs !== null && result.nowPlaying?.timing?.remainingMs !== undefined;
+};
+
+const getMergedNowPlaying = (
+  currentResult: StationMetadataResult | null,
+  nextResult: StationMetadataResult,
+): StationMetadataResult['nowPlaying'] => {
+  if (!currentResult?.nowPlaying) {
+    return nextResult.nowPlaying;
+  }
+
+  if (!nextResult.nowPlaying) {
+    return currentResult.nowPlaying;
+  }
+
+  if (!hasAdaptiveTiming(currentResult) && hasAdaptiveTiming(nextResult)) {
+    return nextResult.nowPlaying;
+  }
+
+  return currentResult.nowPlaying;
+};
+
 const mergeStationMetadataResult = (
   currentResult: StationMetadataResult | null,
   nextResult: StationMetadataResult,
 ): StationMetadataResult => {
   return {
     source: currentResult?.source ?? nextResult.source,
-    nowPlaying: currentResult?.nowPlaying ?? nextResult.nowPlaying,
+    nowPlaying: getMergedNowPlaying(currentResult, nextResult),
     history: currentResult && currentResult.history.length > 0 ? currentResult.history : nextResult.history,
   };
 };
@@ -139,8 +162,16 @@ export const getStationMetadata = async (station: RadioStation): Promise<Station
       continue;
     }
 
+    const nextMetadataResult = mergeStationMetadataResult(metadataResult, result);
+
     successfulRequests.push(request);
-    metadataResult = mergeStationMetadataResult(metadataResult, result);
+
+    if (isStationMetadataComplete(result) && hasAdaptiveTiming(result)) {
+      setStationMetadataRouteCache(stationId, [request]);
+      return getFoundResult(result);
+    }
+
+    metadataResult = nextMetadataResult;
 
     if (isStationMetadataComplete(metadataResult)) {
       setStationMetadataRouteCache(stationId, successfulRequests);

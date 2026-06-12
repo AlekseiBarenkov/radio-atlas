@@ -23,6 +23,7 @@ export const parseShoutcastCurrentSong = (input: StationMetadataAdapterInput): S
       title: parsedTitle.title,
       rawTitle: parsedTitle.rawTitle,
       updatedAt: null,
+      timing: null,
     },
     history: [],
   };
