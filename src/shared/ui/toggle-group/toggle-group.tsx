@@ -9,7 +9,7 @@ type ToggleGroupWidth = 'auto' | 'full';
 
 type ToggleGroupProps<TValue extends string> = {
   label: string;
-  value: TValue;
+  value: TValue | null;
   options: ToggleGroupOption<TValue>[];
   width?: ToggleGroupWidth;
   onChange: (value: TValue) => void;

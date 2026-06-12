@@ -12,8 +12,6 @@ import S from './sync-settings-section.module.css';
 import { useState } from 'react';
 import { useResponsive } from '@/app/providers/responsive';
 
-type ProviderOption = 'none' | CloudProvider;
-
 const isLocalSyncedWithProvider = (localUpdatedAt: string | null, lastSyncedAt: string | null): boolean => {
   return localUpdatedAt !== null && lastSyncedAt !== null && localUpdatedAt === lastSyncedAt;
 };
@@ -22,11 +20,7 @@ export const SyncSettingsSection = () => {
   const { isDesktop } = useResponsive();
   const t = useTranslation();
 
-  const providerOptions: { value: ProviderOption; label: string }[] = [
-    {
-      value: 'none',
-      label: t.syncSettings.noProvider,
-    },
+  const providerOptions: { value: CloudProvider; label: string }[] = [
     {
       value: CLOUD_PROVIDERS.GOOGLE_DRIVE,
       label: 'Google Drive',
@@ -59,8 +53,6 @@ export const SyncSettingsSection = () => {
   const operationStatus = providerOperationState?.status ?? CLOUD_SYNC_STATUSES.IDLE;
   const errorCode = providerOperationState?.errorCode ?? null;
   const actions = useCloudSyncStore((state) => state.actions);
-
-  const selectedProvider: ProviderOption = activeProvider ?? 'none';
 
   const isProviderSelected = activeProvider !== null;
   const isProviderConnected = (activeProviderState?.connectedAt ?? null) !== null;
@@ -128,8 +120,8 @@ export const SyncSettingsSection = () => {
   const formattedLastSyncedAt =
     lastSyncedAt === null ? t.syncSettings.neverSynced : new Date(lastSyncedAt).toLocaleString();
 
-  const changeProvider = (provider: ProviderOption) => {
-    actions.setActiveProvider(provider === 'none' ? null : provider);
+  const changeProvider = (provider: CloudProvider) => {
+    actions.setActiveProvider(provider);
   };
 
   const connectProvider = () => {
@@ -160,11 +152,13 @@ export const SyncSettingsSection = () => {
 
           <ToggleGroup
             label={t.syncSettings.provider}
-            value={selectedProvider}
+            value={activeProvider}
             options={providerOptions}
             onChange={changeProvider}
           />
         </div>
+
+        {!isProviderSelected && <Notice title={t.syncSettings.selectProviderFirst} tone="info" />}
 
         {isProviderSelected && (
           <>

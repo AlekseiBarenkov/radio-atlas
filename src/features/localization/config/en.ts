@@ -224,6 +224,7 @@ export const en = {
 
   syncSettings: {
     title: 'Cloud sync',
+    selectProviderFirst: 'Choose a cloud storage provider to connect sync.',
     description: 'Sync favorites and proxy settings through one cloud provider.',
     provider: 'Provider',
     noProvider: 'Not connected',
