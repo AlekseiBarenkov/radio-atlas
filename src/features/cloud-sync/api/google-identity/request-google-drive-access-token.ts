@@ -1,6 +1,6 @@
 import type { GoogleIdentityGlobal, GoogleTokenResponse } from './types';
 import { loadGoogleIdentityScript } from './load-google-identity-script';
-import { CloudSyncError } from '../../model/cloud-sync-error';
+import { CloudSyncCancelledError, CloudSyncError } from '../../model/cloud-sync-error';
 import { CLOUD_SYNC_ERROR_CODES } from '../../model/types';
 
 const GOOGLE_DRIVE_APP_DATA_SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
@@ -125,7 +125,12 @@ export const requestGoogleDriveAccessToken = async (): Promise<string> => {
       reject(new CloudSyncError(CLOUD_SYNC_ERROR_CODES.GOOGLE_AUTH_FAILED));
     };
 
-    timeoutId = window.setTimeout(rejectAuth, GOOGLE_OAUTH_TIMEOUT_MS);
+    const rejectCancelled = () => {
+      cleanup();
+      reject(new CloudSyncCancelledError());
+    };
+
+    timeoutId = window.setTimeout(rejectCancelled, GOOGLE_OAUTH_TIMEOUT_MS);
 
     const tokenClient = googleIdentity.accounts.oauth2.initTokenClient({
       client_id: clientId,
@@ -145,7 +150,14 @@ export const requestGoogleDriveAccessToken = async (): Promise<string> => {
         setCachedAccessToken(response.access_token);
         resolve(response.access_token);
       },
-      error_callback: rejectAuth,
+      error_callback: (error) => {
+        if (error.type === 'popup_closed') {
+          rejectCancelled();
+          return;
+        }
+
+        rejectAuth();
+      },
     });
 
     tokenClient.requestAccessToken();

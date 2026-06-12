@@ -7,13 +7,16 @@ import {
   useCloudSyncStore,
   type CloudProvider,
   type CloudSyncErrorCode,
-  type CloudSyncStatus,
 } from '@features/cloud-sync';
 import S from './sync-settings-section.module.css';
 import { useState } from 'react';
 import { useResponsive } from '@/app/providers/responsive';
 
 type ProviderOption = 'none' | CloudProvider;
+
+const isLocalSyncedWithProvider = (localUpdatedAt: string | null, lastSyncedAt: string | null): boolean => {
+  return localUpdatedAt !== null && lastSyncedAt !== null && localUpdatedAt === lastSyncedAt;
+};
 
 export const SyncSettingsSection = () => {
   const { isDesktop } = useResponsive();
@@ -37,27 +40,14 @@ export const SyncSettingsSection = () => {
   const [isRestoreConfirmOpen, setRestoreConfirmOpen] = useState(false);
 
   const activeProvider = useCloudSyncStore((state) => state.activeProvider);
-  const autoSyncEnabled = useCloudSyncStore((state) => {
-    if (state.activeProvider === null) {
-      return false;
-    }
-
-    return state.providerAutoSyncState[state.activeProvider] ?? false;
-  });
-  const isProviderConnected = useCloudSyncStore((state) => {
-    if (state.activeProvider === null) {
-      return false;
-    }
-
-    return (state.providerConnectionState[state.activeProvider]?.connectedAt ?? null) !== null;
-  });
-  const lastSyncedAt = useCloudSyncStore((state) => {
+  const activeProviderState = useCloudSyncStore((state) => {
     if (state.activeProvider === null) {
       return null;
     }
 
-    return state.providerSyncState[state.activeProvider]?.lastSyncedAt ?? null;
+    return state.providers[state.activeProvider] ?? null;
   });
+  const localUpdatedAt = useCloudSyncStore((state) => state.localUpdatedAt);
   const providerOperationState = useCloudSyncStore((state) => {
     if (state.activeProvider === null) {
       return null;
@@ -66,47 +56,64 @@ export const SyncSettingsSection = () => {
     return state.providerOperationState[state.activeProvider] ?? null;
   });
 
-  const status =
-    providerOperationState?.status ?? (lastSyncedAt === null ? CLOUD_SYNC_STATUSES.IDLE : CLOUD_SYNC_STATUSES.SYNCED);
-
+  const operationStatus = providerOperationState?.status ?? CLOUD_SYNC_STATUSES.IDLE;
   const errorCode = providerOperationState?.errorCode ?? null;
   const actions = useCloudSyncStore((state) => state.actions);
 
   const selectedProvider: ProviderOption = activeProvider ?? 'none';
 
   const isProviderSelected = activeProvider !== null;
+  const isProviderConnected = (activeProviderState?.connectedAt ?? null) !== null;
+  const autoSyncEnabled = activeProviderState?.autoSyncEnabled ?? false;
+  const lastSyncedAt = activeProviderState?.lastSyncedAt ?? null;
   const hasSuccessfulSync = lastSyncedAt !== null;
+  const isLocalSynced = isLocalSyncedWithProvider(localUpdatedAt, lastSyncedAt);
   const canUseCloudActions = isProviderConnected;
   const canUseAutoSync = isProviderConnected && hasSuccessfulSync;
   const shouldShowAutoSync = isProviderConnected;
 
-  const statusLabelByStatus: Record<CloudSyncStatus, string> = {
-    [CLOUD_SYNC_STATUSES.IDLE]: t.syncSettings.idle,
-    [CLOUD_SYNC_STATUSES.SYNCING]: t.syncSettings.syncing,
-    [CLOUD_SYNC_STATUSES.SYNCED]: t.syncSettings.synced,
-    [CLOUD_SYNC_STATUSES.FAILED]: t.syncSettings.failed,
-    [CLOUD_SYNC_STATUSES.CONFLICT]: t.syncSettings.conflict,
-  };
+  const isConnecting = operationStatus === CLOUD_SYNC_STATUSES.SYNCING && !isProviderConnected;
+  const hasConnectionError = operationStatus === CLOUD_SYNC_STATUSES.FAILED && !isProviderConnected;
 
-  const statusLabel =
-    isProviderConnected &&
-    status !== CLOUD_SYNC_STATUSES.SYNCING &&
-    status !== CLOUD_SYNC_STATUSES.FAILED &&
-    status !== CLOUD_SYNC_STATUSES.CONFLICT
-      ? t.syncSettings.connected
-      : status === CLOUD_SYNC_STATUSES.IDLE && isProviderSelected
-        ? t.syncSettings.readyToConnect
-        : statusLabelByStatus[status];
+  const connectionLabel = isConnecting
+    ? t.syncSettings.syncing
+    : hasConnectionError
+      ? t.syncSettings.failed
+      : isProviderConnected
+        ? t.syncSettings.connected
+        : t.syncSettings.readyToConnect;
 
-  const statusToneByStatus: Record<CloudSyncStatus, BadgeTone> = {
-    [CLOUD_SYNC_STATUSES.IDLE]: 'neutral',
-    [CLOUD_SYNC_STATUSES.SYNCING]: 'info',
-    [CLOUD_SYNC_STATUSES.SYNCED]: 'success',
-    [CLOUD_SYNC_STATUSES.FAILED]: 'danger',
-    [CLOUD_SYNC_STATUSES.CONFLICT]: 'warning',
-  };
+  const connectionTone: BadgeTone = isConnecting
+    ? 'info'
+    : hasConnectionError
+      ? 'danger'
+      : isProviderConnected
+        ? 'success'
+        : 'neutral';
 
-  const statusTone = statusToneByStatus[status];
+  const isCloudDataOperation = operationStatus === CLOUD_SYNC_STATUSES.SYNCING && isProviderConnected;
+  const hasCloudDataError = operationStatus === CLOUD_SYNC_STATUSES.FAILED && isProviderConnected;
+  const hasCloudDataConflict = operationStatus === CLOUD_SYNC_STATUSES.CONFLICT;
+
+  const syncStatusLabel = isCloudDataOperation
+    ? t.syncSettings.syncing
+    : hasCloudDataError
+      ? t.syncSettings.failed
+      : hasCloudDataConflict
+        ? t.syncSettings.conflict
+        : isLocalSynced
+          ? t.syncSettings.synced
+          : t.syncSettings.idle;
+
+  const syncStatusTone: BadgeTone = isCloudDataOperation
+    ? 'info'
+    : hasCloudDataError
+      ? 'danger'
+      : hasCloudDataConflict
+        ? 'warning'
+        : isLocalSynced
+          ? 'success'
+          : 'neutral';
 
   const errorLabelByCode: Record<CloudSyncErrorCode, string> = {
     [CLOUD_SYNC_ERROR_CODES.SYNC_FAILED]: t.syncSettings.syncFailed,
@@ -180,7 +187,12 @@ export const SyncSettingsSection = () => {
 
             <div className={S.metaRow}>
               <span className={S.label}>{t.syncSettings.status}</span>
-              <Badge tone={statusTone}>{statusLabel}</Badge>
+              <Badge tone={connectionTone}>{connectionLabel}</Badge>
+            </div>
+
+            <div className={S.metaRow}>
+              <span className={S.label}>{t.syncSettings.syncStatus}</span>
+              <Badge tone={syncStatusTone}>{syncStatusLabel}</Badge>
             </div>
 
             <div className={S.metaRow}>
@@ -190,7 +202,7 @@ export const SyncSettingsSection = () => {
 
             {errorCode && <Notice title={errorLabelByCode[errorCode]} tone="error" />}
 
-            {status === CLOUD_SYNC_STATUSES.CONFLICT && (
+            {operationStatus === CLOUD_SYNC_STATUSES.CONFLICT && (
               <div className={S.conflictBox}>
                 <Notice title={t.syncSettings.conflictDescription} tone="error" />
 
@@ -204,24 +216,24 @@ export const SyncSettingsSection = () => {
               </div>
             )}
 
-            {status !== CLOUD_SYNC_STATUSES.CONFLICT && (
+            {operationStatus !== CLOUD_SYNC_STATUSES.CONFLICT && (
               <div className={S.actions}>
                 {!canUseCloudActions && (
-                  <Button onClick={connectProvider} disabled={status === CLOUD_SYNC_STATUSES.SYNCING}>
+                  <Button onClick={connectProvider} disabled={operationStatus === CLOUD_SYNC_STATUSES.SYNCING}>
                     {t.syncSettings.connect}
                   </Button>
                 )}
 
                 {canUseCloudActions && (
                   <>
-                    <Button onClick={syncNow} disabled={status === CLOUD_SYNC_STATUSES.SYNCING}>
+                    <Button onClick={syncNow} disabled={operationStatus === CLOUD_SYNC_STATUSES.SYNCING}>
                       {t.syncSettings.syncNow}
                     </Button>
 
                     <Button
                       variant="secondary"
                       onClick={() => setRestoreConfirmOpen(true)}
-                      disabled={status === CLOUD_SYNC_STATUSES.SYNCING}
+                      disabled={operationStatus === CLOUD_SYNC_STATUSES.SYNCING}
                     >
                       {t.syncSettings.restoreBackup}
                     </Button>

@@ -234,6 +234,7 @@ export const en = {
     lastSyncedAt: 'Last successful sync',
     neverSynced: 'Never synced',
     status: 'Status',
+    syncStatus: 'Data status',
     idle: 'Not synced',
     syncing: 'Syncing',
     synced: 'Synced',

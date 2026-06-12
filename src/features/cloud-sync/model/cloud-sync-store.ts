@@ -10,9 +10,11 @@ import {
   type CloudSyncStatus,
 } from './types';
 import { getCloudSyncProvider } from '../providers';
-import { getCloudSyncErrorCode } from './cloud-sync-error';
+import { getCloudSyncErrorCode, isCloudSyncCancelledError } from './cloud-sync-error';
 
-type CloudProviderSyncState = {
+type CloudProviderState = {
+  connectedAt: string | null;
+  autoSyncEnabled: boolean;
   lastSyncedAt: string | null;
   remoteRevision: string | null;
 };
@@ -23,21 +25,13 @@ type CloudProviderOperationState = {
   operationId: string | null;
 };
 
-type CloudProviderConnectionState = {
-  connectedAt: string | null;
-};
-
-type ProviderSyncState = Partial<Record<CloudProvider, CloudProviderSyncState>>;
+type ProviderState = Partial<Record<CloudProvider, CloudProviderState>>;
 type ProviderOperationState = Partial<Record<CloudProvider, CloudProviderOperationState>>;
-type ProviderConnectionState = Partial<Record<CloudProvider, CloudProviderConnectionState>>;
-type ProviderAutoSyncState = Partial<Record<CloudProvider, boolean>>;
 
 type CloudSyncState = {
   activeProvider: CloudProvider | null;
-  providerAutoSyncState: ProviderAutoSyncState;
-  providerConnectionState: ProviderConnectionState;
   localUpdatedAt: string | null;
-  providerSyncState: ProviderSyncState;
+  providers: ProviderState;
   providerOperationState: ProviderOperationState;
 };
 
@@ -56,17 +50,17 @@ export type CloudSyncStore = CloudSyncState & {
   actions: CloudSyncActions;
 };
 
-const getProviderSyncPoint = (
-  providerSyncState: ProviderSyncState,
-  provider: CloudProvider,
-): CloudProviderSyncState => {
-  const syncPoint = providerSyncState[provider];
+const createDefaultProviderState = (): CloudProviderState => ({
+  connectedAt: null,
+  autoSyncEnabled: false,
+  lastSyncedAt: null,
+  remoteRevision: null,
+});
 
-  return {
-    lastSyncedAt: syncPoint?.lastSyncedAt ?? null,
-    remoteRevision: syncPoint?.remoteRevision ?? null,
-  };
-};
+const getProviderState = (providers: ProviderState, provider: CloudProvider): CloudProviderState => ({
+  ...createDefaultProviderState(),
+  ...providers[provider],
+});
 
 const getProviderOperationPoint = (
   providerOperationState: ProviderOperationState,
@@ -81,13 +75,16 @@ const getProviderOperationPoint = (
   );
 };
 
-const setProviderSyncPoint = (
-  providerSyncState: ProviderSyncState,
+const setProviderState = (
+  providers: ProviderState,
   provider: CloudProvider,
-  syncPoint: CloudProviderSyncState,
-): ProviderSyncState => ({
-  ...providerSyncState,
-  [provider]: syncPoint,
+  providerState: Partial<CloudProviderState>,
+): ProviderState => ({
+  ...providers,
+  [provider]: {
+    ...getProviderState(providers, provider),
+    ...providerState,
+  },
 });
 
 const setProviderOperationPoint = (
@@ -97,15 +94,6 @@ const setProviderOperationPoint = (
 ): ProviderOperationState => ({
   ...providerOperationState,
   [provider]: operationPoint,
-});
-
-const setProviderConnectionPoint = (
-  providerConnectionState: ProviderConnectionState,
-  provider: CloudProvider,
-  connectionPoint: CloudProviderConnectionState,
-): ProviderConnectionState => ({
-  ...providerConnectionState,
-  [provider]: connectionPoint,
 });
 
 const isProviderSyncing = (providerOperationState: ProviderOperationState, provider: CloudProvider): boolean => {
@@ -120,14 +108,23 @@ const isCurrentOperation = (
   return getProviderOperationPoint(providerOperationState, provider).operationId === operationId;
 };
 
+const setCancelledOperationPoint = (
+  providerOperationState: ProviderOperationState,
+  provider: CloudProvider,
+): ProviderOperationState => {
+  return setProviderOperationPoint(providerOperationState, provider, {
+    status: CLOUD_SYNC_STATUSES.IDLE,
+    errorCode: null,
+    operationId: null,
+  });
+};
+
 export const useCloudSyncStore = create<CloudSyncStore>()(
   persist(
     (set, get) => ({
       activeProvider: null,
-      providerAutoSyncState: {},
-      providerConnectionState: {},
       localUpdatedAt: null,
-      providerSyncState: {},
+      providers: {},
       providerOperationState: {},
 
       actions: {
@@ -141,10 +138,9 @@ export const useCloudSyncStore = create<CloudSyncStore>()(
 
             return {
               activeProvider: provider,
-              providerAutoSyncState: {
-                ...state.providerAutoSyncState,
-                [provider]: false,
-              },
+              providers: setProviderState(state.providers, provider, {
+                autoSyncEnabled: false,
+              }),
             };
           });
         },
@@ -157,10 +153,9 @@ export const useCloudSyncStore = create<CloudSyncStore>()(
           }
 
           set((state) => ({
-            providerAutoSyncState: {
-              ...state.providerAutoSyncState,
-              [activeProvider]: enabled,
-            },
+            providers: setProviderState(state.providers, activeProvider, {
+              autoSyncEnabled: enabled,
+            }),
           }));
         },
 
@@ -192,11 +187,11 @@ export const useCloudSyncStore = create<CloudSyncStore>()(
               }
 
               return {
-                providerConnectionState: setProviderConnectionPoint(state.providerConnectionState, activeProvider, {
+                providers: setProviderState(state.providers, activeProvider, {
                   connectedAt: new Date().toISOString(),
                 }),
                 providerOperationState: setProviderOperationPoint(state.providerOperationState, activeProvider, {
-                  status: CLOUD_SYNC_STATUSES.SYNCED,
+                  status: CLOUD_SYNC_STATUSES.IDLE,
                   errorCode: null,
                   operationId: null,
                 }),
@@ -206,6 +201,12 @@ export const useCloudSyncStore = create<CloudSyncStore>()(
             set((state) => {
               if (!isCurrentOperation(state.providerOperationState, activeProvider, operationId)) {
                 return {};
+              }
+
+              if (isCloudSyncCancelledError(error)) {
+                return {
+                  providerOperationState: setCancelledOperationPoint(state.providerOperationState, activeProvider),
+                };
               }
 
               return {
@@ -248,12 +249,12 @@ export const useCloudSyncStore = create<CloudSyncStore>()(
 
               return {
                 localUpdatedAt: syncResult.syncedAt,
-                providerSyncState: setProviderSyncPoint(state.providerSyncState, activeProvider, {
+                providers: setProviderState(state.providers, activeProvider, {
                   lastSyncedAt: syncResult.syncedAt,
                   remoteRevision: syncResult.remoteRevision,
                 }),
                 providerOperationState: setProviderOperationPoint(state.providerOperationState, activeProvider, {
-                  status: CLOUD_SYNC_STATUSES.SYNCED,
+                  status: CLOUD_SYNC_STATUSES.IDLE,
                   errorCode: null,
                   operationId: null,
                 }),
@@ -263,6 +264,12 @@ export const useCloudSyncStore = create<CloudSyncStore>()(
             set((state) => {
               if (!isCurrentOperation(state.providerOperationState, activeProvider, operationId)) {
                 return {};
+              }
+
+              if (isCloudSyncCancelledError(error)) {
+                return {
+                  providerOperationState: setCancelledOperationPoint(state.providerOperationState, activeProvider),
+                };
               }
 
               return {
@@ -295,13 +302,13 @@ export const useCloudSyncStore = create<CloudSyncStore>()(
 
           try {
             const provider = getCloudSyncProvider(activeProvider);
-            const syncPoint = getProviderSyncPoint(get().providerSyncState, activeProvider);
+            const providerState = getProviderState(get().providers, activeProvider);
             const localUpdatedAt = get().localUpdatedAt ?? new Date().toISOString();
 
             const result = await reconcileWithProvider(provider, {
-              lastSyncedAt: syncPoint.lastSyncedAt,
+              lastSyncedAt: providerState.lastSyncedAt,
               localUpdatedAt,
-              remoteRevision: syncPoint.remoteRevision,
+              remoteRevision: providerState.remoteRevision,
             });
 
             set((state) => {
@@ -311,12 +318,15 @@ export const useCloudSyncStore = create<CloudSyncStore>()(
 
               return {
                 localUpdatedAt: result.localUpdatedAt,
-                providerSyncState: setProviderSyncPoint(state.providerSyncState, activeProvider, {
+                providers: setProviderState(state.providers, activeProvider, {
                   lastSyncedAt: result.lastSyncedAt,
                   remoteRevision: result.remoteRevision,
                 }),
                 providerOperationState: setProviderOperationPoint(state.providerOperationState, activeProvider, {
-                  status: result.status,
+                  status:
+                    result.status === CLOUD_SYNC_STATUSES.CONFLICT
+                      ? CLOUD_SYNC_STATUSES.CONFLICT
+                      : CLOUD_SYNC_STATUSES.IDLE,
                   errorCode: null,
                   operationId: null,
                 }),
@@ -326,6 +336,12 @@ export const useCloudSyncStore = create<CloudSyncStore>()(
             set((state) => {
               if (!isCurrentOperation(state.providerOperationState, activeProvider, operationId)) {
                 return {};
+              }
+
+              if (isCloudSyncCancelledError(error)) {
+                return {
+                  providerOperationState: setCancelledOperationPoint(state.providerOperationState, activeProvider),
+                };
               }
 
               return {
@@ -385,12 +401,12 @@ export const useCloudSyncStore = create<CloudSyncStore>()(
 
               return {
                 localUpdatedAt: restoreResult.syncedAt,
-                providerSyncState: setProviderSyncPoint(state.providerSyncState, activeProvider, {
+                providers: setProviderState(state.providers, activeProvider, {
                   lastSyncedAt: restoreResult.syncedAt,
                   remoteRevision: restoreResult.remoteRevision,
                 }),
                 providerOperationState: setProviderOperationPoint(state.providerOperationState, activeProvider, {
-                  status: CLOUD_SYNC_STATUSES.SYNCED,
+                  status: CLOUD_SYNC_STATUSES.IDLE,
                   errorCode: null,
                   operationId: null,
                 }),
@@ -400,6 +416,12 @@ export const useCloudSyncStore = create<CloudSyncStore>()(
             set((state) => {
               if (!isCurrentOperation(state.providerOperationState, activeProvider, operationId)) {
                 return {};
+              }
+
+              if (isCloudSyncCancelledError(error)) {
+                return {
+                  providerOperationState: setCancelledOperationPoint(state.providerOperationState, activeProvider),
+                };
               }
 
               return {
@@ -438,13 +460,13 @@ export const useCloudSyncStore = create<CloudSyncStore>()(
 
           try {
             const provider = getCloudSyncProvider(activeProvider);
-            const syncPoint = getProviderSyncPoint(get().providerSyncState, activeProvider);
-            const localUpdatedAt = syncPoint.lastSyncedAt === null ? null : get().localUpdatedAt;
+            const providerState = getProviderState(get().providers, activeProvider);
+            const localUpdatedAt = providerState.lastSyncedAt === null ? null : get().localUpdatedAt;
 
             const result = await reconcileWithProvider(provider, {
-              lastSyncedAt: syncPoint.lastSyncedAt,
+              lastSyncedAt: providerState.lastSyncedAt,
               localUpdatedAt,
-              remoteRevision: syncPoint.remoteRevision,
+              remoteRevision: providerState.remoteRevision,
             });
 
             set((state) => {
@@ -454,12 +476,15 @@ export const useCloudSyncStore = create<CloudSyncStore>()(
 
               return {
                 localUpdatedAt: result.localUpdatedAt,
-                providerSyncState: setProviderSyncPoint(state.providerSyncState, activeProvider, {
+                providers: setProviderState(state.providers, activeProvider, {
                   lastSyncedAt: result.lastSyncedAt,
                   remoteRevision: result.remoteRevision,
                 }),
                 providerOperationState: setProviderOperationPoint(state.providerOperationState, activeProvider, {
-                  status: result.status,
+                  status:
+                    result.status === CLOUD_SYNC_STATUSES.CONFLICT
+                      ? CLOUD_SYNC_STATUSES.CONFLICT
+                      : CLOUD_SYNC_STATUSES.IDLE,
                   errorCode: null,
                   operationId: null,
                 }),
@@ -469,6 +494,12 @@ export const useCloudSyncStore = create<CloudSyncStore>()(
             set((state) => {
               if (!isCurrentOperation(state.providerOperationState, activeProvider, operationId)) {
                 return {};
+              }
+
+              if (isCloudSyncCancelledError(error)) {
+                return {
+                  providerOperationState: setCancelledOperationPoint(state.providerOperationState, activeProvider),
+                };
               }
 
               return {
@@ -487,10 +518,8 @@ export const useCloudSyncStore = create<CloudSyncStore>()(
       name: CLOUD_SYNC_STORAGE_KEY,
       partialize: (state) => ({
         activeProvider: state.activeProvider,
-        providerAutoSyncState: state.providerAutoSyncState,
-        providerConnectionState: state.providerConnectionState,
         localUpdatedAt: state.localUpdatedAt,
-        providerSyncState: state.providerSyncState,
+        providers: state.providers,
       }),
     },
   ),

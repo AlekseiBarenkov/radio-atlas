@@ -1,5 +1,5 @@
 import type { Language } from '@/features/localization';
-import { CloudSyncError } from '../../model/cloud-sync-error';
+import { CloudSyncCancelledError, CloudSyncError } from '../../model/cloud-sync-error';
 import { CLOUD_SYNC_ERROR_CODES } from '../../model/types';
 
 const YANDEX_DISK_APP_FOLDER_SCOPE = 'cloud_api:disk.app_folder';
@@ -178,11 +178,16 @@ const requestYandexOAuthToken = (language: Language): Promise<YandexOAuthToken> 
       reject(new CloudSyncError(CLOUD_SYNC_ERROR_CODES.YANDEX_AUTH_FAILED));
     };
 
-    timeoutId = window.setTimeout(rejectAuth, YANDEX_OAUTH_POPUP_TIMEOUT_MS);
+    const rejectCancelled = () => {
+      cleanup();
+      reject(new CloudSyncCancelledError());
+    };
+
+    timeoutId = window.setTimeout(rejectCancelled, YANDEX_OAUTH_POPUP_TIMEOUT_MS);
 
     intervalId = window.setInterval(() => {
       if (isPopupClosed(popup)) {
-        rejectAuth();
+        rejectCancelled();
         return;
       }
 

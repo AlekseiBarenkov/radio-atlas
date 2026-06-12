@@ -10,6 +10,17 @@ export class CloudSyncError extends Error {
   }
 }
 
+export class CloudSyncCancelledError extends Error {
+  constructor() {
+    super('Cloud sync operation was cancelled');
+    this.name = 'CloudSyncCancelledError';
+  }
+}
+
+export const isCloudSyncCancelledError = (error: unknown): boolean => {
+  return error instanceof CloudSyncCancelledError;
+};
+
 export const getCloudSyncErrorCode = (error: unknown, fallbackCode: CloudSyncErrorCode): CloudSyncErrorCode => {
   if (error instanceof CloudSyncError) {
     return error.code;

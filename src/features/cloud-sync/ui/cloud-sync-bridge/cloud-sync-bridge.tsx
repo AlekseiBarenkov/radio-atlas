@@ -4,30 +4,19 @@ import { useCloudSyncStore } from '../../model/cloud-sync-store';
 
 export const CloudSyncBridge = () => {
   const activeProvider = useCloudSyncStore((state) => state.activeProvider);
-  const isProviderConnected = useCloudSyncStore((state) => {
+  const activeProviderState = useCloudSyncStore((state) => {
     if (state.activeProvider === null) {
-      return false;
+      return null;
     }
 
-    return (state.providerConnectionState[state.activeProvider]?.connectedAt ?? null) !== null;
-  });
-
-  const hasSuccessfulSync = useCloudSyncStore((state) => {
-    if (state.activeProvider === null) {
-      return false;
-    }
-
-    return (state.providerSyncState[state.activeProvider]?.lastSyncedAt ?? null) !== null;
-  });
-  const autoSyncEnabled = useCloudSyncStore((state) => {
-    if (state.activeProvider === null) {
-      return false;
-    }
-
-    return state.providerAutoSyncState[state.activeProvider] ?? false;
+    return state.providers[state.activeProvider] ?? null;
   });
   const reconcileOnStart = useCloudSyncStore((state) => state.actions.reconcileOnStart);
   const markLocalUpdated = useCloudSyncStore((state) => state.actions.markLocalUpdated);
+
+  const isProviderConnected = (activeProviderState?.connectedAt ?? null) !== null;
+  const hasSuccessfulSync = (activeProviderState?.lastSyncedAt ?? null) !== null;
+  const autoSyncEnabled = activeProviderState?.autoSyncEnabled ?? false;
 
   useEffect(() => {
     const unsubscribe = subscribeSyncDataChanged(() => {
@@ -35,11 +24,16 @@ export const CloudSyncBridge = () => {
 
       const state = useCloudSyncStore.getState();
 
+      if (state.activeProvider === null) {
+        return;
+      }
+
+      const providerState = state.providers[state.activeProvider];
+
       if (
-        state.activeProvider !== null &&
-        (state.providerConnectionState[state.activeProvider]?.connectedAt ?? null) !== null &&
-        (state.providerSyncState[state.activeProvider]?.lastSyncedAt ?? null) !== null &&
-        (state.providerAutoSyncState[state.activeProvider] ?? false)
+        (providerState?.connectedAt ?? null) !== null &&
+        (providerState?.lastSyncedAt ?? null) !== null &&
+        (providerState?.autoSyncEnabled ?? false)
       ) {
         state.actions.syncInBackground();
       }
