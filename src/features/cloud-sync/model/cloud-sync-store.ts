@@ -1,7 +1,10 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { reconcileWithProvider, restoreFromProvider, syncWithProvider } from '../lib/sync-flow';
+import { getCloudSyncProvider } from '../providers';
+import { getCloudSyncErrorCode, isCloudSyncCancelledError } from './cloud-sync-error';
 import { CLOUD_SYNC_STORAGE_KEY } from './constants';
+import type { CloudSyncProviderAdapter } from './provider';
 import {
   CLOUD_SYNC_ERROR_CODES,
   CLOUD_SYNC_STATUSES,
@@ -9,8 +12,6 @@ import {
   type CloudSyncErrorCode,
   type CloudSyncStatus,
 } from './types';
-import { getCloudSyncProvider } from '../providers';
-import { getCloudSyncErrorCode, isCloudSyncCancelledError } from './cloud-sync-error';
 
 type CloudProviderState = {
   connectedAt: string | null;
@@ -48,6 +49,17 @@ type CloudSyncActions = {
 
 export type CloudSyncStore = CloudSyncState & {
   actions: CloudSyncActions;
+};
+
+type ProviderOperationContext = {
+  activeProvider: CloudProvider;
+  provider: CloudSyncProviderAdapter;
+};
+
+type ProviderOperationResult = {
+  status?: CloudSyncStatus;
+  errorCode?: CloudSyncErrorCode | null;
+  buildState?: (state: CloudSyncStore) => Partial<CloudSyncState>;
 };
 
 const createDefaultProviderState = (): CloudProviderState => ({
@@ -96,6 +108,19 @@ const setProviderOperationPoint = (
   [provider]: operationPoint,
 });
 
+const setFinishedOperationPoint = (
+  providerOperationState: ProviderOperationState,
+  provider: CloudProvider,
+  status: CloudSyncStatus = CLOUD_SYNC_STATUSES.IDLE,
+  errorCode: CloudSyncErrorCode | null = null,
+): ProviderOperationState => {
+  return setProviderOperationPoint(providerOperationState, provider, {
+    status,
+    errorCode,
+    operationId: null,
+  });
+};
+
 const isProviderSyncing = (providerOperationState: ProviderOperationState, provider: CloudProvider): boolean => {
   return getProviderOperationPoint(providerOperationState, provider).status === CLOUD_SYNC_STATUSES.SYNCING;
 };
@@ -108,412 +133,226 @@ const isCurrentOperation = (
   return getProviderOperationPoint(providerOperationState, provider).operationId === operationId;
 };
 
-const setCancelledOperationPoint = (
-  providerOperationState: ProviderOperationState,
-  provider: CloudProvider,
-): ProviderOperationState => {
-  return setProviderOperationPoint(providerOperationState, provider, {
-    status: CLOUD_SYNC_STATUSES.IDLE,
-    errorCode: null,
-    operationId: null,
-  });
-};
-
 export const useCloudSyncStore = create<CloudSyncStore>()(
   persist(
-    (set, get) => ({
-      activeProvider: null,
-      localUpdatedAt: null,
-      providers: {},
-      providerOperationState: {},
+    (set, get) => {
+      const runProviderOperation = async (
+        fallbackCode: CloudSyncErrorCode,
+        operation: (context: ProviderOperationContext) => Promise<ProviderOperationResult>,
+      ): Promise<void> => {
+        const activeProvider = get().activeProvider;
 
-      actions: {
-        setActiveProvider: (provider) => {
+        if (activeProvider === null || isProviderSyncing(get().providerOperationState, activeProvider)) {
+          return;
+        }
+
+        const operationId = crypto.randomUUID();
+
+        set((state) => ({
+          providerOperationState: setProviderOperationPoint(state.providerOperationState, activeProvider, {
+            status: CLOUD_SYNC_STATUSES.SYNCING,
+            errorCode: null,
+            operationId,
+          }),
+        }));
+
+        try {
+          const provider = getCloudSyncProvider(activeProvider);
+          const result = await operation({ activeProvider, provider });
+
           set((state) => {
-            if (provider === null || provider === state.activeProvider) {
+            if (!isCurrentOperation(state.providerOperationState, activeProvider, operationId)) {
+              return {};
+            }
+
+            return {
+              ...(result.buildState?.(state) ?? {}),
+              providerOperationState: setFinishedOperationPoint(
+                state.providerOperationState,
+                activeProvider,
+                result.status ?? CLOUD_SYNC_STATUSES.IDLE,
+                result.errorCode ?? null,
+              ),
+            };
+          });
+        } catch (error) {
+          set((state) => {
+            if (!isCurrentOperation(state.providerOperationState, activeProvider, operationId)) {
+              return {};
+            }
+
+            if (isCloudSyncCancelledError(error)) {
               return {
-                activeProvider: provider,
+                providerOperationState: setFinishedOperationPoint(state.providerOperationState, activeProvider),
               };
             }
 
             return {
-              activeProvider: provider,
-              providers: setProviderState(state.providers, provider, {
-                autoSyncEnabled: false,
-              }),
+              providerOperationState: setFinishedOperationPoint(
+                state.providerOperationState,
+                activeProvider,
+                CLOUD_SYNC_STATUSES.FAILED,
+                getCloudSyncErrorCode(error, fallbackCode),
+              ),
             };
           });
-        },
+        }
+      };
 
-        setAutoSyncEnabled: (enabled) => {
-          const activeProvider = get().activeProvider;
+      return {
+        activeProvider: null,
+        localUpdatedAt: null,
+        providers: {},
+        providerOperationState: {},
 
-          if (activeProvider === null) {
-            return;
-          }
-
-          set((state) => ({
-            providers: setProviderState(state.providers, activeProvider, {
-              autoSyncEnabled: enabled,
-            }),
-          }));
-        },
-
-        connectProvider: async () => {
-          const activeProvider = get().activeProvider;
-
-          if (activeProvider === null || isProviderSyncing(get().providerOperationState, activeProvider)) {
-            return;
-          }
-
-          const operationId = crypto.randomUUID();
-
-          set((state) => ({
-            providerOperationState: setProviderOperationPoint(state.providerOperationState, activeProvider, {
-              status: CLOUD_SYNC_STATUSES.SYNCING,
-              errorCode: null,
-              operationId,
-            }),
-          }));
-
-          try {
-            const provider = getCloudSyncProvider(activeProvider);
-
-            await provider.connect();
-
+        actions: {
+          setActiveProvider: (provider) => {
             set((state) => {
-              if (!isCurrentOperation(state.providerOperationState, activeProvider, operationId)) {
-                return {};
-              }
-
-              return {
-                providers: setProviderState(state.providers, activeProvider, {
-                  connectedAt: new Date().toISOString(),
-                }),
-                providerOperationState: setProviderOperationPoint(state.providerOperationState, activeProvider, {
-                  status: CLOUD_SYNC_STATUSES.IDLE,
-                  errorCode: null,
-                  operationId: null,
-                }),
-              };
-            });
-          } catch (error) {
-            set((state) => {
-              if (!isCurrentOperation(state.providerOperationState, activeProvider, operationId)) {
-                return {};
-              }
-
-              if (isCloudSyncCancelledError(error)) {
+              if (provider === null || provider === state.activeProvider) {
                 return {
-                  providerOperationState: setCancelledOperationPoint(state.providerOperationState, activeProvider),
+                  activeProvider: provider,
                 };
               }
 
               return {
-                providerOperationState: setProviderOperationPoint(state.providerOperationState, activeProvider, {
-                  status: CLOUD_SYNC_STATUSES.FAILED,
-                  errorCode: getCloudSyncErrorCode(error, CLOUD_SYNC_ERROR_CODES.SYNC_FAILED),
-                  operationId: null,
+                activeProvider: provider,
+                providers: setProviderState(state.providers, provider, {
+                  autoSyncEnabled: false,
                 }),
               };
             });
-          }
-        },
+          },
 
-        syncNow: async () => {
-          const activeProvider = get().activeProvider;
+          setAutoSyncEnabled: (enabled) => {
+            const activeProvider = get().activeProvider;
 
-          if (activeProvider === null || isProviderSyncing(get().providerOperationState, activeProvider)) {
-            return;
-          }
-
-          const operationId = crypto.randomUUID();
-
-          set((state) => ({
-            providerOperationState: setProviderOperationPoint(state.providerOperationState, activeProvider, {
-              status: CLOUD_SYNC_STATUSES.SYNCING,
-              errorCode: null,
-              operationId,
-            }),
-          }));
-
-          try {
-            const provider = getCloudSyncProvider(activeProvider);
-            const syncedAt = get().localUpdatedAt ?? new Date().toISOString();
-            const syncResult = await syncWithProvider(provider, syncedAt);
-
-            set((state) => {
-              if (!isCurrentOperation(state.providerOperationState, activeProvider, operationId)) {
-                return {};
-              }
-
-              return {
-                localUpdatedAt: syncResult.syncedAt,
-                providers: setProviderState(state.providers, activeProvider, {
-                  lastSyncedAt: syncResult.syncedAt,
-                  remoteRevision: syncResult.remoteRevision,
-                }),
-                providerOperationState: setProviderOperationPoint(state.providerOperationState, activeProvider, {
-                  status: CLOUD_SYNC_STATUSES.IDLE,
-                  errorCode: null,
-                  operationId: null,
-                }),
-              };
-            });
-          } catch (error) {
-            set((state) => {
-              if (!isCurrentOperation(state.providerOperationState, activeProvider, operationId)) {
-                return {};
-              }
-
-              if (isCloudSyncCancelledError(error)) {
-                return {
-                  providerOperationState: setCancelledOperationPoint(state.providerOperationState, activeProvider),
-                };
-              }
-
-              return {
-                providerOperationState: setProviderOperationPoint(state.providerOperationState, activeProvider, {
-                  status: CLOUD_SYNC_STATUSES.FAILED,
-                  errorCode: getCloudSyncErrorCode(error, CLOUD_SYNC_ERROR_CODES.SYNC_FAILED),
-                  operationId: null,
-                }),
-              };
-            });
-          }
-        },
-
-        syncInBackground: async () => {
-          const activeProvider = get().activeProvider;
-
-          if (activeProvider === null || isProviderSyncing(get().providerOperationState, activeProvider)) {
-            return;
-          }
-
-          const operationId = crypto.randomUUID();
-
-          set((state) => ({
-            providerOperationState: setProviderOperationPoint(state.providerOperationState, activeProvider, {
-              status: CLOUD_SYNC_STATUSES.SYNCING,
-              errorCode: null,
-              operationId,
-            }),
-          }));
-
-          try {
-            const provider = getCloudSyncProvider(activeProvider);
-            const providerState = getProviderState(get().providers, activeProvider);
-            const localUpdatedAt = get().localUpdatedAt ?? new Date().toISOString();
-
-            const result = await reconcileWithProvider(provider, {
-              lastSyncedAt: providerState.lastSyncedAt,
-              localUpdatedAt,
-              remoteRevision: providerState.remoteRevision,
-            });
-
-            set((state) => {
-              if (!isCurrentOperation(state.providerOperationState, activeProvider, operationId)) {
-                return {};
-              }
-
-              return {
-                localUpdatedAt: result.localUpdatedAt,
-                providers: setProviderState(state.providers, activeProvider, {
-                  lastSyncedAt: result.lastSyncedAt,
-                  remoteRevision: result.remoteRevision,
-                }),
-                providerOperationState: setProviderOperationPoint(state.providerOperationState, activeProvider, {
-                  status:
-                    result.status === CLOUD_SYNC_STATUSES.CONFLICT
-                      ? CLOUD_SYNC_STATUSES.CONFLICT
-                      : CLOUD_SYNC_STATUSES.IDLE,
-                  errorCode: null,
-                  operationId: null,
-                }),
-              };
-            });
-          } catch (error) {
-            set((state) => {
-              if (!isCurrentOperation(state.providerOperationState, activeProvider, operationId)) {
-                return {};
-              }
-
-              if (isCloudSyncCancelledError(error)) {
-                return {
-                  providerOperationState: setCancelledOperationPoint(state.providerOperationState, activeProvider),
-                };
-              }
-
-              return {
-                providerOperationState: setProviderOperationPoint(state.providerOperationState, activeProvider, {
-                  status: CLOUD_SYNC_STATUSES.FAILED,
-                  errorCode: getCloudSyncErrorCode(error, CLOUD_SYNC_ERROR_CODES.SYNC_FAILED),
-                  operationId: null,
-                }),
-              };
-            });
-          }
-        },
-
-        restoreFromBackup: async () => {
-          const activeProvider = get().activeProvider;
-
-          if (activeProvider === null || isProviderSyncing(get().providerOperationState, activeProvider)) {
-            return;
-          }
-
-          const operationId = crypto.randomUUID();
-
-          set((state) => ({
-            providerOperationState: setProviderOperationPoint(state.providerOperationState, activeProvider, {
-              status: CLOUD_SYNC_STATUSES.SYNCING,
-              errorCode: null,
-              operationId,
-            }),
-          }));
-
-          try {
-            const provider = getCloudSyncProvider(activeProvider);
-            const restoreResult = await restoreFromProvider(provider);
-
-            if (restoreResult === null) {
-              set((state) => {
-                if (!isCurrentOperation(state.providerOperationState, activeProvider, operationId)) {
-                  return {};
-                }
-
-                return {
-                  providerOperationState: setProviderOperationPoint(state.providerOperationState, activeProvider, {
-                    status: CLOUD_SYNC_STATUSES.FAILED,
-                    errorCode: CLOUD_SYNC_ERROR_CODES.BACKUP_NOT_FOUND,
-                    operationId: null,
-                  }),
-                };
-              });
-
+            if (activeProvider === null) {
               return;
             }
 
-            set((state) => {
-              if (!isCurrentOperation(state.providerOperationState, activeProvider, operationId)) {
-                return {};
-              }
+            set((state) => ({
+              providers: setProviderState(state.providers, activeProvider, {
+                autoSyncEnabled: enabled,
+              }),
+            }));
+          },
+
+          connectProvider: async () => {
+            await runProviderOperation(CLOUD_SYNC_ERROR_CODES.SYNC_FAILED, async ({ activeProvider, provider }) => {
+              await provider.connect();
 
               return {
-                localUpdatedAt: restoreResult.syncedAt,
-                providers: setProviderState(state.providers, activeProvider, {
-                  lastSyncedAt: restoreResult.syncedAt,
-                  remoteRevision: restoreResult.remoteRevision,
-                }),
-                providerOperationState: setProviderOperationPoint(state.providerOperationState, activeProvider, {
-                  status: CLOUD_SYNC_STATUSES.IDLE,
-                  errorCode: null,
-                  operationId: null,
+                buildState: (state) => ({
+                  providers: setProviderState(state.providers, activeProvider, {
+                    connectedAt: new Date().toISOString(),
+                  }),
                 }),
               };
             });
-          } catch (error) {
-            set((state) => {
-              if (!isCurrentOperation(state.providerOperationState, activeProvider, operationId)) {
-                return {};
-              }
+          },
 
-              if (isCloudSyncCancelledError(error)) {
+          syncNow: async () => {
+            await runProviderOperation(CLOUD_SYNC_ERROR_CODES.SYNC_FAILED, async ({ activeProvider, provider }) => {
+              const syncedAt = get().localUpdatedAt ?? new Date().toISOString();
+              const syncResult = await syncWithProvider(provider, syncedAt);
+
+              return {
+                buildState: (state) => ({
+                  localUpdatedAt: syncResult.syncedAt,
+                  providers: setProviderState(state.providers, activeProvider, {
+                    lastSyncedAt: syncResult.syncedAt,
+                    remoteRevision: syncResult.remoteRevision,
+                  }),
+                }),
+              };
+            });
+          },
+
+          syncInBackground: async () => {
+            await runProviderOperation(CLOUD_SYNC_ERROR_CODES.SYNC_FAILED, async ({ activeProvider, provider }) => {
+              const providerState = getProviderState(get().providers, activeProvider);
+              const localUpdatedAt = get().localUpdatedAt ?? new Date().toISOString();
+
+              const result = await reconcileWithProvider(provider, {
+                lastSyncedAt: providerState.lastSyncedAt,
+                localUpdatedAt,
+                remoteRevision: providerState.remoteRevision,
+              });
+
+              return {
+                status:
+                  result.status === CLOUD_SYNC_STATUSES.CONFLICT
+                    ? CLOUD_SYNC_STATUSES.CONFLICT
+                    : CLOUD_SYNC_STATUSES.IDLE,
+                buildState: (state) => ({
+                  localUpdatedAt: result.localUpdatedAt,
+                  providers: setProviderState(state.providers, activeProvider, {
+                    lastSyncedAt: result.lastSyncedAt,
+                    remoteRevision: result.remoteRevision,
+                  }),
+                }),
+              };
+            });
+          },
+
+          restoreFromBackup: async () => {
+            await runProviderOperation(CLOUD_SYNC_ERROR_CODES.RESTORE_FAILED, async ({ activeProvider, provider }) => {
+              const restoreResult = await restoreFromProvider(provider);
+
+              if (restoreResult === null) {
                 return {
-                  providerOperationState: setCancelledOperationPoint(state.providerOperationState, activeProvider),
+                  status: CLOUD_SYNC_STATUSES.FAILED,
+                  errorCode: CLOUD_SYNC_ERROR_CODES.BACKUP_NOT_FOUND,
                 };
               }
 
               return {
-                providerOperationState: setProviderOperationPoint(state.providerOperationState, activeProvider, {
-                  status: CLOUD_SYNC_STATUSES.FAILED,
-                  errorCode: getCloudSyncErrorCode(error, CLOUD_SYNC_ERROR_CODES.RESTORE_FAILED),
-                  operationId: null,
+                buildState: (state) => ({
+                  localUpdatedAt: restoreResult.syncedAt,
+                  providers: setProviderState(state.providers, activeProvider, {
+                    lastSyncedAt: restoreResult.syncedAt,
+                    remoteRevision: restoreResult.remoteRevision,
+                  }),
                 }),
               };
             });
-          }
-        },
+          },
 
-        markLocalUpdated: () => {
-          set({
-            localUpdatedAt: new Date().toISOString(),
-          });
-        },
+          reconcileOnStart: async () => {
+            await runProviderOperation(CLOUD_SYNC_ERROR_CODES.SYNC_FAILED, async ({ activeProvider, provider }) => {
+              const providerState = getProviderState(get().providers, activeProvider);
+              const localUpdatedAt = providerState.lastSyncedAt === null ? null : get().localUpdatedAt;
 
-        reconcileOnStart: async () => {
-          const activeProvider = get().activeProvider;
-
-          if (activeProvider === null || isProviderSyncing(get().providerOperationState, activeProvider)) {
-            return;
-          }
-
-          const operationId = crypto.randomUUID();
-
-          set((state) => ({
-            providerOperationState: setProviderOperationPoint(state.providerOperationState, activeProvider, {
-              status: CLOUD_SYNC_STATUSES.SYNCING,
-              errorCode: null,
-              operationId,
-            }),
-          }));
-
-          try {
-            const provider = getCloudSyncProvider(activeProvider);
-            const providerState = getProviderState(get().providers, activeProvider);
-            const localUpdatedAt = providerState.lastSyncedAt === null ? null : get().localUpdatedAt;
-
-            const result = await reconcileWithProvider(provider, {
-              lastSyncedAt: providerState.lastSyncedAt,
-              localUpdatedAt,
-              remoteRevision: providerState.remoteRevision,
-            });
-
-            set((state) => {
-              if (!isCurrentOperation(state.providerOperationState, activeProvider, operationId)) {
-                return {};
-              }
+              const result = await reconcileWithProvider(provider, {
+                lastSyncedAt: providerState.lastSyncedAt,
+                localUpdatedAt,
+                remoteRevision: providerState.remoteRevision,
+              });
 
               return {
-                localUpdatedAt: result.localUpdatedAt,
-                providers: setProviderState(state.providers, activeProvider, {
-                  lastSyncedAt: result.lastSyncedAt,
-                  remoteRevision: result.remoteRevision,
-                }),
-                providerOperationState: setProviderOperationPoint(state.providerOperationState, activeProvider, {
-                  status:
-                    result.status === CLOUD_SYNC_STATUSES.CONFLICT
-                      ? CLOUD_SYNC_STATUSES.CONFLICT
-                      : CLOUD_SYNC_STATUSES.IDLE,
-                  errorCode: null,
-                  operationId: null,
+                status:
+                  result.status === CLOUD_SYNC_STATUSES.CONFLICT
+                    ? CLOUD_SYNC_STATUSES.CONFLICT
+                    : CLOUD_SYNC_STATUSES.IDLE,
+                buildState: (state) => ({
+                  localUpdatedAt: result.localUpdatedAt,
+                  providers: setProviderState(state.providers, activeProvider, {
+                    lastSyncedAt: result.lastSyncedAt,
+                    remoteRevision: result.remoteRevision,
+                  }),
                 }),
               };
             });
-          } catch (error) {
-            set((state) => {
-              if (!isCurrentOperation(state.providerOperationState, activeProvider, operationId)) {
-                return {};
-              }
+          },
 
-              if (isCloudSyncCancelledError(error)) {
-                return {
-                  providerOperationState: setCancelledOperationPoint(state.providerOperationState, activeProvider),
-                };
-              }
-
-              return {
-                providerOperationState: setProviderOperationPoint(state.providerOperationState, activeProvider, {
-                  status: CLOUD_SYNC_STATUSES.FAILED,
-                  errorCode: getCloudSyncErrorCode(error, CLOUD_SYNC_ERROR_CODES.SYNC_FAILED),
-                  operationId: null,
-                }),
-              };
+          markLocalUpdated: () => {
+            set({
+              localUpdatedAt: new Date().toISOString(),
             });
-          }
+          },
         },
-      },
-    }),
+      };
+    },
     {
       name: CLOUD_SYNC_STORAGE_KEY,
       partialize: (state) => ({
