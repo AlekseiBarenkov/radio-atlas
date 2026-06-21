@@ -1,0 +1,1 @@
+export const DEFAULT_QUERY_RETRY_COUNT = 1;

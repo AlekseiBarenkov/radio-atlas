@@ -1,6 +1,8 @@
 import {
+  getIsRadioBrowserProxyFallbackEnabled,
   getRadioBrowserRequestTransports,
   markRadioBrowserDirectFailure,
+  resetRadioBrowserDirectFailures,
   type RadioBrowserRequestTransport,
 } from './radio-browser-api';
 
@@ -11,44 +13,24 @@ type RadioBrowserRequestOptions = {
   signal?: AbortSignal;
 };
 
-const DIRECT_REQUEST_TIMEOUT_MS = 3_000;
-
-const createAbortError = (): DOMException => {
-  return new DOMException('Request aborted', 'AbortError');
-};
-
 const toError = (error: unknown): Error => {
   return error instanceof Error ? error : new Error('Radio Browser request failed');
 };
 
-const createFetchSignal = (sourceSignal: AbortSignal | undefined, timeoutMs: number | null) => {
-  const controller = new AbortController();
-  let timeoutId: number | null = null;
+const getHasProxyTransport = (transports: RadioBrowserRequestTransport[]): boolean => {
+  return transports.some((transport) => transport.type === 'proxy');
+};
 
-  const abort = () => {
-    controller.abort();
-  };
-
-  if (sourceSignal?.aborted) {
-    controller.abort();
-  } else {
-    sourceSignal?.addEventListener('abort', abort, { once: true });
+const getShouldSkipTransport = (transport: RadioBrowserRequestTransport, hasProxyTransport: boolean): boolean => {
+  if (!hasProxyTransport) {
+    return false;
   }
 
-  if (timeoutMs !== null) {
-    timeoutId = window.setTimeout(abort, timeoutMs);
+  if (getIsRadioBrowserProxyFallbackEnabled()) {
+    return transport.type === 'direct';
   }
 
-  return {
-    signal: controller.signal,
-    cleanup: () => {
-      if (timeoutId !== null) {
-        window.clearTimeout(timeoutId);
-      }
-
-      sourceSignal?.removeEventListener('abort', abort);
-    },
-  };
+  return transport.type === 'proxy';
 };
 
 const fetchJson = async <TResponse>(
@@ -56,47 +38,57 @@ const fetchJson = async <TResponse>(
   options: RadioBrowserRequestOptions,
 ): Promise<TResponse> => {
   const { method = 'GET', signal } = options;
-  const fetchSignal = createFetchSignal(signal, transport.type === 'direct' ? DIRECT_REQUEST_TIMEOUT_MS : null);
 
-  try {
-    const response = await fetch(transport.url, {
-      method,
-      signal: fetchSignal.signal,
-    });
+  const response = await fetch(transport.url, {
+    method,
+    signal,
+  });
 
-    if (!response.ok) {
-      throw new Error(`Request failed with status ${response.status}`);
-    }
-
-    return (await response.json()) as TResponse;
-  } finally {
-    fetchSignal.cleanup();
+  if (!response.ok) {
+    throw new Error(`Request failed with status ${response.status}`);
   }
+
+  return (await response.json()) as TResponse;
 };
 
 export const radioBrowserRequest = async <TResponse>(
   input: string,
   options: RadioBrowserRequestOptions = {},
 ): Promise<TResponse> => {
+  const transports = getRadioBrowserRequestTransports(input);
+  const hasProxyTransport = getHasProxyTransport(transports);
+
   let lastError: Error | null = null;
 
-  for (const transport of getRadioBrowserRequestTransports(input)) {
-    if (options.signal?.aborted) {
-      throw createAbortError();
+  for (const transport of transports) {
+    if (getShouldSkipTransport(transport, hasProxyTransport)) {
+      continue;
     }
 
     try {
-      return await fetchJson<TResponse>(transport, options);
-    } catch (error) {
-      if (options.signal?.aborted) {
-        throw createAbortError();
+      const response = await fetchJson<TResponse>(transport, options);
+
+      if (transport.type === 'direct') {
+        resetRadioBrowserDirectFailures();
       }
+
+      return response;
+    } catch (error) {
+      const requestError = toError(error);
+
+      if (options.signal?.aborted) {
+        throw requestError;
+      }
+
+      lastError = requestError;
 
       if (transport.type === 'direct') {
         markRadioBrowserDirectFailure();
-      }
 
-      lastError = toError(error);
+        if (!getIsRadioBrowserProxyFallbackEnabled()) {
+          break;
+        }
+      }
     }
   }
 

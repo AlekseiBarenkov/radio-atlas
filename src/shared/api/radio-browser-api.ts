@@ -1,3 +1,5 @@
+import { DEFAULT_QUERY_RETRY_COUNT } from '../config/query';
+
 export const RADIO_BROWSER_API_BASE_URL = 'https://de1.api.radio-browser.info/json' as const;
 
 export type RadioBrowserRequestTransport = {
@@ -7,17 +9,31 @@ export type RadioBrowserRequestTransport = {
 
 type RadioBrowserProxyFallbackBuilder = (url: string) => string[];
 
-const DIRECT_FAILURE_CACHE_MS = 5 * 60 * 1000;
+const RADIO_BROWSER_DIRECT_ATTEMPT_LIMIT = DEFAULT_QUERY_RETRY_COUNT + 1;
 
 let proxyFallbackBuilder: RadioBrowserProxyFallbackBuilder | null = null;
-let preferProxyUntil = 0;
+let directFailureCount = 0;
+let isProxyFallbackEnabled = false;
 
 export const configureRadioBrowserProxyFallback = (builder: RadioBrowserProxyFallbackBuilder | null) => {
   proxyFallbackBuilder = builder;
 };
 
+export const getIsRadioBrowserProxyFallbackEnabled = (): boolean => {
+  return isProxyFallbackEnabled;
+};
+
 export const markRadioBrowserDirectFailure = () => {
-  preferProxyUntil = Date.now() + DIRECT_FAILURE_CACHE_MS;
+  directFailureCount += 1;
+
+  if (directFailureCount >= RADIO_BROWSER_DIRECT_ATTEMPT_LIMIT) {
+    isProxyFallbackEnabled = true;
+  }
+};
+
+export const resetRadioBrowserDirectFailures = () => {
+  directFailureCount = 0;
+  isProxyFallbackEnabled = false;
 };
 
 export const getRadioBrowserRequestTransports = (url: string): RadioBrowserRequestTransport[] => {
@@ -33,9 +49,5 @@ export const getRadioBrowserRequestTransports = (url: string): RadioBrowserReque
     }),
   );
 
-  if (proxyTransports.length === 0) {
-    return [directTransport];
-  }
-
-  return Date.now() < preferProxyUntil ? [...proxyTransports, directTransport] : [directTransport, ...proxyTransports];
+  return [directTransport, ...proxyTransports];
 };
