@@ -38,6 +38,14 @@ export const createPlayerRuntime = (): PlayerRuntime => {
     },
   });
 
+  const initialStation = usePlayerStore.getState().currentStation;
+
+  if (initialStation) {
+    mediaSessionController.setMetadata(initialStation);
+    mediaSessionController.setPlaybackState('paused');
+    mediaSessionController.setActionState('paused');
+  }
+
   let hasActiveSourcePlayed = false;
 
   const startSourcePlayback = (sourceUrl: string, stationId: string) => {

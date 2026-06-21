@@ -2,10 +2,17 @@ import { create } from 'zustand';
 import { addStationToHistory } from '@features/player-history';
 import { PLAYER_STATUSES, type PlayerStore } from './types';
 import { loadPlayerVolume, normalizePlayerVolume, savePlayerVolume } from './player-volume-storage';
+import {
+  clearPlayerSessionStation,
+  loadPlayerSessionStation,
+  savePlayerSessionStation,
+} from './player-session-storage';
+
+const initialSessionStation = loadPlayerSessionStation();
 
 export const usePlayerStore = create<PlayerStore>((set, get) => ({
-  currentStation: null,
-  status: PLAYER_STATUSES.IDLE,
+  currentStation: initialSessionStation,
+  status: initialSessionStation ? PLAYER_STATUSES.PAUSED : PLAYER_STATUSES.IDLE,
   errorMessage: null,
   reconnectAt: null,
   volume: loadPlayerVolume(),
@@ -13,6 +20,7 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
   actions: {
     playStation: (station) => {
       addStationToHistory(station);
+      savePlayerSessionStation(station);
 
       set({
         currentStation: station,
@@ -62,6 +70,7 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
     },
 
     stop: () => {
+      clearPlayerSessionStation();
       set({
         currentStation: null,
         status: PLAYER_STATUSES.IDLE,
