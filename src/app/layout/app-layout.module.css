@@ -10,7 +10,11 @@
   min-width: 0;
   max-width: 1320px;
   margin: 0 auto;
-  padding: 32px 32px calc(32px + var(--mini-player-height));
+  padding: 32px;
+}
+
+.main[data-has-player='true'] {
+  padding-bottom: calc(32px + var(--mini-player-height));
 }
 
 .sidebar {
@@ -89,7 +93,11 @@
   }
 
   .main {
-    padding: 20px 16px calc(20px + var(--mini-player-height));
+    padding: 20px 16px;
+  }
+
+  .main[data-has-player='true'] {
+    padding-bottom: calc(20px + var(--mini-player-height) + env(safe-area-inset-bottom));
   }
 
   .player {

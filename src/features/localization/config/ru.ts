@@ -255,5 +255,7 @@ export const ru = {
     connectAndSync: 'Подключить и синхронизировать',
     readyToConnect: 'Готово к подключению',
     connected: 'Подключено',
+    connecting: 'Подключение',
+    connectionFailed: 'Ошибка подключения',
   },
 } as const satisfies Translation;

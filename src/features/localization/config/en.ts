@@ -259,6 +259,8 @@ export const en = {
     connectAndSync: 'Connect and sync',
     readyToConnect: 'Ready to connect',
     connected: 'Connected',
+    connecting: 'Connecting',
+    connectionFailed: 'Connection failed',
   },
 } as const;
 

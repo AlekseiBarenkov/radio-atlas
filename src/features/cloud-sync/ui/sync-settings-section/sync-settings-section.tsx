@@ -1,4 +1,4 @@
-import { useTranslation } from '@/features/localization';
+import { LANGUAGES, useLocalizationStore, useTranslation } from '@/features/localization';
 import { Badge, Button, Modal, Notice, ToggleGroup, type BadgeTone } from '@/shared/ui';
 import {
   CLOUD_PROVIDERS,
@@ -12,6 +12,11 @@ import S from './sync-settings-section.module.css';
 import { useState } from 'react';
 import { useResponsive } from '@/app/providers/responsive';
 
+const DATE_TIME_LOCALE_BY_LANGUAGE = {
+  [LANGUAGES.RU]: 'ru-RU',
+  [LANGUAGES.EN]: 'en-US',
+} as const;
+
 const isLocalSyncedWithProvider = (localUpdatedAt: string | null, lastSyncedAt: string | null): boolean => {
   return localUpdatedAt !== null && lastSyncedAt !== null && localUpdatedAt === lastSyncedAt;
 };
@@ -19,6 +24,7 @@ const isLocalSyncedWithProvider = (localUpdatedAt: string | null, lastSyncedAt: 
 export const SyncSettingsSection = () => {
   const { isDesktop } = useResponsive();
   const t = useTranslation();
+  const language = useLocalizationStore((state) => state.language);
 
   const providerOptions: { value: CloudProvider; label: string }[] = [
     {
@@ -68,9 +74,9 @@ export const SyncSettingsSection = () => {
   const hasConnectionError = operationStatus === CLOUD_SYNC_STATUSES.FAILED && !isProviderConnected;
 
   const connectionLabel = isConnecting
-    ? t.syncSettings.syncing
+    ? t.syncSettings.connecting
     : hasConnectionError
-      ? t.syncSettings.failed
+      ? t.syncSettings.connectionFailed
       : isProviderConnected
         ? t.syncSettings.connected
         : t.syncSettings.readyToConnect;
@@ -118,7 +124,9 @@ export const SyncSettingsSection = () => {
   };
 
   const formattedLastSyncedAt =
-    lastSyncedAt === null ? t.syncSettings.neverSynced : new Date(lastSyncedAt).toLocaleString();
+    lastSyncedAt === null
+      ? t.syncSettings.neverSynced
+      : new Date(lastSyncedAt).toLocaleString(DATE_TIME_LOCALE_BY_LANGUAGE[language]);
 
   const changeProvider = (provider: CloudProvider) => {
     actions.setActiveProvider(provider);

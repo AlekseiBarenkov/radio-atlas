@@ -251,6 +251,11 @@
     border-radius: 18px 18px 0 0;
   }
 
+  .controls button[data-size='m'] {
+    width: 40px;
+    height: 40px;
+  }
+
   .subtitle {
     font-size: 12px;
   }

@@ -43,7 +43,7 @@ export const AppLayout = () => {
 
       {isMobile && <MobileSidebarDrawer isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />}
 
-      <main className={S.main}>
+      <main className={S.main} data-has-player={!isIdle ? 'true' : undefined}>
         <Outlet />
       </main>
 
