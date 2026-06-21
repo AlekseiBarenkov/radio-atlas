@@ -20,8 +20,6 @@ export type ThemeStore = ThemeState & {
 const initialTheme = getInitialTheme();
 const initialResolvedTheme = resolveTheme(initialTheme);
 
-applyThemeToDocument(initialResolvedTheme);
-
 export const useThemeStore = create<ThemeStore>((set) => ({
   theme: initialTheme,
   resolvedTheme: initialResolvedTheme,

@@ -1,5 +1,5 @@
+import { radioBrowserRequest } from '@/shared/api/radio-browser-request';
 import { RADIO_BROWSER_API_BASE_URL } from '@shared/api/radio-browser-api';
-import { request } from '@shared/api/request';
 
 type RadioBrowserLanguage = {
   name: string;
@@ -36,7 +36,7 @@ export const searchStationLanguages = async (
     limit: String(params.limit ?? DEFAULT_LIMIT),
   });
 
-  const languages = await request<RadioBrowserLanguage[]>(
+  const languages = await radioBrowserRequest<RadioBrowserLanguage[]>(
     `${RADIO_BROWSER_API_BASE_URL}/languages/${encodeURIComponent(normalizedQuery)}?${searchParams.toString()}`,
     {
       signal,

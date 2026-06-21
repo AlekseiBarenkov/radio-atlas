@@ -1,6 +1,6 @@
 import { RADIO_BROWSER_API_BASE_URL } from '@shared/api/radio-browser-api';
-import { request } from '@shared/api/request';
 import type { RadioStation } from '../model/types';
+import { radioBrowserRequest } from '@/shared/api/radio-browser-request';
 
 export type GetStationsParams = {
   name?: string;
@@ -67,7 +67,10 @@ export const getStations = async (params: GetStationsParams = {}, signal?: Abort
     searchParams.set('tag', normalizedTag);
   }
 
-  return request<RadioStation[]>(`${RADIO_BROWSER_API_BASE_URL}/stations/search?${searchParams.toString()}`, {
-    signal,
-  });
+  return radioBrowserRequest<RadioStation[]>(
+    `${RADIO_BROWSER_API_BASE_URL}/stations/search?${searchParams.toString()}`,
+    {
+      signal,
+    },
+  );
 };

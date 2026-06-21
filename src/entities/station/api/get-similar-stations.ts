@@ -1,7 +1,7 @@
 import { RADIO_BROWSER_API_BASE_URL } from '@shared/api/radio-browser-api';
-import { request } from '@shared/api/request';
 import type { RadioStation } from '../model/types';
 import { rankSimilarStations, type SimilarStationCandidate } from '../lib/rank-similar-stations';
+import { radioBrowserRequest } from '@/shared/api/radio-browser-request';
 
 type GetSimilarStationsParams = {
   station: RadioStation;
@@ -61,7 +61,7 @@ const getStationsByTag = async (tag: string, limit: number, signal?: AbortSignal
     hidebroken: 'true',
   });
 
-  return request<RadioStation[]>(
+  return radioBrowserRequest<RadioStation[]>(
     `${RADIO_BROWSER_API_BASE_URL}/stations/bytag/${encodeURIComponent(tag)}?${searchParams.toString()}`,
     {
       signal,
@@ -93,9 +93,12 @@ const searchStations = async (params: SearchStationsParams, signal?: AbortSignal
     searchParams.set('language', params.language);
   }
 
-  return request<RadioStation[]>(`${RADIO_BROWSER_API_BASE_URL}/stations/search?${searchParams.toString()}`, {
-    signal,
-  });
+  return radioBrowserRequest<RadioStation[]>(
+    `${RADIO_BROWSER_API_BASE_URL}/stations/search?${searchParams.toString()}`,
+    {
+      signal,
+    },
+  );
 };
 
 const getSearchStrategyKey = (params: Omit<SearchStationsParams, 'limit'>): string => {

@@ -5,7 +5,7 @@ import { App } from '@app/App';
 import { queryClient } from '@app/providers/query-client';
 import { ResponsiveProvider } from '@app/providers/responsive';
 import '@app/styles/index.css';
-import '@features/theme';
+import '@app/bootstrap/register-app-effects';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

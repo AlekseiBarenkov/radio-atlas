@@ -1,6 +1,6 @@
 import { RADIO_BROWSER_API_BASE_URL } from '@shared/api/radio-browser-api';
-import { request } from '@shared/api/request';
 import type { RadioStation } from '../model/types';
+import { radioBrowserRequest } from '@/shared/api/radio-browser-request';
 
 export const getStationById = async (stationId: string, signal?: AbortSignal): Promise<RadioStation | null> => {
   const normalizedStationId = stationId.trim();
@@ -9,7 +9,7 @@ export const getStationById = async (stationId: string, signal?: AbortSignal): P
     return null;
   }
 
-  const stations = await request<RadioStation[]>(
+  const stations = await radioBrowserRequest<RadioStation[]>(
     `${RADIO_BROWSER_API_BASE_URL}/stations/byuuid/${encodeURIComponent(normalizedStationId)}`,
     {
       signal,

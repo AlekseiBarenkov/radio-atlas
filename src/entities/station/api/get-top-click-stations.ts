@@ -1,6 +1,6 @@
 import { RADIO_BROWSER_API_BASE_URL } from '@shared/api/radio-browser-api';
-import { request } from '@shared/api/request';
 import type { GetTopClickStationsParams, RadioStation } from '../model/types';
+import { radioBrowserRequest } from '@/shared/api/radio-browser-request';
 
 const DEFAULT_LIMIT = 24;
 
@@ -15,7 +15,10 @@ export const getTopClickStations = async (
     hidebroken: hideBroken ? 'true' : 'false',
   });
 
-  return request<RadioStation[]>(`${RADIO_BROWSER_API_BASE_URL}/stations/topclick?${searchParams.toString()}`, {
-    signal,
-  });
+  return radioBrowserRequest<RadioStation[]>(
+    `${RADIO_BROWSER_API_BASE_URL}/stations/topclick?${searchParams.toString()}`,
+    {
+      signal,
+    },
+  );
 };

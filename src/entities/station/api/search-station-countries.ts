@@ -1,5 +1,5 @@
+import { radioBrowserRequest } from '@/shared/api/radio-browser-request';
 import { RADIO_BROWSER_API_BASE_URL } from '@shared/api/radio-browser-api';
-import { request } from '@shared/api/request';
 
 type RadioBrowserCountry = {
   name: string;
@@ -53,7 +53,7 @@ const loadCountries = async (signal?: AbortSignal): Promise<StationCountrySugges
     hidebroken: 'true',
   });
 
-  countriesRequestPromise = request<RadioBrowserCountry[]>(
+  countriesRequestPromise = radioBrowserRequest<RadioBrowserCountry[]>(
     `${RADIO_BROWSER_API_BASE_URL}/countries?${searchParams.toString()}`,
     {
       signal,
