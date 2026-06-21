@@ -97,6 +97,16 @@ export const createPlayerRuntime = (): PlayerRuntime => {
     audioController.setSource(streamUrl);
   };
 
+  const suspendAudioSource = () => {
+    playbackGuard.next();
+    hasActiveSourcePlayed = false;
+    bufferingReconnectController.clear();
+    fallbackController.reset();
+    audioController.reset();
+    mediaSessionController.setPlaybackState('paused');
+    mediaSessionController.setActionState('paused');
+  };
+
   const playCurrentSource = (stationId: string) => {
     const requestId = playbackGuard.current();
 
@@ -178,9 +188,9 @@ export const createPlayerRuntime = (): PlayerRuntime => {
   };
 
   const syncLoading = () => {
-    const { currentStation } = usePlayerStore.getState();
+    const { currentStation, status } = usePlayerStore.getState();
 
-    if (!currentStation) {
+    if (!currentStation || status === PLAYER_STATUSES.PAUSED) {
       return;
     }
 
@@ -226,7 +236,9 @@ export const createPlayerRuntime = (): PlayerRuntime => {
       return;
     }
 
-    if (isStationChanged || shouldReconnectCurrentStation) {
+    const shouldResumePausedStation = prevState.status === PLAYER_STATUSES.PAUSED && status === PLAYER_STATUSES.LOADING;
+
+    if (isStationChanged || shouldReconnectCurrentStation || shouldResumePausedStation) {
       const sourceUrl = fallbackController.start(streamUrl);
 
       if (!sourceUrl) {
@@ -237,10 +249,14 @@ export const createPlayerRuntime = (): PlayerRuntime => {
       }
 
       startSourcePlayback(sourceUrl, currentStation.stationuuid);
+
+      return;
     }
 
     if (status === PLAYER_STATUSES.PAUSED) {
-      audioController.pause();
+      if (prevState.status !== PLAYER_STATUSES.PAUSED) {
+        suspendAudioSource();
+      }
 
       return;
     }
