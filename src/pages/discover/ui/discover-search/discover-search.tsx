@@ -1,13 +1,13 @@
-import { type ChangeEvent, type KeyboardEvent, useRef, useState } from 'react';
-import { useDiscoverContext } from '../../model';
-import S from './discover-search-form.module.css';
-import { hasSearchValue } from './lib/has-search-value';
 import { useTranslation } from '@/features/localization';
 import { Button, Input } from '@/shared/ui';
+import { type ChangeEvent, type KeyboardEvent, useRef, useState } from 'react';
+import { useDiscoverContext } from '../../model';
+import S from './discover-search.module.css';
+import { hasSearchValue } from './lib/has-search-value';
 
 const SEARCH_DEBOUNCE_MS = 400;
 
-export const DiscoverSearchForm = () => {
+export const DiscoverSearch = () => {
   const t = useTranslation();
 
   const { search, onSearchChange } = useDiscoverContext();
@@ -55,7 +55,7 @@ export const DiscoverSearchForm = () => {
   };
 
   return (
-    <form className={S.form} role="search">
+    <div className={S.wrapper} role="search">
       <label className={S.label} htmlFor="discover-search">
         {t.discover.searchLabel}
       </label>
@@ -86,6 +86,6 @@ export const DiscoverSearchForm = () => {
           </Button>
         )}
       </div>
-    </form>
+    </div>
   );
 };

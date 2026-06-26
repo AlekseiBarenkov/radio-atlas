@@ -110,7 +110,7 @@ export const createPlayerRuntime = (): PlayerRuntime => {
     hasActiveSourcePlayed = false;
     bufferingReconnectController.clear();
     fallbackController.reset();
-    audioController.reset();
+    audioController.pause();
     mediaSessionController.setPlaybackState('paused');
     mediaSessionController.setActionState('paused');
   };
