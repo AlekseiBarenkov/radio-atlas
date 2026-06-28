@@ -21,4 +21,7 @@ configureRadioBrowserProxyFallback({
       actions.setProxyAvailability(proxyId, true);
     }
   },
+  getProxyFirst: () => {
+    return usePlayerProxyStore.getState().proxyRadioBrowserRequests;
+  },
 });

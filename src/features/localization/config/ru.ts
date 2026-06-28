@@ -213,6 +213,8 @@ export const ru = {
     checkProxy: 'Проверить прокси',
     radioBrowserProxyActive: 'Radio Browser API',
     radioBrowserProxyEnabled: 'Radio Browser переключен на прокси',
+    proxyRadioBrowserRequests: 'Проксировать запросы Radio Browser',
+    proxyRadioBrowserRequestsDescription: 'Включённые прокси используются по очереди, затем выполняется прямой запрос.',
   },
   settings: {
     title: 'Настройки',

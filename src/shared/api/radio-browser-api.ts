@@ -1,5 +1,3 @@
-import { DEFAULT_QUERY_RETRY_COUNT } from '../config/query';
-
 export const RADIO_BROWSER_API_BASE_URL = 'https://de1.api.radio-browser.info/json' as const;
 
 export type RadioBrowserRequestTransport =
@@ -20,13 +18,9 @@ type RadioBrowserProxyTransport = {
 
 type RadioBrowserProxyFallbackConfig = {
   buildTransports: (url: string) => RadioBrowserProxyTransport[];
+  getProxyFirst: () => boolean;
   onTransportSuccess: (proxyId: string | null) => void;
 };
-
-const RADIO_BROWSER_DIRECT_ATTEMPT_LIMIT = DEFAULT_QUERY_RETRY_COUNT + 1;
-
-let directFailureCount = 0;
-let isProxyFallbackEnabled = false;
 
 let proxyFallbackConfig: RadioBrowserProxyFallbackConfig | null = null;
 
@@ -39,30 +33,17 @@ export const notifyRadioBrowserTransportSuccess = (transport: RadioBrowserReques
   proxyFallbackConfig?.onTransportSuccess(proxyId);
 };
 
-export const getIsRadioBrowserProxyFallbackEnabled = (): boolean => {
-  return isProxyFallbackEnabled;
-};
-
-export const markRadioBrowserDirectFailure = () => {
-  directFailureCount += 1;
-
-  if (directFailureCount >= RADIO_BROWSER_DIRECT_ATTEMPT_LIMIT) {
-    isProxyFallbackEnabled = true;
-  }
-};
-
-export const resetRadioBrowserDirectFailures = () => {
-  directFailureCount = 0;
-  isProxyFallbackEnabled = false;
-};
-
 export const getRadioBrowserRequestTransports = (url: string): RadioBrowserRequestTransport[] => {
   const directTransport: RadioBrowserRequestTransport = {
     type: 'direct',
     url,
   };
 
-  const proxyTransports = (proxyFallbackConfig?.buildTransports(url) ?? []).map(
+  if (!proxyFallbackConfig?.getProxyFirst()) {
+    return [directTransport];
+  }
+
+  const proxyTransports = proxyFallbackConfig.buildTransports(url).map(
     (transport): RadioBrowserRequestTransport => ({
       type: 'proxy',
       url: transport.url,
@@ -70,5 +51,5 @@ export const getRadioBrowserRequestTransports = (url: string): RadioBrowserReque
     }),
   );
 
-  return [directTransport, ...proxyTransports];
+  return [...proxyTransports, directTransport];
 };

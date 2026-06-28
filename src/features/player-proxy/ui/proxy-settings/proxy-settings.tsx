@@ -53,6 +53,7 @@ export const ProxySettings = () => {
 
   const storedProxies = usePlayerProxyStore((state) => state.proxies);
   const radioBrowserProxyId = usePlayerProxyStore((state) => state.radioBrowserProxyId);
+  const proxyRadioBrowserRequests = usePlayerProxyStore((state) => state.proxyRadioBrowserRequests);
 
   const proxies = useMemo(() => sortUserProxies(storedProxies), [storedProxies]);
 
@@ -145,6 +146,19 @@ export const ProxySettings = () => {
 
   return (
     <div className={S.root}>
+      <label className={S.proxyMode}>
+        <input
+          type="checkbox"
+          checked={proxyRadioBrowserRequests}
+          onChange={(event) => actions.setProxyRadioBrowserRequests(event.target.checked)}
+        />
+
+        <span className={S.proxyModeContent}>
+          <span className={S.proxyModeLabel}>{t.proxySettings.proxyRadioBrowserRequests}</span>
+          <span className={S.proxyModeDescription}>{t.proxySettings.proxyRadioBrowserRequestsDescription}</span>
+        </span>
+      </label>
+
       <div className={S.toolbar}>
         <Button onClick={openCreatePanel}>{t.proxySettings.addProxy}</Button>
       </div>

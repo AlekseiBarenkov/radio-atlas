@@ -216,6 +216,8 @@ export const en = {
     checkProxy: 'Check proxy',
     radioBrowserProxyActive: 'Radio Browser API',
     radioBrowserProxyEnabled: 'Radio Browser switched to proxy',
+    proxyRadioBrowserRequests: 'Proxy Radio Browser requests',
+    proxyRadioBrowserRequestsDescription: 'Enabled proxies are tried in order before a direct request.',
   },
 
   settings: {

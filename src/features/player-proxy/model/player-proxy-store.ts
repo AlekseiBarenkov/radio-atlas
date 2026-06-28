@@ -11,6 +11,7 @@ export const usePlayerProxyStore = create<PlayerProxyStore>()(
       proxies: [],
       activeProxyId: null,
       radioBrowserProxyId: null,
+      proxyRadioBrowserRequests: false,
 
       actions: {
         addProxy: (input) => {
@@ -96,12 +97,24 @@ export const usePlayerProxyStore = create<PlayerProxyStore>()(
             radioBrowserProxyId: proxyId,
           });
         },
+
+        setProxyRadioBrowserRequests: (enabled) => {
+          if (get().proxyRadioBrowserRequests === enabled) {
+            return;
+          }
+
+          set({
+            proxyRadioBrowserRequests: enabled,
+            radioBrowserProxyId: enabled ? get().radioBrowserProxyId : null,
+          });
+        },
       },
     }),
     {
       name: PLAYER_PROXY_STORAGE_KEY,
       partialize: (state) => ({
         proxies: state.proxies,
+        proxyRadioBrowserRequests: state.proxyRadioBrowserRequests,
       }),
     },
   ),

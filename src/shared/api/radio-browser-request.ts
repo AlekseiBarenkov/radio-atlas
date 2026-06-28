@@ -1,13 +1,10 @@
 import {
-  getIsRadioBrowserProxyFallbackEnabled,
   getRadioBrowserRequestTransports,
-  markRadioBrowserDirectFailure,
   notifyRadioBrowserTransportSuccess,
-  resetRadioBrowserDirectFailures,
   type RadioBrowserRequestTransport,
 } from './radio-browser-api';
 
-const RADIO_BROWSER_DIRECT_TIMEOUT_MS = 20_000;
+const RADIO_BROWSER_REQUEST_TIMEOUT_MS = 20_000;
 
 type RequestMethod = 'GET';
 
@@ -18,6 +15,7 @@ type RadioBrowserRequestOptions = {
 
 type RequestSignal = {
   signal?: AbortSignal;
+  timeoutPromise: Promise<never> | null;
   cleanup: () => void;
 };
 
@@ -25,14 +23,20 @@ const createRequestSignal = (signal: AbortSignal | undefined, timeoutMs: number 
   if (timeoutMs === null) {
     return {
       signal,
+      timeoutPromise: null,
       cleanup: () => {},
     };
   }
 
   const controller = new AbortController();
-  let timeoutId: ReturnType<typeof setTimeout> | null = setTimeout(() => {
-    controller.abort();
-  }, timeoutMs);
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => {
+      controller.abort();
+      reject(new Error('Radio Browser request timed out'));
+    }, timeoutMs);
+  });
 
   const abortFromSignal = () => {
     controller.abort();
@@ -46,6 +50,7 @@ const createRequestSignal = (signal: AbortSignal | undefined, timeoutMs: number 
 
   return {
     signal: controller.signal,
+    timeoutPromise,
     cleanup: () => {
       if (timeoutId !== null) {
         clearTimeout(timeoutId);
@@ -65,18 +70,6 @@ const getHasProxyTransport = (transports: RadioBrowserRequestTransport[]): boole
   return transports.some((transport) => transport.type === 'proxy');
 };
 
-const getShouldSkipTransport = (transport: RadioBrowserRequestTransport, hasProxyTransport: boolean): boolean => {
-  if (!hasProxyTransport) {
-    return false;
-  }
-
-  if (getIsRadioBrowserProxyFallbackEnabled()) {
-    return transport.type === 'direct';
-  }
-
-  return transport.type === 'proxy';
-};
-
 const fetchJson = async <TResponse>(
   transport: RadioBrowserRequestTransport,
   options: RadioBrowserRequestOptions,
@@ -85,17 +78,21 @@ const fetchJson = async <TResponse>(
   const { method = 'GET', signal } = options;
   const requestSignal = createRequestSignal(signal, timeoutMs);
 
-  try {
-    const response = await fetch(transport.url, {
-      method,
-      signal: requestSignal.signal,
-    });
-
+  const requestPromise = fetch(transport.url, {
+    method,
+    signal: requestSignal.signal,
+  }).then(async (response): Promise<TResponse> => {
     if (!response.ok) {
       throw new Error(`Request failed with status ${response.status}`);
     }
 
     return (await response.json()) as TResponse;
+  });
+
+  try {
+    return requestSignal.timeoutPromise === null
+      ? await requestPromise
+      : await Promise.race([requestPromise, requestSignal.timeoutPromise]);
   } finally {
     requestSignal.cleanup();
   }
@@ -106,23 +103,13 @@ export const radioBrowserRequest = async <TResponse>(
   options: RadioBrowserRequestOptions = {},
 ): Promise<TResponse> => {
   const transports = getRadioBrowserRequestTransports(input);
-  const hasProxyTransport = getHasProxyTransport(transports);
+  const timeoutMs = getHasProxyTransport(transports) ? RADIO_BROWSER_REQUEST_TIMEOUT_MS : null;
 
   let lastError: Error | null = null;
 
   for (const transport of transports) {
-    if (getShouldSkipTransport(transport, hasProxyTransport)) {
-      continue;
-    }
-
     try {
-      const timeoutMs = transport.type === 'direct' && hasProxyTransport ? RADIO_BROWSER_DIRECT_TIMEOUT_MS : null;
-
       const response = await fetchJson<TResponse>(transport, options, timeoutMs);
-
-      if (transport.type === 'direct') {
-        resetRadioBrowserDirectFailures();
-      }
 
       notifyRadioBrowserTransportSuccess(transport);
 
@@ -135,14 +122,6 @@ export const radioBrowserRequest = async <TResponse>(
       }
 
       lastError = requestError;
-
-      if (transport.type === 'direct') {
-        markRadioBrowserDirectFailure();
-
-        if (!getIsRadioBrowserProxyFallbackEnabled()) {
-          break;
-        }
-      }
     }
   }
 
