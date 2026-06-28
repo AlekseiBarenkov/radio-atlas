@@ -49,6 +49,7 @@ export const createPlayerRuntime = (): PlayerRuntime => {
   let hasActiveSourcePlayed = false;
 
   const startSourcePlayback = (sourceUrl: string, stationId: string) => {
+    mediaSessionController.setPlaybackState('playing');
     replaceAudioSource(sourceUrl);
     setStatusSafe(PLAYER_STATUSES.LOADING);
     playCurrentSource(stationId);
@@ -101,7 +102,6 @@ export const createPlayerRuntime = (): PlayerRuntime => {
     playbackGuard.next();
     hasActiveSourcePlayed = false;
     bufferingReconnectController.clear();
-    audioController.reset();
     audioController.setSource(streamUrl);
   };
 
@@ -147,6 +147,8 @@ export const createPlayerRuntime = (): PlayerRuntime => {
     const sourceUrl = fallbackController.handleFailure();
 
     if (!sourceUrl) {
+      mediaSessionController.setPlaybackState('paused');
+      mediaSessionController.setActionState('paused');
       actions.setError(getPlaybackErrorMessage());
 
       return;
