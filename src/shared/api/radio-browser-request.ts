@@ -6,11 +6,54 @@ import {
   type RadioBrowserRequestTransport,
 } from './radio-browser-api';
 
+const RADIO_BROWSER_DIRECT_TIMEOUT_MS = 20_000;
+
 type RequestMethod = 'GET';
 
 type RadioBrowserRequestOptions = {
   method?: RequestMethod;
   signal?: AbortSignal;
+};
+
+type RequestSignal = {
+  signal?: AbortSignal;
+  cleanup: () => void;
+};
+
+const createRequestSignal = (signal: AbortSignal | undefined, timeoutMs: number | null): RequestSignal => {
+  if (timeoutMs === null) {
+    return {
+      signal,
+      cleanup: () => {},
+    };
+  }
+
+  const controller = new AbortController();
+  let timeoutId: ReturnType<typeof setTimeout> | null = setTimeout(() => {
+    controller.abort();
+  }, timeoutMs);
+
+  const abortFromSignal = () => {
+    controller.abort();
+  };
+
+  if (signal?.aborted) {
+    controller.abort();
+  } else {
+    signal?.addEventListener('abort', abortFromSignal, { once: true });
+  }
+
+  return {
+    signal: controller.signal,
+    cleanup: () => {
+      if (timeoutId !== null) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+
+      signal?.removeEventListener('abort', abortFromSignal);
+    },
+  };
 };
 
 const toError = (error: unknown): Error => {
@@ -36,19 +79,25 @@ const getShouldSkipTransport = (transport: RadioBrowserRequestTransport, hasProx
 const fetchJson = async <TResponse>(
   transport: RadioBrowserRequestTransport,
   options: RadioBrowserRequestOptions,
+  timeoutMs: number | null,
 ): Promise<TResponse> => {
   const { method = 'GET', signal } = options;
+  const requestSignal = createRequestSignal(signal, timeoutMs);
 
-  const response = await fetch(transport.url, {
-    method,
-    signal,
-  });
+  try {
+    const response = await fetch(transport.url, {
+      method,
+      signal: requestSignal.signal,
+    });
 
-  if (!response.ok) {
-    throw new Error(`Request failed with status ${response.status}`);
+    if (!response.ok) {
+      throw new Error(`Request failed with status ${response.status}`);
+    }
+
+    return (await response.json()) as TResponse;
+  } finally {
+    requestSignal.cleanup();
   }
-
-  return (await response.json()) as TResponse;
 };
 
 export const radioBrowserRequest = async <TResponse>(
@@ -66,7 +115,9 @@ export const radioBrowserRequest = async <TResponse>(
     }
 
     try {
-      const response = await fetchJson<TResponse>(transport, options);
+      const timeoutMs = transport.type === 'direct' && hasProxyTransport ? RADIO_BROWSER_DIRECT_TIMEOUT_MS : null;
+
+      const response = await fetchJson<TResponse>(transport, options, timeoutMs);
 
       if (transport.type === 'direct') {
         resetRadioBrowserDirectFailures();
