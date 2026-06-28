@@ -11,7 +11,7 @@ import { DiscoverInfiniteScrollTrigger } from './ui/discover-infinite-scroll-tri
 import { useTranslation } from '@/features/localization';
 
 const STATIONS_LIMIT = 48;
-const SKELETON_COUNT = 12;
+const SKELETON_COUNT = 6;
 
 const DISCOVER_STATIONS_STALE_TIME = 1000 * 60 * 30;
 const DISCOVER_STATIONS_GC_TIME = 1000 * 60 * 60;
