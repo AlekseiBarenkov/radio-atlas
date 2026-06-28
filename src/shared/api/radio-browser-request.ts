@@ -2,6 +2,7 @@ import {
   getIsRadioBrowserProxyFallbackEnabled,
   getRadioBrowserRequestTransports,
   markRadioBrowserDirectFailure,
+  notifyRadioBrowserTransportSuccess,
   resetRadioBrowserDirectFailures,
   type RadioBrowserRequestTransport,
 } from './radio-browser-api';
@@ -122,6 +123,8 @@ export const radioBrowserRequest = async <TResponse>(
       if (transport.type === 'direct') {
         resetRadioBrowserDirectFailures();
       }
+
+      notifyRadioBrowserTransportSuccess(transport);
 
       return response;
     } catch (error) {

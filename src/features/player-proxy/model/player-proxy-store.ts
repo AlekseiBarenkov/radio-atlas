@@ -10,6 +10,7 @@ export const usePlayerProxyStore = create<PlayerProxyStore>()(
     (set, get) => ({
       proxies: [],
       activeProxyId: null,
+      radioBrowserProxyId: null,
 
       actions: {
         addProxy: (input) => {
@@ -28,6 +29,7 @@ export const usePlayerProxyStore = create<PlayerProxyStore>()(
         setProxies: (proxies) => {
           set({
             proxies,
+            radioBrowserProxyId: null,
           });
         },
 
@@ -45,6 +47,7 @@ export const usePlayerProxyStore = create<PlayerProxyStore>()(
           set((state) => ({
             proxies: state.proxies.filter((proxy) => proxy.id !== proxyId),
             activeProxyId: state.activeProxyId === proxyId ? null : state.activeProxyId,
+            radioBrowserProxyId: state.radioBrowserProxyId === proxyId ? null : state.radioBrowserProxyId,
           }));
 
           notifySyncDataChanged();
@@ -55,6 +58,7 @@ export const usePlayerProxyStore = create<PlayerProxyStore>()(
             proxies: state.proxies.map((proxy) =>
               proxy.id === proxyId ? { ...proxy, enabled: !proxy.enabled } : proxy,
             ),
+            radioBrowserProxyId: state.radioBrowserProxyId === proxyId ? null : state.radioBrowserProxyId,
           }));
 
           notifySyncDataChanged();
@@ -81,6 +85,16 @@ export const usePlayerProxyStore = create<PlayerProxyStore>()(
           const isAvailable = await checkUserProxy(proxy);
 
           get().actions.setProxyAvailability(proxyId, isAvailable);
+        },
+
+        setRadioBrowserProxyId: (proxyId) => {
+          if (get().radioBrowserProxyId === proxyId) {
+            return;
+          }
+
+          set({
+            radioBrowserProxyId: proxyId,
+          });
         },
       },
     }),

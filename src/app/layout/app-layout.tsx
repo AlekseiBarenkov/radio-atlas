@@ -10,6 +10,7 @@ import { useTranslation } from '@/features/localization';
 import { useResponsive } from '@/app/providers/responsive';
 import { Menu } from 'lucide-react';
 import { CloudSyncBridge } from '@/features/cloud-sync';
+import { RadioBrowserProxyToastBridge } from '@/features/player-proxy';
 
 export const AppLayout = () => {
   const { isMobile } = useResponsive();
@@ -56,6 +57,7 @@ export const AppLayout = () => {
       <ToastProvider hasMiniPlayer={!isIdle} />
 
       <PlayerToastBridge />
+      <RadioBrowserProxyToastBridge />
       <PlayerAudioBridge />
       <CloudSyncBridge />
     </div>

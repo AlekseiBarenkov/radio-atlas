@@ -52,6 +52,8 @@ export const ProxySettings = () => {
   const { isDesktop } = useResponsive();
 
   const storedProxies = usePlayerProxyStore((state) => state.proxies);
+  const radioBrowserProxyId = usePlayerProxyStore((state) => state.radioBrowserProxyId);
+
   const proxies = useMemo(() => sortUserProxies(storedProxies), [storedProxies]);
 
   const actions = usePlayerProxyStore((state) => state.actions);
@@ -155,6 +157,7 @@ export const ProxySettings = () => {
             <ProxySettingsItem
               key={proxy.id}
               proxy={proxy}
+              isRadioBrowserProxyActive={proxy.id === radioBrowserProxyId}
               onToggleEnabled={() => actions.toggleProxyEnabled(proxy.id)}
               onEdit={() => openEditPanel(proxy)}
               onRemove={() => setDeleteProxyState({ open: true, proxy })}

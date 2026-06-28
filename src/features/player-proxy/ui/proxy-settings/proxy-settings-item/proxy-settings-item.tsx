@@ -44,10 +44,11 @@ const Actions = (props: ActionsProps) => {
 
 type ProxySettingsItemProps = Omit<ActionsProps, 'enabled'> & {
   proxy: UserProxy;
+  isRadioBrowserProxyActive: boolean;
 };
 
 export const ProxySettingsItem = (props: ProxySettingsItemProps) => {
-  const { proxy, ...actionsProps } = props;
+  const { proxy, isRadioBrowserProxyActive, ...actionsProps } = props;
 
   const [isChecking, setChecking] = useState(false);
 
@@ -77,6 +78,8 @@ export const ProxySettingsItem = (props: ProxySettingsItemProps) => {
       </div>
 
       <div className={S.statusRow}>
+        {isRadioBrowserProxyActive && <Badge tone="info">{t.proxySettings.radioBrowserProxyActive}</Badge>}
+
         {proxy.availability === true && <Badge tone="success">{t.proxySettings.proxyAvailable}</Badge>}
 
         {proxy.availability === false && <Badge tone="danger">{t.proxySettings.proxyUnavailable}</Badge>}

@@ -214,6 +214,8 @@ export const en = {
     proxyUnavailable: 'Proxy is unavailable',
     proxyUnchecked: 'Proxy is not checked',
     checkProxy: 'Check proxy',
+    radioBrowserProxyActive: 'Radio Browser API',
+    radioBrowserProxyEnabled: 'Radio Browser switched to proxy',
   },
 
   settings: {

@@ -2,21 +2,41 @@ import { DEFAULT_QUERY_RETRY_COUNT } from '../config/query';
 
 export const RADIO_BROWSER_API_BASE_URL = 'https://de1.api.radio-browser.info/json' as const;
 
-export type RadioBrowserRequestTransport = {
-  type: 'direct' | 'proxy';
+export type RadioBrowserRequestTransport =
+  | {
+      type: 'direct';
+      url: string;
+    }
+  | {
+      type: 'proxy';
+      url: string;
+      proxyId: string;
+    };
+
+type RadioBrowserProxyTransport = {
   url: string;
+  proxyId: string;
 };
 
-type RadioBrowserProxyFallbackBuilder = (url: string) => string[];
+type RadioBrowserProxyFallbackConfig = {
+  buildTransports: (url: string) => RadioBrowserProxyTransport[];
+  onTransportSuccess: (proxyId: string | null) => void;
+};
 
 const RADIO_BROWSER_DIRECT_ATTEMPT_LIMIT = DEFAULT_QUERY_RETRY_COUNT + 1;
 
-let proxyFallbackBuilder: RadioBrowserProxyFallbackBuilder | null = null;
 let directFailureCount = 0;
 let isProxyFallbackEnabled = false;
 
-export const configureRadioBrowserProxyFallback = (builder: RadioBrowserProxyFallbackBuilder | null) => {
-  proxyFallbackBuilder = builder;
+let proxyFallbackConfig: RadioBrowserProxyFallbackConfig | null = null;
+
+export const configureRadioBrowserProxyFallback = (config: RadioBrowserProxyFallbackConfig | null) => {
+  proxyFallbackConfig = config;
+};
+
+export const notifyRadioBrowserTransportSuccess = (transport: RadioBrowserRequestTransport) => {
+  const proxyId = transport.type === 'proxy' ? transport.proxyId : null;
+  proxyFallbackConfig?.onTransportSuccess(proxyId);
 };
 
 export const getIsRadioBrowserProxyFallbackEnabled = (): boolean => {
@@ -42,10 +62,11 @@ export const getRadioBrowserRequestTransports = (url: string): RadioBrowserReque
     url,
   };
 
-  const proxyTransports = (proxyFallbackBuilder?.(url) ?? []).map(
-    (proxyUrl): RadioBrowserRequestTransport => ({
+  const proxyTransports = (proxyFallbackConfig?.buildTransports(url) ?? []).map(
+    (transport): RadioBrowserRequestTransport => ({
       type: 'proxy',
-      url: proxyUrl,
+      url: transport.url,
+      proxyId: transport.proxyId,
     }),
   );
 

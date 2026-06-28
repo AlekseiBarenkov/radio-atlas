@@ -211,6 +211,8 @@ export const ru = {
     proxyUnavailable: 'Прокси недоступен',
     proxyUnchecked: 'Прокси не проверен',
     checkProxy: 'Проверить прокси',
+    radioBrowserProxyActive: 'Radio Browser API',
+    radioBrowserProxyEnabled: 'Radio Browser переключен на прокси',
   },
   settings: {
     title: 'Настройки',

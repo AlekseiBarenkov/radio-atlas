@@ -19,6 +19,7 @@ export type UserProxyInput = {
 export type PlayerProxyState = {
   proxies: UserProxy[];
   activeProxyId: string | null;
+  radioBrowserProxyId: string | null;
 };
 
 export type PlayerProxyActions = {
@@ -30,6 +31,7 @@ export type PlayerProxyActions = {
   setActiveProxyId: (proxyId: string | null) => void;
   setProxyAvailability: (proxyId: string, availability?: boolean) => void;
   checkProxy: (proxyId: string) => Promise<void>;
+  setRadioBrowserProxyId: (proxyId: string | null) => void;
 };
 
 export type PlayerProxyStore = PlayerProxyState & {
